@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { CheckCircle2, ChevronLeft, ChevronRight, BookOpen, Code2, Award, AlertTriangle, Lightbulb, Sparkles, Bot, Loader2, Swords, GraduationCap } from "lucide-react";
+import { CheckCircle2, ChevronLeft, ChevronRight, BookOpen, Code2, Award, AlertTriangle, Lightbulb, Sparkles, Bot, Loader2, Swords, GraduationCap, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
@@ -13,6 +13,7 @@ import { SteppedLearning } from "@/components/learning/SteppedLearning";
 import type { QuizQuestion } from "@/data/topicContent";
 import { AiHelper } from "@/components/ai/AiHelper";
 import { CodingChallengePanel } from "@/components/challenges/CodingChallengePanel";
+import { ExamQuestionBank } from "@/components/quiz/ExamQuestionBank";
 import { AiExamValidator } from "@/components/challenges/AiExamValidator";
 import { topicData } from "@/data/topicContent";
 import { topicLearningSteps } from "@/data/learningSteps";
@@ -202,7 +203,7 @@ export default function TopicPage() {
       )}
 
       <Tabs defaultValue={hasSteps ? "learn" : "lesson"} className="w-full">
-        <TabsList className={`grid w-full ${hasSteps ? "grid-cols-5" : "grid-cols-4"} max-w-2xl mb-8 h-12 bg-muted/50 p-1 rounded-xl`}>
+        <TabsList className={`grid w-full ${hasSteps ? "grid-cols-6" : "grid-cols-5"} max-w-3xl mb-8 h-12 bg-muted/50 p-1 rounded-xl`}>
           {hasSteps && (
             <TabsTrigger value="learn" className="rounded-lg font-medium data-[state=active]:bg-card data-[state=active]:shadow-sm gap-1.5 text-xs sm:text-sm">
               <GraduationCap className="w-4 h-4" /> <span className="hidden sm:inline">Learn</span>
@@ -216,6 +217,9 @@ export default function TopicPage() {
           </TabsTrigger>
           <TabsTrigger value="practice" className="rounded-lg font-medium data-[state=active]:bg-card data-[state=active]:shadow-sm gap-1.5 text-xs sm:text-sm">
             <Code2 className="w-4 h-4" /> <span className="hidden sm:inline">Practice</span>
+          </TabsTrigger>
+          <TabsTrigger value="exam" className="rounded-lg font-medium data-[state=active]:bg-card data-[state=active]:shadow-sm gap-1.5 text-xs sm:text-sm">
+            <FileText className="w-4 h-4" /> <span className="hidden sm:inline">Exam Qs</span>
           </TabsTrigger>
           <TabsTrigger value="quiz" className="rounded-lg font-medium data-[state=active]:bg-card data-[state=active]:shadow-sm gap-1.5 text-xs sm:text-sm">
             <Award className="w-4 h-4" /> <span className="hidden sm:inline">Quiz</span>
@@ -347,7 +351,19 @@ export default function TopicPage() {
           </motion.div>
         </TabsContent>
 
-        <TabsContent value="quiz" className="focus-visible:outline-none focus-visible:ring-0">
+        <TabsContent value="exam" className="focus-visible:outline-none focus-visible:ring-0">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+            <div className="mb-6">
+              <h2 className="text-2xl font-display font-bold mb-2">Exam Questions</h2>
+              <p className="text-muted-foreground">Browse exam-style questions with pseudocode hints. Click to expand and attempt each one.</p>
+            </div>
+            <ExamQuestionBank
+              topicSlug={slug}
+              topicTitle={topicMeta.title}
+              questions={allQuestions}
+              onQuestionsGenerated={(newQs) => setAiQuestions(prev => [...prev, ...newQs])}
+            />
+          </motion.div>
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
             <div className="mb-6 flex items-start justify-between gap-4">
               <div>
