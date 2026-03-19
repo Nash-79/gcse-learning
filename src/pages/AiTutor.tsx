@@ -1,10 +1,11 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
-import { Bot, Send, Loader2, Trash2, Sparkles, Code2, GraduationCap, Lightbulb, BookOpen, Home } from "lucide-react";
+import { Bot, Send, Loader2, Trash2, Sparkles, Code2, GraduationCap, Lightbulb, BookOpen, Home, ChevronDown } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ChatMessage } from "@/components/chat/ChatMessage";
 import { FollowUpSuggestions } from "@/components/chat/FollowUpSuggestions";
+import { useAiSettings } from "@/lib/useAiSettings";
 
 interface Message {
   role: "user" | "assistant";
