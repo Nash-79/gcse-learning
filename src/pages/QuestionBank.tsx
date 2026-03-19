@@ -140,7 +140,7 @@ export default function QuestionBank() {
                   Question Bank Practice
                 </h1>
                 <p className="text-white/70 text-sm md:text-base mt-1">
-                  Practice OCR J277 exam-style questions — Full specification coverage
+                  Practice OCR J277 exam-style questions with <span className="text-white font-semibold">AI-powered marking &amp; explanations</span>
                 </p>
               </div>
             </div>
