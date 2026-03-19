@@ -351,7 +351,19 @@ export default function TopicPage() {
           </motion.div>
         </TabsContent>
 
-        <TabsContent value="quiz" className="focus-visible:outline-none focus-visible:ring-0">
+        <TabsContent value="exam" className="focus-visible:outline-none focus-visible:ring-0">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+            <div className="mb-6">
+              <h2 className="text-2xl font-display font-bold mb-2">Exam Questions</h2>
+              <p className="text-muted-foreground">Browse exam-style questions with pseudocode hints. Click to expand and attempt each one.</p>
+            </div>
+            <ExamQuestionBank
+              topicSlug={slug}
+              topicTitle={topicMeta.title}
+              questions={allQuestions}
+              onQuestionsGenerated={(newQs) => setAiQuestions(prev => [...prev, ...newQs])}
+            />
+          </motion.div>
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
             <div className="mb-6 flex items-start justify-between gap-4">
               <div>
