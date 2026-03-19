@@ -148,6 +148,14 @@ export function AppSidebar() {
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={location.pathname === "/ai-tutor"}>
+                  <Link to="/ai-tutor">
+                    <Bot className="h-4 w-4 text-secondary" />
+                    <span className="font-medium text-secondary">AI Tutor</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={location.pathname === "/settings"}>
                   <Link to="/settings">
                     <Settings className="h-4 w-4 text-muted-foreground" />
