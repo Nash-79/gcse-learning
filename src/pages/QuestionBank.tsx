@@ -252,8 +252,10 @@ export default function QuestionBank() {
 
           {/* Five A Day */}
           <motion.section variants={item}>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="text-xl">🌟</span>
+            <div className="flex items-center gap-2.5 mb-1">
+              <div className="w-8 h-8 rounded-lg bg-secondary/10 flex items-center justify-center">
+                <Flame className="w-4.5 h-4.5 text-secondary" />
+              </div>
               <h2 className="text-xl font-display font-bold">Five A Day Sets</h2>
             </div>
             <p className="text-xs text-muted-foreground mb-4 ml-8">Daily bite-sized practice — 5 questions per session. {fiveADaySets.length} daily sets to keep your knowledge sharp.</p>
