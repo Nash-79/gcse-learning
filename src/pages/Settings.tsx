@@ -4,6 +4,7 @@ import { Settings as SettingsIcon, Key, Bot, Save, CheckCircle2, AlertCircle, Lo
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAiSettings } from "@/lib/useAiSettings";
+import { supabase } from "@/integrations/supabase/client";
 
 interface FreeModel {
   id: string;
