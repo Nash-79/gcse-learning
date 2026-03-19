@@ -54,7 +54,7 @@ export default function TopicPage() {
   const { data: topics, isLoading: topicsLoading } = useListTopics();
   const { data: progress } = useGetTopicProgress(slug);
   const updateProgress = useUpdateTopicProgress();
-  const { hasAi, settings } = useAiSettings();
+  
 
   const content = topicData[slug];
   const topicMeta = topics?.find(t => t.slug === slug);
