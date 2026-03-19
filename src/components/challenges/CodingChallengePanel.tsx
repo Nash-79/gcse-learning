@@ -3,7 +3,7 @@ import { Sparkles, Loader2, Zap, Flame, Target, Code2, GraduationCap } from "luc
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { CodeRunner } from "@/components/code/CodeRunner";
-import { useAiSettings } from "@/lib/useAiSettings";
+import { supabase } from "@/integrations/supabase/client";
 import type { CodingChallenge, ChallengeDifficulty } from "@/data/codingChallenges";
 import { getChallengesForTopic } from "@/data/codingChallenges";
 
@@ -24,7 +24,6 @@ export function CodingChallengePanel({ topicSlug, topicTitle }: CodingChallengeP
   const [showHints, setShowHints] = useState(false);
   const [aiChallenges, setAiChallenges] = useState<CodingChallenge[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
-  const { hasAi, settings } = useAiSettings();
 
   const staticChallenges = getChallengesForTopic(topicSlug);
   const allChallenges = [...staticChallenges, ...aiChallenges];
@@ -40,33 +39,23 @@ export function CodingChallengePanel({ topicSlug, topicTitle }: CodingChallengeP
   const [showGenMenu, setShowGenMenu] = useState(false);
 
   const generateAiChallenges = useCallback(async (difficulty: ChallengeDifficulty | "all" = "all") => {
-    if (!hasAi) return;
     setIsGenerating(true);
     setShowGenMenu(false);
     const diffPrompt = difficulty === "all"
       ? 'Generate exactly 3 Python coding challenges — one beginner, one intermediate, one hard.'
       : `Generate exactly 3 Python coding challenges, ALL at the "${difficulty}" difficulty level.`;
     try {
-      const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${settings.apiKey}`,
-          "HTTP-Referer": window.location.origin,
+      const { data, error } = await supabase.functions.invoke("ai-chat", {
+        body: {
+          mode: "generate",
+          topicTitle,
+          systemPromptOverride: `You are a GCSE Computer Science exam challenge generator. ${diffPrompt} about "${topicTitle}". Return ONLY a JSON object with a "challenges" array. Each object must have: id (string), title (string), description (string, 2-3 sentences describing the task), difficulty ("beginner"|"intermediate"|"hard"), starterCode (string, Python starter code with comments), hints (array of 2-3 strings), examStyle (boolean, true if exam-style). Make challenges practical and aligned with OCR J277 exam style.`,
+          maxTokens: 2000,
         },
-        body: JSON.stringify({
-          model: settings.model,
-          messages: [{
-            role: "system",
-            content: `You are a GCSE Computer Science exam challenge generator. ${diffPrompt} about "${topicTitle}". Return ONLY a JSON object with a "challenges" array. Each object must have: id (string), title (string), description (string, 2-3 sentences describing the task), difficulty ("beginner"|"intermediate"|"hard"), starterCode (string, Python starter code with comments), hints (array of 2-3 strings), examStyle (boolean, true if exam-style). Make challenges practical and aligned with OCR J277 exam style.`
-          }],
-          max_tokens: 2000,
-          response_format: { type: "json_object" },
-        }),
       });
-      if (!res.ok) throw new Error("Failed to generate");
-      const data = await res.json();
-      const text = data.choices?.[0]?.message?.content || "";
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      const text = data?.content || "";
       const parsed = JSON.parse(text);
       const challenges: CodingChallenge[] = parsed.challenges || [];
       if (challenges.length > 0) {
@@ -77,7 +66,7 @@ export function CodingChallengePanel({ topicSlug, topicTitle }: CodingChallengeP
     } finally {
       setIsGenerating(false);
     }
-  }, [hasAi, settings, topicTitle]);
+  }, [topicTitle]);
 
   if (selectedChallenge) {
     return (
@@ -168,7 +157,7 @@ export function CodingChallengePanel({ topicSlug, topicTitle }: CodingChallengeP
           })}
         </div>
 
-        {hasAi && (
+        {(
           <div className="relative">
             <Button
               variant="outline"
@@ -203,7 +192,7 @@ export function CodingChallengePanel({ topicSlug, topicTitle }: CodingChallengeP
         <div className="text-center py-12 text-muted-foreground">
           <Code2 className="w-10 h-10 mx-auto mb-3 opacity-40" />
           <p className="text-sm">No challenges at this difficulty level yet.</p>
-          {hasAi && <p className="text-xs mt-1">Click "AI Challenges" to generate some!</p>}
+          {<p className="text-xs mt-1">Click "AI Challenges" to generate some!</p>}
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
