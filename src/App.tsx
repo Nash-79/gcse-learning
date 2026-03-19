@@ -42,6 +42,7 @@ const App = () => {
                       <Route path="/playground" element={<Playground />} />
                       <Route path="/question-bank" element={<QuestionBank />} />
                       <Route path="/exam-session/:setId" element={<ExamSession />} />
+                      <Route path="/topic-theory/:slug" element={<TopicTheory />} />
                       <Route path="/settings" element={<Settings />} />
                       <Route path="*" element={<NotFound />} />
                     </Routes>
