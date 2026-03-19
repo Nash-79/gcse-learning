@@ -18,7 +18,7 @@ export function AiHelper({ topicSlug, topicTitle }: AiHelperProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { hasAi, settings } = useAiSettings();
+  const [hasError, setHasError] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
