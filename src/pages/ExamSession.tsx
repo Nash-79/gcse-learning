@@ -1,10 +1,10 @@
-import { useState, useMemo } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useState, useMemo, useCallback } from "react";
+import { useParams, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft, ArrowRight, CheckCircle2, XCircle, Clock, Target,
-  BookOpen, Lightbulb, Code, ChevronDown, ChevronUp, RotateCcw,
-  Trophy, Sparkles, FileText, Eye, EyeOff
+  BookOpen, Lightbulb, Code, RotateCcw, Trophy, Sparkles,
+  FileText, Eye, EyeOff, Brain, Loader2, Star, TrendingUp, AlertCircle
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,10 +12,34 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { allPaperSets, getQuestionsForSet } from "@/data/questionBank/paperSets";
 import { ExamQuestion } from "@/data/questionBank/types";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+
+interface AiMarking {
+  marksAwarded: number;
+  totalMarks: number;
+  feedback: string;
+  markBreakdown: { point: string; awarded: boolean; comment: string }[];
+  grade: "Excellent" | "Good" | "Satisfactory" | "Needs Improvement";
+  improvementTip: string;
+}
+
+const gradeColors: Record<string, string> = {
+  "Excellent": "text-green-500 bg-green-500/10 border-green-500/20",
+  "Good": "text-primary bg-primary/10 border-primary/20",
+  "Satisfactory": "text-amber-500 bg-amber-500/10 border-amber-500/20",
+  "Needs Improvement": "text-red-400 bg-red-400/10 border-red-400/20",
+};
+
+const gradeIcons: Record<string, typeof Star> = {
+  "Excellent": Trophy,
+  "Good": Star,
+  "Satisfactory": TrendingUp,
+  "Needs Improvement": AlertCircle,
+};
 
 export default function ExamSession() {
   const { setId } = useParams<{ setId: string }>();
-  const navigate = useNavigate();
 
   const paperSet = useMemo(() => allPaperSets.find(s => s.id === setId), [setId]);
   const questions = useMemo(() => getQuestionsForSet(setId || ""), [setId]) as ExamQuestion[];
@@ -23,6 +47,8 @@ export default function ExamSession() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState<Record<string, boolean>>({});
+  const [marking, setMarking] = useState<Record<string, boolean>>({});
+  const [aiMarkings, setAiMarkings] = useState<Record<string, AiMarking>>({});
   const [showMarkScheme, setShowMarkScheme] = useState<Record<string, boolean>>({});
   const [showHint, setShowHint] = useState<Record<string, boolean>>({});
   const [showPseudocode, setShowPseudocode] = useState<Record<string, boolean>>({});
@@ -46,30 +72,85 @@ export default function ExamSession() {
   const currentQ = questions[currentIndex];
   const progress = ((Object.keys(submitted).length) / questions.length) * 100;
   const totalMarks = questions.reduce((sum, q) => sum + q.marks, 0);
+  const totalAwarded = Object.values(aiMarkings).reduce((sum, m) => sum + m.marksAwarded, 0);
 
-  const handleSubmitAnswer = () => {
+  const handleSubmitAnswer = async () => {
+    const answer = answers[currentQ.id];
+    if (!answer) return;
+
     setSubmitted(prev => ({ ...prev, [currentQ.id]: true }));
-  };
 
-  const handleNext = () => {
-    if (currentIndex < questions.length - 1) {
-      setCurrentIndex(prev => prev + 1);
+    // For multiple-choice, auto-mark without AI
+    if (currentQ.type === "multiple-choice") {
+      const correct = answer === currentQ.correctAnswer;
+      setAiMarkings(prev => ({
+        ...prev,
+        [currentQ.id]: {
+          marksAwarded: correct ? currentQ.marks : 0,
+          totalMarks: currentQ.marks,
+          feedback: correct
+            ? `Correct! ${currentQ.modelAnswer}`
+            : `The correct answer is "${currentQ.correctAnswer}". ${currentQ.modelAnswer}`,
+          markBreakdown: [{ point: currentQ.markScheme[0], awarded: correct, comment: correct ? "Correct answer selected" : `You selected "${answer}" but the answer is "${currentQ.correctAnswer}"` }],
+          grade: correct ? "Excellent" : "Needs Improvement",
+          improvementTip: correct ? "Great work! Keep practising to maintain your knowledge." : "Review this topic and try to understand why this is the correct answer.",
+        },
+      }));
+      return;
     }
-  };
 
-  const handlePrev = () => {
-    if (currentIndex > 0) {
-      setCurrentIndex(prev => prev - 1);
+    // AI marking for non-MCQ
+    setMarking(prev => ({ ...prev, [currentQ.id]: true }));
+
+    try {
+      const { data, error } = await supabase.functions.invoke("mark-answer", {
+        body: {
+          question: currentQ.question,
+          studentAnswer: answer,
+          markScheme: currentQ.markScheme,
+          modelAnswer: currentQ.modelAnswer,
+          marks: currentQ.marks,
+          questionType: currentQ.type,
+        },
+      });
+
+      if (error) {
+        console.error("Marking error:", error);
+        toast.error("Could not get AI feedback. Check the mark scheme manually.");
+        setShowMarkScheme(prev => ({ ...prev, [currentQ.id]: true }));
+        return;
+      }
+
+      if (data?.error) {
+        if (data.error.includes("Rate limit")) {
+          toast.error("Too many requests — please wait a moment and try again.");
+        } else if (data.error.includes("credits") || data.error.includes("Payment")) {
+          toast.error("AI credits exhausted. Please add funds in workspace settings.");
+        } else {
+          toast.error(data.error);
+        }
+        setShowMarkScheme(prev => ({ ...prev, [currentQ.id]: true }));
+        return;
+      }
+
+      setAiMarkings(prev => ({ ...prev, [currentQ.id]: data as AiMarking }));
+    } catch (err) {
+      console.error("AI marking failed:", err);
+      toast.error("AI marking unavailable. Showing mark scheme instead.");
+      setShowMarkScheme(prev => ({ ...prev, [currentQ.id]: true }));
+    } finally {
+      setMarking(prev => ({ ...prev, [currentQ.id]: false }));
     }
-  };
-
-  const handleFinish = () => {
-    setExamFinished(true);
   };
 
   const answeredCount = Object.keys(submitted).length;
 
+  /* ── Results screen ─────────────────────── */
   if (examFinished) {
+    const markedCount = Object.keys(aiMarkings).length;
+    const percentage = totalMarks > 0 ? Math.round((totalAwarded / totalMarks) * 100) : 0;
+    const overallGrade = percentage >= 80 ? "Excellent" : percentage >= 60 ? "Good" : percentage >= 40 ? "Satisfactory" : "Needs Improvement";
+
     return (
       <div className="container px-4 md:px-6 mx-auto max-w-4xl py-10">
         <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="space-y-6">
@@ -80,41 +161,54 @@ export default function ExamSession() {
               </div>
               <h1 className="text-3xl font-display font-extrabold">Exam Complete!</h1>
               <p className="text-muted-foreground">{paperSet.title}</p>
+              <Badge className={`text-sm px-4 py-1.5 border ${gradeColors[overallGrade]}`}>
+                {overallGrade} — {percentage}%
+              </Badge>
             </div>
             <CardContent className="p-6 space-y-6">
-              <div className="grid grid-cols-3 gap-4 text-center">
-                <div className="p-4 rounded-xl bg-muted/50">
-                  <div className="text-2xl font-display font-bold text-primary">{answeredCount}</div>
-                  <div className="text-xs text-muted-foreground mt-1">Answered</div>
+              <div className="grid grid-cols-4 gap-3 text-center">
+                <div className="p-3 rounded-xl bg-muted/50">
+                  <div className="text-2xl font-display font-bold text-primary">{totalAwarded}</div>
+                  <div className="text-[10px] text-muted-foreground mt-1">Marks Earned</div>
                 </div>
-                <div className="p-4 rounded-xl bg-muted/50">
-                  <div className="text-2xl font-display font-bold">{questions.length}</div>
-                  <div className="text-xs text-muted-foreground mt-1">Total Questions</div>
+                <div className="p-3 rounded-xl bg-muted/50">
+                  <div className="text-2xl font-display font-bold">{totalMarks}</div>
+                  <div className="text-[10px] text-muted-foreground mt-1">Total Marks</div>
                 </div>
-                <div className="p-4 rounded-xl bg-muted/50">
-                  <div className="text-2xl font-display font-bold text-secondary">{totalMarks}</div>
-                  <div className="text-xs text-muted-foreground mt-1">Total Marks</div>
+                <div className="p-3 rounded-xl bg-muted/50">
+                  <div className="text-2xl font-display font-bold text-secondary">{percentage}%</div>
+                  <div className="text-[10px] text-muted-foreground mt-1">Score</div>
+                </div>
+                <div className="p-3 rounded-xl bg-muted/50">
+                  <div className="text-2xl font-display font-bold">{markedCount}</div>
+                  <div className="text-[10px] text-muted-foreground mt-1">AI Marked</div>
                 </div>
               </div>
 
-              <div className="space-y-3">
+              <div className="space-y-2">
                 <h3 className="font-display font-bold text-sm">Review Your Answers</h3>
-                {questions.map((q, i) => (
-                  <button
-                    key={q.id}
-                    onClick={() => { setExamFinished(false); setCurrentIndex(i); }}
-                    className="w-full text-left p-3 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors flex items-center gap-3"
-                  >
-                    <span className="w-7 h-7 rounded-lg bg-primary/10 text-primary text-xs font-bold flex items-center justify-center shrink-0">{i + 1}</span>
-                    <span className="text-sm flex-1 line-clamp-1">{q.question.split("\n")[0]}</span>
-                    <Badge variant="outline" className="text-[10px] shrink-0">{q.marks} marks</Badge>
-                    {submitted[q.id] ? (
-                      <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0" />
-                    ) : (
-                      <XCircle className="w-4 h-4 text-muted-foreground/40 shrink-0" />
-                    )}
-                  </button>
-                ))}
+                {questions.map((q, i) => {
+                  const m = aiMarkings[q.id];
+                  return (
+                    <button
+                      key={q.id}
+                      onClick={() => { setExamFinished(false); setCurrentIndex(i); }}
+                      className="w-full text-left p-3 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors flex items-center gap-3"
+                    >
+                      <span className="w-7 h-7 rounded-lg bg-primary/10 text-primary text-xs font-bold flex items-center justify-center shrink-0">{i + 1}</span>
+                      <span className="text-xs flex-1 line-clamp-1">{q.question.split("\n")[0]}</span>
+                      {m ? (
+                        <Badge className={`text-[10px] shrink-0 border ${gradeColors[m.grade]}`}>
+                          {m.marksAwarded}/{m.totalMarks}
+                        </Badge>
+                      ) : submitted[q.id] ? (
+                        <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0" />
+                      ) : (
+                        <XCircle className="w-4 h-4 text-muted-foreground/40 shrink-0" />
+                      )}
+                    </button>
+                  );
+                })}
               </div>
 
               <div className="flex gap-3">
@@ -123,7 +217,11 @@ export default function ExamSession() {
                     <ArrowLeft className="w-4 h-4" /> Back to Question Bank
                   </Button>
                 </Link>
-                <Button onClick={() => { setAnswers({}); setSubmitted({}); setShowMarkScheme({}); setShowHint({}); setShowPseudocode({}); setCurrentIndex(0); setExamFinished(false); }} className="flex-1 rounded-full gap-2">
+                <Button onClick={() => {
+                  setAnswers({}); setSubmitted({}); setAiMarkings({}); setMarking({});
+                  setShowMarkScheme({}); setShowHint({}); setShowPseudocode({});
+                  setCurrentIndex(0); setExamFinished(false);
+                }} className="flex-1 rounded-full gap-2">
                   <RotateCcw className="w-4 h-4" /> Retake
                 </Button>
               </div>
@@ -133,6 +231,10 @@ export default function ExamSession() {
       </div>
     );
   }
+
+  /* ── Question view ──────────────────────── */
+  const currentMarking = aiMarkings[currentQ.id];
+  const isMarking = marking[currentQ.id];
 
   return (
     <div className="flex flex-col min-h-full pb-20">
@@ -149,7 +251,7 @@ export default function ExamSession() {
             <div className="flex items-center gap-3 text-[11px] text-muted-foreground mt-0.5">
               <span className="flex items-center gap-1"><Target className="w-3 h-3" />Q {currentIndex + 1} of {questions.length}</span>
               {paperSet.duration && <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{paperSet.duration} min</span>}
-              <span className="flex items-center gap-1"><Sparkles className="w-3 h-3" />{totalMarks} marks</span>
+              <span className="flex items-center gap-1"><Sparkles className="w-3 h-3" />{totalAwarded}/{totalMarks} marks</span>
             </div>
           </div>
           <Badge variant="secondary" className="text-[10px] bg-primary/10 text-primary border-none">Paper {paperSet.paper}</Badge>
@@ -222,12 +324,17 @@ export default function ExamSession() {
                 {/* Action buttons */}
                 <div className="flex flex-wrap gap-2">
                   {!submitted[currentQ.id] ? (
-                    <Button onClick={handleSubmitAnswer} disabled={!answers[currentQ.id]} className="rounded-full gap-1.5 text-xs">
-                      <CheckCircle2 className="w-3.5 h-3.5" /> Submit Answer
+                    <Button onClick={handleSubmitAnswer} disabled={!answers[currentQ.id] || isMarking} className="rounded-full gap-1.5 text-xs">
+                      {isMarking ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Brain className="w-3.5 h-3.5" />}
+                      {isMarking ? "AI Marking..." : "Submit & Mark"}
                     </Button>
+                  ) : isMarking ? (
+                    <Badge variant="secondary" className="bg-primary/10 text-primary border-none gap-1 px-3 py-1.5">
+                      <Loader2 className="w-3 h-3 animate-spin" /> AI is marking...
+                    </Badge>
                   ) : (
                     <Badge variant="secondary" className="bg-green-500/10 text-green-500 border-none gap-1 px-3 py-1.5">
-                      <CheckCircle2 className="w-3 h-3" /> Submitted
+                      <CheckCircle2 className="w-3 h-3" /> Marked
                     </Badge>
                   )}
                   <Button
@@ -257,6 +364,61 @@ export default function ExamSession() {
                     </Button>
                   )}
                 </div>
+
+                {/* ── AI Marking Result ─────────── */}
+                <AnimatePresence>
+                  {currentMarking && !isMarking && (
+                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}>
+                      <div className={`p-4 rounded-xl border ${gradeColors[currentMarking.grade]} space-y-3`}>
+                        {/* Score header */}
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Brain className="w-4 h-4" />
+                            <span className="font-display font-bold text-sm">AI Examiner Feedback</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Badge className={`border ${gradeColors[currentMarking.grade]}`}>
+                              {currentMarking.grade}
+                            </Badge>
+                            <span className="font-display font-extrabold text-lg">
+                              {currentMarking.marksAwarded}/{currentMarking.totalMarks}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Feedback */}
+                        <p className="text-xs leading-relaxed opacity-90">{currentMarking.feedback}</p>
+
+                        {/* Mark breakdown */}
+                        <div className="space-y-1.5">
+                          <span className="text-[10px] font-bold uppercase opacity-70">Mark Breakdown</span>
+                          {currentMarking.markBreakdown.map((mb, i) => (
+                            <div key={i} className="flex items-start gap-2 text-xs">
+                              {mb.awarded ? (
+                                <CheckCircle2 className="w-3.5 h-3.5 text-green-500 mt-0.5 shrink-0" />
+                              ) : (
+                                <XCircle className="w-3.5 h-3.5 text-red-400 mt-0.5 shrink-0" />
+                              )}
+                              <div>
+                                <span className="font-medium">{mb.point}</span>
+                                {mb.comment && <span className="text-muted-foreground ml-1">— {mb.comment}</span>}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Improvement tip */}
+                        <div className="flex items-start gap-2 p-2.5 rounded-lg bg-background/50 border border-border/30">
+                          <TrendingUp className="w-3.5 h-3.5 text-primary mt-0.5 shrink-0" />
+                          <div>
+                            <span className="text-[10px] font-bold text-primary uppercase">How to Improve</span>
+                            <p className="text-xs text-muted-foreground mt-0.5">{currentMarking.improvementTip}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
                 {/* Hint */}
                 <AnimatePresence>
@@ -318,32 +480,41 @@ export default function ExamSession() {
 
         {/* Navigation */}
         <div className="flex items-center justify-between">
-          <Button variant="outline" size="sm" className="rounded-full gap-1.5 text-xs" onClick={handlePrev} disabled={currentIndex === 0}>
+          <Button variant="outline" size="sm" className="rounded-full gap-1.5 text-xs" onClick={() => setCurrentIndex(prev => Math.max(0, prev - 1))} disabled={currentIndex === 0}>
             <ArrowLeft className="w-3.5 h-3.5" /> Previous
           </Button>
           <div className="flex gap-1.5 overflow-x-auto max-w-[50vw] px-2">
-            {questions.map((q, i) => (
-              <button
-                key={q.id}
-                onClick={() => setCurrentIndex(i)}
-                className={`w-7 h-7 rounded-lg text-[10px] font-bold shrink-0 transition-all ${
-                  i === currentIndex
-                    ? "bg-primary text-primary-foreground"
-                    : submitted[q.id]
-                      ? "bg-green-500/20 text-green-500"
-                      : "bg-muted/50 text-muted-foreground hover:bg-muted"
-                }`}
-              >
-                {i + 1}
-              </button>
-            ))}
+            {questions.map((q, i) => {
+              const m = aiMarkings[q.id];
+              return (
+                <button
+                  key={q.id}
+                  onClick={() => setCurrentIndex(i)}
+                  className={`w-7 h-7 rounded-lg text-[10px] font-bold shrink-0 transition-all ${
+                    i === currentIndex
+                      ? "bg-primary text-primary-foreground"
+                      : m
+                        ? m.marksAwarded === m.totalMarks
+                          ? "bg-green-500/20 text-green-500"
+                          : m.marksAwarded > 0
+                            ? "bg-amber-500/20 text-amber-500"
+                            : "bg-red-400/20 text-red-400"
+                        : submitted[q.id]
+                          ? "bg-green-500/20 text-green-500"
+                          : "bg-muted/50 text-muted-foreground hover:bg-muted"
+                  }`}
+                >
+                  {i + 1}
+                </button>
+              );
+            })}
           </div>
           {currentIndex === questions.length - 1 ? (
-            <Button size="sm" className="rounded-full gap-1.5 text-xs" onClick={handleFinish}>
+            <Button size="sm" className="rounded-full gap-1.5 text-xs" onClick={() => setExamFinished(true)}>
               Finish <Trophy className="w-3.5 h-3.5" />
             </Button>
           ) : (
-            <Button variant="outline" size="sm" className="rounded-full gap-1.5 text-xs" onClick={handleNext}>
+            <Button variant="outline" size="sm" className="rounded-full gap-1.5 text-xs" onClick={() => setCurrentIndex(prev => Math.min(questions.length - 1, prev + 1))}>
               Next <ArrowRight className="w-3.5 h-3.5" />
             </Button>
           )}
