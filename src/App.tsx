@@ -9,6 +9,7 @@ import { ThemeProvider } from "@/lib/theme";
 import Home from "@/pages/Home";
 import TopicPage from "@/pages/TopicPage";
 import Playground from "@/pages/Playground";
+import QuestionBank from "@/pages/QuestionBank";
 import Settings from "@/pages/Settings";
 import NotFound from "@/pages/NotFound";
 import { AppSidebar } from "@/components/layout/AppSidebar";
