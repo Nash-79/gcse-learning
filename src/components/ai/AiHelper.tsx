@@ -56,9 +56,10 @@ export function AiHelper({ topicSlug, topicTitle }: AiHelperProps) {
       const reply = data?.content || "Sorry, I couldn't generate a response.";
       setMessages(prev => [...prev, { role: "assistant", content: reply }]);
     } catch (err) {
+      setHasError(true);
       setMessages(prev => [...prev, {
         role: "assistant",
-        content: "Sorry, something went wrong. Please check your API key in Settings and try again."
+        content: "Sorry, something went wrong. Please try again in a moment."
       }]);
     } finally {
       setIsLoading(false);
