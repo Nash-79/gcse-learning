@@ -237,8 +237,10 @@ export default function QuestionBank() {
 
           {/* Topic Mastery */}
           <motion.section variants={item}>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="text-xl">🎯</span>
+            <div className="flex items-center gap-2.5 mb-1">
+              <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center">
+                <Target className="w-4.5 h-4.5 text-amber-500" />
+              </div>
               <h2 className="text-xl font-display font-bold">Topic Mastery Sets</h2>
             </div>
             <p className="text-xs text-muted-foreground mb-4 ml-8">Targeted practice for individual topics. {topicMasterySets.length} topic sets covering all {paper1Topics.length + paper2Topics.length} specification areas.</p>
