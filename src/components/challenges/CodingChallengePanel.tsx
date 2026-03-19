@@ -25,7 +25,6 @@ export function CodingChallengePanel({ topicSlug, topicTitle }: CodingChallengeP
   const [showHints, setShowHints] = useState(false);
   const [aiChallenges, setAiChallenges] = useState<CodingChallenge[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
-  const { hasAi, settings } = useAiSettings();
 
   const staticChallenges = getChallengesForTopic(topicSlug);
   const allChallenges = [...staticChallenges, ...aiChallenges];
