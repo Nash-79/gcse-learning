@@ -5,7 +5,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { CodeRunner } from "@/components/code/CodeRunner";
 import { supabase } from "@/integrations/supabase/client";
 import type { CodingChallenge, ChallengeDifficulty } from "@/data/codingChallenges";
-import type { CodingChallenge, ChallengeDifficulty } from "@/data/codingChallenges";
 import { getChallengesForTopic } from "@/data/codingChallenges";
 
 const difficultyConfig: Record<ChallengeDifficulty, { label: string; icon: React.ElementType; color: string; bg: string; activeBg: string }> = {
