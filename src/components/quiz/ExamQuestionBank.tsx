@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import type { QuizQuestion } from "@/data/topicContent";
-import { useAiSettings } from "@/lib/useAiSettings";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ExamQuestionBankProps {
   topicSlug: string;
