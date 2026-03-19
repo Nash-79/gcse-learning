@@ -37,7 +37,7 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, mode, topicTitle, code, taskDescription } = await req.json();
+    const { messages, mode, topicTitle, code, taskDescription, systemPromptOverride, userPromptOverride, maxTokens } = await req.json();
 
     const OPENROUTER_API_KEY = Deno.env.get("OPENROUTER_API_KEY");
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
@@ -48,6 +48,7 @@ serve(async (req) => {
 
     let systemPrompt: string;
     let userMessages: Array<{ role: string; content: string }>;
+    let wantJson = false;
 
     if (mode === "chat") {
       systemPrompt = `You are a GCSE Computer Science tutor helping a student learn Python. The current topic is "${topicTitle}". Keep explanations clear, concise, and appropriate for 14-16 year old students. Use Python code examples when helpful. Format code blocks with triple backticks.`;
@@ -69,8 +70,16 @@ Be encouraging but honest. Reference OCR J277 exam expectations where relevant.`
         role: "user",
         content: `Topic: ${topicTitle}\n${taskDescription ? `Task: ${taskDescription}\n` : ""}Student code:\n\`\`\`python\n${code}\n\`\`\``
       }];
+      wantJson = true;
+    } else if (mode === "generate") {
+      // Generic JSON generation mode for challenges, questions, etc.
+      systemPrompt = systemPromptOverride || "";
+      userMessages = userPromptOverride
+        ? [{ role: "user", content: userPromptOverride }]
+        : (messages || []);
+      wantJson = true;
     } else {
-      throw new Error("Invalid mode. Use 'chat' or 'validate'.");
+      throw new Error("Invalid mode. Use 'chat', 'validate', or 'generate'.");
     }
 
     const requestBody: Record<string, unknown> = {
@@ -79,10 +88,10 @@ Be encouraging but honest. Reference OCR J277 exam expectations where relevant.`
         { role: "system", content: systemPrompt },
         ...userMessages,
       ],
-      max_tokens: 1000,
+      max_tokens: maxTokens || 1000,
     };
 
-    if (mode === "validate") {
+    if (wantJson) {
       requestBody.response_format = { type: "json_object" };
     }
 
