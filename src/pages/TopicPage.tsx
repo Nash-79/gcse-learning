@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { CheckCircle2, ChevronLeft, ChevronRight, BookOpen, Code2, Award, AlertTriangle, Lightbulb, Bot } from "lucide-react";
+import { CheckCircle2, ChevronLeft, ChevronRight, BookOpen, Code2, Award, AlertTriangle, Lightbulb, Sparkles, Bot, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
@@ -9,20 +9,26 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { CodeRunner } from "@/components/code/CodeRunner";
 import { RunnableCode } from "@/components/code/RunnableCode";
 import { QuizComponent } from "@/components/quiz/QuizComponent";
+import type { QuizQuestion } from "@/data/topicContent";
 import { AiHelper } from "@/components/ai/AiHelper";
 import { topicData } from "@/data/topicContent";
 import { useListTopics, useGetTopicProgress, useUpdateTopicProgress } from "@/hooks/useTopics";
+import { useAiSettings } from "@/lib/useAiSettings";
 
 export default function TopicPage() {
   const { slug = "" } = useParams<{ slug: string }>();
-  
-  const { data: topics } = useListTopics();
+
+  const { data: topics, isLoading: topicsLoading } = useListTopics();
   const { data: progress } = useGetTopicProgress(slug);
   const updateProgress = useUpdateTopicProgress();
+  const { hasAi, settings } = useAiSettings();
 
   const content = topicData[slug];
   const topicMeta = topics?.find(t => t.slug === slug);
 
+  const [aiQuestions, setAiQuestions] = useState<QuizQuestion[]>([]);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generationError, setGenerationError] = useState<string | null>(null);
   const [showAiHelper, setShowAiHelper] = useState(false);
 
   useEffect(() => {
@@ -34,8 +40,59 @@ export default function TopicPage() {
   }, [slug]);
 
   useEffect(() => {
+    setAiQuestions([]);
     setShowAiHelper(false);
   }, [slug]);
+
+  const generateMoreQuestions = useCallback(async () => {
+    if (!content || !hasAi) return;
+    setIsGenerating(true);
+    setGenerationError(null);
+    try {
+      const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${settings.apiKey}`,
+          "HTTP-Referer": window.location.origin,
+        },
+        body: JSON.stringify({
+          model: settings.model,
+          messages: [{
+            role: "system",
+            content: `You are a GCSE Computer Science quiz generator. Generate exactly 5 multiple-choice questions about "${topicMeta?.title || slug}" for Python programming. Return ONLY a JSON array of objects with these fields: question (string), options (array of 4 strings), correctIndex (0-3), explanation (string), hint (string), difficulty ("easy"|"medium"|"hard"). Do not include any other text.`
+          }, {
+            role: "user",
+            content: `Generate 5 new quiz questions about ${topicMeta?.title || slug}. Existing questions to avoid repeating: ${content.quiz.map(q => q.question).join("; ")}`
+          }],
+          max_tokens: 2000,
+          response_format: { type: "json_object" },
+        }),
+      });
+      if (!res.ok) throw new Error("Failed to generate questions");
+      const data = await res.json();
+      const text = data.choices?.[0]?.message?.content || "";
+      // Try to parse questions from the response
+      const parsed = JSON.parse(text);
+      const questions: QuizQuestion[] = Array.isArray(parsed) ? parsed : parsed.questions || [];
+      if (questions.length === 0) throw new Error("No questions generated");
+      setAiQuestions(prev => [...prev, ...questions]);
+    } catch (err: any) {
+      setGenerationError(err.message || "Failed to generate questions");
+    } finally {
+      setIsGenerating(false);
+    }
+  }, [slug, content, topicMeta, hasAi, settings]);
+
+  if (topicsLoading) {
+    return (
+      <div className="container max-w-5xl mx-auto p-6 space-y-4">
+        <Skeleton className="h-10 w-64" />
+        <Skeleton className="h-6 w-32" />
+        <Skeleton className="h-[400px] w-full rounded-2xl" />
+      </div>
+    );
+  }
 
   if (!content || !topicMeta) {
     return (
@@ -56,9 +113,11 @@ export default function TopicPage() {
   const prevTopic = currentIndex > 0 ? topics?.[currentIndex - 1] : null;
   const nextTopic = currentIndex < (topics?.length || 0) - 1 ? topics?.[currentIndex + 1] : null;
 
+  const allQuestions: QuizQuestion[] = [...content.quiz, ...aiQuestions];
+
   return (
     <div className="container max-w-5xl mx-auto px-4 py-8 pb-24">
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
         className="mb-8"
       >
@@ -115,13 +174,13 @@ export default function TopicPage() {
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }}>
             {content.videoUrl && (
               <div className="w-full aspect-video rounded-2xl overflow-hidden border border-border/50 shadow-xl bg-black mb-10 neon-glow">
-                <iframe 
-                  width="100%" 
-                  height="100%" 
-                  src={content.videoUrl} 
-                  title="YouTube video player" 
-                  frameBorder="0" 
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                <iframe
+                  width="100%"
+                  height="100%"
+                  src={content.videoUrl}
+                  title="YouTube video player"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
                   className="w-full h-full"
                 ></iframe>
@@ -185,6 +244,27 @@ export default function TopicPage() {
                 </CardContent>
               </Card>
             )}
+
+            {/* AI Code Review prompt */}
+            {hasAi && (
+              <Card className="mt-6 border-secondary/20 bg-secondary/5 shadow-none rounded-2xl">
+                <CardContent className="p-6">
+                  <h3 className="flex items-center gap-2 text-lg font-bold text-secondary mb-2 font-display">
+                    <Sparkles className="w-5 h-5" /> AI Code Review
+                  </h3>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Write your solution above, then ask the AI to review and grade your code.
+                  </p>
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowAiHelper(true)}
+                    className="gap-2 border-secondary/30 hover:bg-secondary/10 text-secondary"
+                  >
+                    <Bot className="w-4 h-4" /> Open AI Assistant
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
           </motion.div>
         </TabsContent>
 
@@ -200,11 +280,42 @@ export default function TopicPage() {
 
         <TabsContent value="quiz" className="focus-visible:outline-none focus-visible:ring-0">
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            <div className="mb-6">
-              <h2 className="text-2xl font-display font-bold mb-2">Quiz</h2>
-              <p className="text-muted-foreground">Test your understanding of {topicMeta.title}.</p>
+            <div className="mb-6 flex items-start justify-between gap-4">
+              <div>
+                <h2 className="text-2xl font-display font-bold mb-2">Quiz</h2>
+                <p className="text-muted-foreground">Test your understanding of {topicMeta.title}.</p>
+              </div>
+              {hasAi && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={generateMoreQuestions}
+                  disabled={isGenerating}
+                  className="gap-2 rounded-full border-secondary/30 text-secondary hover:bg-secondary/10 shrink-0"
+                >
+                  {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                  Generate AI Questions
+                </Button>
+              )}
             </div>
-            <QuizComponent topicSlug={slug} questions={content.quiz} />
+
+            {aiQuestions.length > 0 && (
+              <div className="mb-4 flex items-center gap-2 text-sm bg-secondary/10 text-secondary border border-secondary/20 rounded-xl px-4 py-2.5">
+                <Sparkles className="w-4 h-4 shrink-0" />
+                <span>{aiQuestions.length} AI-generated questions added</span>
+              </div>
+            )}
+            {generationError && (
+              <div className="mb-4 flex items-center justify-between gap-2 text-sm bg-destructive/10 text-destructive border border-destructive/20 rounded-xl px-4 py-2.5">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 shrink-0" />
+                  <span>{generationError}</span>
+                </div>
+                <button onClick={() => setGenerationError(null)} className="text-xs underline opacity-80 hover:opacity-100">Dismiss</button>
+              </div>
+            )}
+
+            <QuizComponent topicSlug={slug} questions={allQuestions} />
           </motion.div>
         </TabsContent>
       </Tabs>
@@ -214,14 +325,22 @@ export default function TopicPage() {
         {prevTopic ? (
           <Link to={`/topic/${prevTopic.slug}`}>
             <Button variant="ghost" className="gap-2 hover:bg-primary/10">
-              <ChevronLeft className="w-4 h-4" /> {prevTopic.title}
+              <ChevronLeft className="w-4 h-4" />
+              <span className="flex flex-col items-start">
+                <span className="text-[10px] text-muted-foreground">Previous</span>
+                <span className="text-sm">{prevTopic.title}</span>
+              </span>
             </Button>
           </Link>
         ) : <div />}
         {nextTopic ? (
           <Link to={`/topic/${nextTopic.slug}`}>
             <Button variant="ghost" className="gap-2 hover:bg-primary/10">
-              {nextTopic.title} <ChevronRight className="w-4 h-4" />
+              <span className="flex flex-col items-end">
+                <span className="text-[10px] text-muted-foreground">Up Next</span>
+                <span className="text-sm">{nextTopic.title}</span>
+              </span>
+              <ChevronRight className="w-4 h-4" />
             </Button>
           </Link>
         ) : <div />}
