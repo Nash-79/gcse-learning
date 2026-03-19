@@ -353,6 +353,9 @@ export default function TopicPage() {
               onQuestionsGenerated={(newQs) => setAiQuestions(prev => [...prev, ...newQs])}
             />
           </motion.div>
+        </TabsContent>
+
+        <TabsContent value="quiz" className="focus-visible:outline-none focus-visible:ring-0">
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
             <div className="mb-6 flex items-start justify-between gap-4">
               <div>
