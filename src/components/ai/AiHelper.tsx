@@ -73,7 +73,7 @@ export function AiHelper({ topicSlug, topicTitle }: AiHelperProps) {
           <Bot className="w-5 h-5 text-secondary" />
           <span className="font-semibold text-sm">AI Learning Assistant</span>
           <span className="text-[10px] px-2 py-0.5 rounded-full bg-secondary/20 text-secondary font-medium">
-            {hasAi ? "Connected" : "Setup Required"}
+            {hasError ? "Error" : "Connected"}
           </span>
         </div>
       </div>
