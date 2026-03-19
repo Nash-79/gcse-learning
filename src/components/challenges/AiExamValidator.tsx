@@ -34,51 +34,22 @@ export function AiExamValidator({ topicTitle, topicSlug }: AiExamValidatorProps)
     setResult(null);
 
     try {
-      const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${settings.apiKey}`,
-          "HTTP-Referer": window.location.origin,
+      const { data, error } = await supabase.functions.invoke("ai-chat", {
+        body: {
+          mode: "validate",
+          topicTitle,
+          code,
+          taskDescription,
         },
-        body: JSON.stringify({
-          model: settings.model,
-          messages: [{
-            role: "system",
-            content: `You are an OCR GCSE Computer Science exam marker. Grade Python code submissions for the topic "${topicTitle}". 
-
-Return ONLY a JSON object with:
-- score (0-10 integer)
-- maxScore (always 10)
-- grade ("A*"|"A"|"B"|"C"|"D"|"U")
-- feedback (2-3 sentence overall feedback as an encouraging teacher)
-- strengths (array of 2-3 things done well)
-- improvements (array of 1-3 things to improve)
-- examTips (array of 1-2 OCR exam-specific tips relevant to this code)
-
-Grade using OCR mark scheme criteria:
-- Correct syntax and logic (3 marks)
-- Appropriate use of programming constructs (2 marks)  
-- Code clarity and comments (2 marks)
-- Completeness of solution (3 marks)
-
-Be encouraging but honest. Reference OCR J277 exam expectations where relevant.`
-          }, {
-            role: "user",
-            content: `Topic: ${topicTitle}\n${taskDescription ? `Task: ${taskDescription}\n` : ""}Student code:\n\`\`\`python\n${code}\n\`\`\``
-          }],
-          max_tokens: 1000,
-          response_format: { type: "json_object" },
-        }),
       });
 
-      if (!res.ok) throw new Error(`API error: ${res.status}`);
-      const data = await res.json();
-      const text = data.choices?.[0]?.message?.content || "";
-      const parsed: ValidationResult = JSON.parse(text);
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      const parsed: ValidationResult = data;
       setResult(parsed);
     } catch (err: any) {
-      setError(err.message || "Failed to validate. Check your API key in Settings.");
+      setError(err.message || "Failed to validate. Please try again.");
     } finally {
       setIsValidating(false);
     }
