@@ -18,6 +18,7 @@ import AiTutor from "@/pages/AiTutor";
 import Auth from "@/pages/Auth";
 import ExamHistory from "@/pages/ExamHistory";
 import SpacedRepetition from "@/pages/SpacedRepetition";
+import Theory from "@/pages/Theory";
 import NotFound from "@/pages/NotFound";
 import { AppSidebar } from "@/components/layout/AppSidebar";
 import { Header } from "@/components/layout/Header";
