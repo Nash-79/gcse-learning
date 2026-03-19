@@ -255,7 +255,7 @@ const allTags = ["Tools", "Reasoning", "Vision", "Code", "Best Quality"] as cons
 const allProviders = [...new Set(freeModels.map(m => m.provider))];
 
 export default function Settings() {
-  const { hasAi, maskedKey, model: currentModel, updateSettings } = useAiSettings();
+  const { hasAi, maskedKey, model: currentModel, provider: currentProvider, updateSettings } = useAiSettings();
   const { user } = useAuth();
   const { isAdmin, loading: adminLoading } = useAdminRole();
   const [apiKey, setApiKey] = useState("");
