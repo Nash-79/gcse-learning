@@ -65,11 +65,13 @@ function extractFollowUps(content: string): { cleanContent: string; suggestions:
 
 async function streamChat({
   messages,
+  model,
   onDelta,
   onDone,
   onError,
 }: {
   messages: Message[];
+  model?: string;
   onDelta: (text: string) => void;
   onDone: () => void;
   onError: (msg: string) => void;
@@ -80,7 +82,7 @@ async function streamChat({
       "Content-Type": "application/json",
       Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
     },
-    body: JSON.stringify({ messages }),
+    body: JSON.stringify({ messages, model }),
   });
 
   if (!resp.ok) {
