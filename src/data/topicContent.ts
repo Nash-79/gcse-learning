@@ -9,7 +9,7 @@ import { selectionIfElse } from "./topics/selectionIfElse";
 import { stringHandling } from "./topics/stringHandling";
 import { dataTypesCasting } from "./topics/dataTypesCasting";
 import { variablesConstants } from "./topics/variablesConstants";
-import { inputOutputConcatenation } from "./topics/inputOutputConcatenation";
+
 import { introToPython } from "./topics/introToPython";
 
 export type Difficulty = "easy" | "medium" | "hard";
