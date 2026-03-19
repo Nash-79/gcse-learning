@@ -11,6 +11,7 @@ import TopicPage from "@/pages/TopicPage";
 import Playground from "@/pages/Playground";
 import QuestionBank from "@/pages/QuestionBank";
 import ExamSession from "@/pages/ExamSession";
+import TopicTheory from "@/pages/TopicTheory";
 import Settings from "@/pages/Settings";
 import NotFound from "@/pages/NotFound";
 import { AppSidebar } from "@/components/layout/AppSidebar";
@@ -41,6 +42,7 @@ const App = () => {
                       <Route path="/playground" element={<Playground />} />
                       <Route path="/question-bank" element={<QuestionBank />} />
                       <Route path="/exam-session/:setId" element={<ExamSession />} />
+                      <Route path="/topic-theory/:slug" element={<TopicTheory />} />
                       <Route path="/settings" element={<Settings />} />
                       <Route path="*" element={<NotFound />} />
                     </Routes>
