@@ -263,15 +263,18 @@ export default function AiTutor() {
               onChange={(e) => setChatModel(e.target.value)}
               className="text-[11px] bg-muted/50 border border-border rounded-lg px-2 py-1 text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50 max-w-[200px] truncate"
             >
-              <option value="google/gemini-3-flash-preview">Gemini 3 Flash (Default)</option>
-              <option value="meta-llama/llama-3.3-70b-instruct:free">Llama 3.3 70B</option>
-              <option value="google/gemma-3-27b-it:free">Gemma 3 27B</option>
-              <option value="qwen/qwen3-coder:free">Qwen3 Coder 480B</option>
-              <option value="nvidia/nemotron-3-super-120b-a12b:free">Nemotron 3 Super 120B</option>
-              <option value="openai/gpt-oss-120b:free">GPT-OSS 120B</option>
-              <option value="mistralai/mistral-small-3.1-24b-instruct:free">Mistral Small 3.1</option>
-              <option value="nousresearch/hermes-3-llama-3.1-405b:free">Hermes 3 405B</option>
-              {settingsModel && !["google/gemini-3-flash-preview"].includes(settingsModel) && (
+              <option value="google/gemini-3-flash-preview">Gemini 3 Flash (Lovable AI)</option>
+              <option value="google/gemini-2.5-flash">Gemini 2.5 Flash (Lovable AI)</option>
+              <optgroup label="OpenRouter Free Tier">
+                <option value="meta-llama/llama-3.3-70b-instruct:free">Llama 3.3 70B</option>
+                <option value="google/gemma-3-27b-it:free">Gemma 3 27B</option>
+                <option value="qwen/qwen3-coder:free">Qwen3 Coder 480B</option>
+                <option value="nvidia/nemotron-3-super-120b-a12b:free">Nemotron 3 Super 120B</option>
+                <option value="openai/gpt-oss-120b:free">GPT-OSS 120B</option>
+                <option value="mistralai/mistral-small-3.1-24b-instruct:free">Mistral Small 3.1</option>
+                <option value="nousresearch/hermes-3-llama-3.1-405b:free">Hermes 3 405B</option>
+              </optgroup>
+              {settingsModel && !["google/gemini-3-flash-preview", "google/gemini-2.5-flash"].includes(settingsModel) && (
                 <option value={settingsModel}>Settings: {settingsModel.split("/").pop()}</option>
               )}
             </select>
