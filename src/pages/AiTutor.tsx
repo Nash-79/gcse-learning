@@ -207,6 +207,7 @@ export default function AiTutor() {
       await streamChat({
         messages: allMessages,
         model: chatModel,
+        provider: settingsProvider,
         onDelta: (chunk) => upsertAssistant(chunk),
         onDone: () => setIsLoading(false),
         onError: (msg) => {

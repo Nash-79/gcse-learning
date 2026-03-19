@@ -83,6 +83,7 @@ export function AiHelper({ topicSlug, topicTitle }: AiHelperProps) {
           mode: "chat",
           topicTitle,
           model: chatModel,
+          provider: settingsProvider,
           messages: newMessages.map(m => ({ role: m.role, content: m.content })),
         },
       });
