@@ -233,4 +233,259 @@ export const paper1Questions: ExamQuestion[] = [
     modelAnswer: "Copyright, Designs and Patents Act (1).",
     markScheme: ["Copyright, Designs and Patents Act / Copyright Act (1)"],
   },
+
+  // ============================================
+  // ENRICHED: Computer Networks (1.3)
+  // ============================================
+  {
+    id: "p1-cn-010", question: "Describe the role of a router in a network.", marks: 2, difficulty: "foundation", topic: "Computer Networks", paper: "1", type: "explain",
+    correctAnswer: "A router connects two or more networks together and directs data packets between them using IP addresses.",
+    modelAnswer: "A router sends and receives data packets between different networks (1) by identifying the most efficient path using IP addresses (1).",
+    markScheme: ["Connects/directs data between networks (1)", "Uses IP addresses to route data packets (1)"],
+  },
+  {
+    id: "p1-cn-011", question: "Describe the role of a switch in a LAN.", marks: 2, difficulty: "foundation", topic: "Computer Networks", paper: "1", type: "explain",
+    correctAnswer: "A switch forwards data packets to the correct device within a LAN by using MAC addresses stored in its table.",
+    modelAnswer: "A switch stores the MAC addresses of devices on the LAN (1) and forwards data packets to the correct destination device (1).",
+    markScheme: ["Stores MAC addresses of connected devices (1)", "Forwards packets to correct device (1)"],
+  },
+  {
+    id: "p1-cn-012", question: "Explain the difference between an IP address and a MAC address.", marks: 4, difficulty: "mixed", topic: "Computer Networks", paper: "1", type: "explain",
+    correctAnswer: "An IP address is assigned by a router and can change. It identifies a device on a network for routing purposes. A MAC address is hard-coded into the NIC by the manufacturer and never changes. It uniquely identifies the physical hardware.",
+    modelAnswer: "An IP address is assigned by a router (1) and can change each time a device connects (1). A MAC address is permanently assigned by the manufacturer (1) and is unique to each network interface card (NIC) (1).",
+    markScheme: ["IP address assigned by router / can change (1)", "IP used for routing between networks (1)", "MAC address hard-coded by manufacturer / permanent (1)", "MAC address unique to hardware / NIC (1)"],
+  },
+  {
+    id: "p1-cn-013", question: "State the purpose of a Network Interface Card (NIC).", marks: 2, difficulty: "foundation", topic: "Computer Networks", paper: "1", type: "short",
+    correctAnswer: "A NIC allows a computer to connect to a network. It has a unique MAC address and provides the physical circuitry for communication.",
+    modelAnswer: "Allows a device to connect to a network (1) and has a unique MAC address for identification (1).",
+    markScheme: ["Enables connection to a network (1)", "Contains unique MAC address (1)"],
+  },
+  {
+    id: "p1-cn-014", question: "A company is choosing between a star topology and a mesh topology for its new office network. Compare the two topologies.", marks: 6, difficulty: "challenge", topic: "Computer Networks", paper: "1", type: "explain",
+    correctAnswer: "Star: all devices connect to a central switch, easy to add devices, if one cable fails only that device loses connection, but if the switch fails the whole network goes down, less cabling needed. Mesh: every device connects to every other device, very reliable as multiple paths exist, if one connection fails data reroutes, but requires much more cabling and is expensive to set up.",
+    modelAnswer: "Star: all devices connect to a central switch (1). If one cable fails, only that device is affected (1). If the central switch fails, the whole network goes down (1). Mesh: every device connects to every other device (1). Very reliable — if one connection fails, data can be rerouted (1). Much more cabling and equipment needed, making it more expensive (1).",
+    markScheme: ["Star: central switch/hub connection (1)", "Star: single cable failure only affects one device (1)", "Star: central switch failure = whole network down (1)", "Mesh: every device connected to every other (1)", "Mesh: reliable / multiple paths / data reroutes (1)", "Mesh: expensive / lots of cabling (1)"],
+  },
+  {
+    id: "p1-cn-015", question: "State two factors that affect the performance of a network.", marks: 2, difficulty: "foundation", topic: "Computer Networks", paper: "1", type: "short",
+    correctAnswer: "Number of users on the network and bandwidth available.",
+    modelAnswer: "Number of users — more users means more data collisions and latency (1). Bandwidth — the maximum amount of data that can be transferred per second (1).",
+    markScheme: ["Number of users (1)", "Bandwidth (1)", "Also accept: type of connection (wired/wireless), hardware quality, network traffic"],
+  },
+  {
+    id: "p1-cn-016", question: "Compare a client-server network with a peer-to-peer network.", marks: 4, difficulty: "mixed", topic: "Computer Networks", paper: "1", type: "explain",
+    correctAnswer: "Client-server has a central server that manages files and security, making it more secure and easier to back up, but requires specialist equipment and staff. Peer-to-peer has no central server, all computers are equal, it's cheaper and easier to set up, but less secure and harder to manage files.",
+    modelAnswer: "Client-server: has a dedicated server that manages data and security (1), files are stored centrally making backups easier (1). Peer-to-peer: no central server, all computers are equal importance (1), easier and cheaper to set up but less secure (1).",
+    markScheme: ["Client-server: dedicated server manages data/security (1)", "Client-server: centralised files/backups (1)", "Peer-to-peer: no server / equal computers (1)", "Peer-to-peer: cheaper/easier but less secure (1)"],
+  },
+  {
+    id: "p1-cn-017", question: "Explain how the Domain Name System (DNS) works when a user types a URL into their browser.", marks: 4, difficulty: "mixed", topic: "Computer Networks", paper: "1", type: "explain",
+    correctAnswer: "The user types a URL. The browser sends a request to a DNS server. The DNS server looks up the domain name in its database and returns the corresponding IP address. The browser then uses this IP address to connect to the web server and load the page.",
+    modelAnswer: "The user types a URL (e.g., www.bbc.co.uk) into the browser (1). The browser sends the domain name to a DNS server (1). The DNS server looks up the domain and returns the corresponding IP address (1). The browser uses the IP address to connect to the correct web server (1).",
+    markScheme: ["URL entered into browser (1)", "Request sent to DNS server (1)", "DNS looks up domain → returns IP address (1)", "Browser connects to web server using IP address (1)"],
+  },
+  {
+    id: "p1-cn-018", question: "Which of the following is used to send emails?", marks: 1, difficulty: "foundation", topic: "Computer Networks", paper: "1", type: "multiple-choice",
+    options: ["IMAP", "SMTP", "FTP", "HTTP"],
+    correctAnswer: "SMTP",
+    modelAnswer: "SMTP (Simple Mail Transfer Protocol) is the protocol used for sending emails.",
+    markScheme: ["SMTP (1)"],
+  },
+  {
+    id: "p1-cn-019", question: "Explain the difference between HTTP and HTTPS.", marks: 2, difficulty: "foundation", topic: "Computer Networks", paper: "1", type: "explain",
+    correctAnswer: "HTTP transfers web page data in plain text. HTTPS encrypts the data using SSL/TLS, making it secure so intercepted data cannot be read.",
+    modelAnswer: "HTTP sends data in plain text / unencrypted (1). HTTPS encrypts the data using SSL/TLS so it cannot be read if intercepted (1).",
+    markScheme: ["HTTP: data sent unencrypted / plain text (1)", "HTTPS: data is encrypted / secure (1)"],
+  },
+  {
+    id: "p1-cn-020", question: "Explain why network protocols are organised into layers.", marks: 3, difficulty: "challenge", topic: "Computer Networks", paper: "1", type: "explain",
+    correctAnswer: "Layers allow each protocol to be self-contained with its own purpose. One layer can be changed without affecting others. Individual protocols are simpler to manage. Different layers can interface with different hardware.",
+    modelAnswer: "Each layer is self-contained and has its own specific function (1). A layer can be modified or replaced without affecting the other layers (1). It makes each protocol smaller and simpler to develop and debug (1).",
+    markScheme: ["Each layer has specific/independent purpose (1)", "One layer can change without affecting others (1)", "Simpler to develop/manage/debug (1)"],
+  },
+  {
+    id: "p1-cn-021", question: "Explain the difference between IPv4 and IPv6 addresses.", marks: 3, difficulty: "mixed", topic: "Computer Networks", paper: "1", type: "explain",
+    correctAnswer: "IPv4 uses four numbers between 0 and 255 separated by dots (e.g., 192.168.1.1). IPv6 uses 8 groups of hexadecimal numbers (e.g., 2001:0db8:85a3::7334). IPv6 was introduced because IPv4 doesn't have enough addresses for all modern devices.",
+    modelAnswer: "IPv4 uses 4 denary numbers between 0-255 separated by dots (1). IPv6 uses 8 hexadecimal groups providing far more possible addresses (1). IPv6 was needed because the number of internet-connected devices exceeded IPv4's capacity (1).",
+    markScheme: ["IPv4: 4 numbers 0-255, dotted format (1)", "IPv6: 8 hexadecimal groups (1)", "IPv6 needed due to address exhaustion (1)"],
+  },
+  {
+    id: "p1-cn-022", question: "State the purpose of a Wireless Access Point (WAP).", marks: 2, difficulty: "foundation", topic: "Computer Networks", paper: "1", type: "short",
+    correctAnswer: "A WAP allows wireless devices to connect to a wired network. It bridges the wired and wireless parts of the network.",
+    modelAnswer: "Allows wireless devices to connect to a network (1). Bridges a wired and wireless network (1).",
+    markScheme: ["Enables wireless connection to network (1)", "Bridges wired and wireless networks (1)"],
+  },
+  {
+    id: "p1-cn-023", question: "Explain how encryption protects data transmitted across a network.", marks: 3, difficulty: "mixed", topic: "Computer Networks", paper: "1", type: "explain",
+    correctAnswer: "Encryption scrambles data using an algorithm so that it becomes unreadable ciphertext. If the data is intercepted during transmission, it cannot be understood without the correct decryption key. Only the intended recipient with the key can unscramble and read the data.",
+    modelAnswer: "Encryption scrambles/encodes the data using an algorithm (1). If intercepted, the data cannot be read as it appears as random/incomprehensible text (1). Only someone with the correct decryption key can unscramble and read the data (1).",
+    markScheme: ["Data is scrambled/encoded (1)", "Intercepted data cannot be read/understood (1)", "Requires decryption key to unscramble (1)"],
+  },
+  {
+    id: "p1-cn-024", question: "A school uses a client-server network. The file server has failed. Explain two effects this would have on the school network.", marks: 4, difficulty: "challenge", topic: "Computer Networks", paper: "1", type: "explain",
+    correctAnswer: "Students and staff would not be able to access their files stored on the server. Shared applications installed on the server would not be available. Centralised backup would stop working. User authentication may not work if managed by the server.",
+    modelAnswer: "Users would not be able to access files stored centrally on the server (1) meaning they cannot open or save their work (1). Shared software hosted on the server would not be available (1) so users could not run applications they need (1).",
+    markScheme: ["Cannot access centrally stored files (1)", "Impact on users' work (1)", "Shared applications unavailable (1)", "Impact on productivity/operations (1)"],
+  },
+  {
+    id: "p1-cn-025", question: "State what is meant by 'bandwidth' in the context of computer networks.", marks: 1, difficulty: "foundation", topic: "Computer Networks", paper: "1", type: "short",
+    correctAnswer: "The maximum amount of data that can be transferred across a network in a given time period, usually measured in bits per second.",
+    modelAnswer: "The maximum amount of data that can be transmitted per second across a network (1).",
+    markScheme: ["Maximum data transfer rate per second (1)"],
+  },
+  {
+    id: "p1-cn-026", question: "Describe the role of a modem in a network.", marks: 2, difficulty: "foundation", topic: "Computer Networks", paper: "1", type: "explain",
+    correctAnswer: "A modem converts digital data from a computer into analogue signals that can be sent over phone lines, and converts analogue signals back to digital data when receiving.",
+    modelAnswer: "Converts digital data into analogue signals for transmission over phone lines (1). Converts received analogue signals back into digital data (1).",
+    markScheme: ["Converts digital to analogue (modulation) (1)", "Converts analogue to digital (demodulation) (1)"],
+  },
+
+  // ============================================
+  // ENRICHED: Network Security (1.4)
+  // ============================================
+  {
+    id: "p1-ns-010", question: "Describe the difference between a virus and a trojan horse.", marks: 4, difficulty: "mixed", topic: "Network Security", paper: "1", type: "explain",
+    correctAnswer: "A virus copies itself from machine to machine causing harm as it spreads, often attaching to files. A trojan horse disguises itself as legitimate/useful software and only causes damage once downloaded and installed.",
+    modelAnswer: "A virus replicates/copies itself from machine to machine (1) causing harm as it spreads, often by attaching to legitimate files (1). A trojan horse is disguised as beneficial software such as a game or utility (1) and only causes damage once the user downloads and runs it (1).",
+    markScheme: ["Virus: self-replicating / copies itself (1)", "Virus: attaches to files / spreads (1)", "Trojan: disguised as legitimate software (1)", "Trojan: causes harm once installed/run (1)"],
+  },
+  {
+    id: "p1-ns-011", question: "Explain how a Distributed Denial of Service (DDoS) attack works.", marks: 3, difficulty: "challenge", topic: "Network Security", paper: "1", type: "explain",
+    correctAnswer: "A hacker takes control of multiple computers (a botnet). These compromised computers are used simultaneously to flood a target web server with requests. The server cannot handle the volume and crashes or becomes unavailable to legitimate users.",
+    modelAnswer: "A hacker takes control of many computers forming a botnet (1). All compromised computers simultaneously send requests to the target server (1). The server is overwhelmed and cannot respond to legitimate users, causing it to crash or become unavailable (1).",
+    markScheme: ["Multiple computers controlled / botnet (1)", "Flood target with requests simultaneously (1)", "Server overwhelmed / unavailable to real users (1)"],
+  },
+  {
+    id: "p1-ns-012", question: "Explain how penetration testing helps protect a network.", marks: 3, difficulty: "mixed", topic: "Network Security", paper: "1", type: "explain",
+    correctAnswer: "A company hires ethical hackers to deliberately try to break into their system. If successful, they report the vulnerabilities found. The company can then fix these weaknesses before real attackers exploit them.",
+    modelAnswer: "Ethical hackers are hired to simulate attacks on the system (1). They identify weaknesses and vulnerabilities (1). The company can then fix these security holes before they are exploited by real attackers (1).",
+    markScheme: ["Simulated/authorised attack on system (1)", "Identifies vulnerabilities/weaknesses (1)", "Allows company to fix issues before real attack (1)"],
+  },
+  {
+    id: "p1-ns-013", question: "Explain the difference between phishing and vishing.", marks: 2, difficulty: "mixed", topic: "Network Security", paper: "1", type: "explain",
+    correctAnswer: "Phishing uses fraudulent emails to trick users into revealing personal information. Vishing is similar but uses voice calls (phone calls) instead of emails.",
+    modelAnswer: "Phishing uses fake emails pretending to be from a trusted source to steal information (1). Vishing uses phone/voice calls instead of emails to trick victims (1).",
+    markScheme: ["Phishing: fraudulent emails (1)", "Vishing: voice calls / phone-based (1)"],
+  },
+  {
+    id: "p1-ns-014", question: "Describe what spyware does and explain why it is dangerous.", marks: 3, difficulty: "mixed", topic: "Network Security", paper: "1", type: "explain",
+    correctAnswer: "Spyware secretly monitors the user's activity, including recording keystrokes. It can capture passwords, personal information, and bank details without the user knowing, sending this data to criminals.",
+    modelAnswer: "Spyware secretly monitors user activity such as recording keystrokes (1). It can capture sensitive information like passwords and bank details (1). The stolen data is sent to criminals without the user's knowledge (1).",
+    markScheme: ["Monitors/records user activity / keystrokes (1)", "Captures sensitive data (passwords, bank details) (1)", "Sends data to criminals / operates without user knowledge (1)"],
+  },
+  {
+    id: "p1-ns-015", question: "Explain how user access levels help protect data in an organisation.", marks: 3, difficulty: "mixed", topic: "Network Security", paper: "1", type: "explain",
+    correctAnswer: "Different users are given different permissions based on their role. Some users may only be able to read data, while others can write or delete. Sensitive data is restricted to users with higher authority levels.",
+    modelAnswer: "Different users are assigned different permission levels (e.g., read, write, delete) (1). This restricts sensitive data to authorised personnel only (1). It prevents accidental or malicious modification/deletion of important data (1).",
+    markScheme: ["Different permission levels assigned (1)", "Sensitive data restricted to authorised users (1)", "Prevents unauthorised modification/deletion (1)"],
+  },
+  {
+    id: "p1-ns-016", question: "Which of the following is an example of social engineering?", marks: 1, difficulty: "foundation", topic: "Network Security", paper: "1", type: "multiple-choice",
+    options: ["Installing a firewall", "Shoulder surfing someone's password", "Defragmenting a hard drive", "Using encryption"],
+    correctAnswer: "Shoulder surfing someone's password",
+    modelAnswer: "Shoulder surfing is a social engineering technique where someone watches over your shoulder to see your password.",
+    markScheme: ["Shoulder surfing (1)"],
+  },
+  {
+    id: "p1-ns-017", question: "Explain how a firewall protects a network.", marks: 3, difficulty: "mixed", topic: "Network Security", paper: "1", type: "explain",
+    correctAnswer: "A firewall monitors all incoming and outgoing network traffic. It compares traffic against a set of security rules. It blocks any traffic that does not meet the criteria and can block specific IP addresses or ports.",
+    modelAnswer: "A firewall scans incoming and outgoing network traffic (1). It compares the traffic against pre-set security rules/criteria (1). Traffic that doesn't meet the rules is blocked, including specific IP addresses or ports (1).",
+    markScheme: ["Monitors/scans incoming and outgoing traffic (1)", "Compares against security rules (1)", "Blocks unauthorised traffic / specific IPs/ports (1)"],
+  },
+  {
+    id: "p1-ns-018", question: "Explain what ransomware is and how it affects users.", marks: 3, difficulty: "mixed", topic: "Network Security", paper: "1", type: "explain",
+    correctAnswer: "Ransomware is malware that encrypts/locks all files on a computer so the user cannot access them. The attacker demands payment (ransom) to unlock the files. Even after paying, there is no guarantee the files will be restored.",
+    modelAnswer: "Ransomware locks/encrypts files on a computer (1) so the user cannot access any of their data (1). The attacker demands a payment (ransom) to provide the decryption key, but paying does not guarantee recovery (1).",
+    markScheme: ["Locks/encrypts files (1)", "User cannot access data (1)", "Demands payment / no guarantee of recovery (1)"],
+  },
+  {
+    id: "p1-ns-019", question: "Explain what 'tailgating' means in the context of network security.", marks: 2, difficulty: "mixed", topic: "Network Security", paper: "1", type: "explain",
+    correctAnswer: "Tailgating is when an unauthorised person follows someone with legitimate access through a secure door or entrance. The authorised person may hold the door open without checking who is behind them.",
+    modelAnswer: "An unauthorised person follows someone with access through a secure entrance (1). Often the authorised person holds the door open, unknowingly allowing entry (1).",
+    markScheme: ["Following authorised person through secure area (1)", "Gains physical access without authorisation (1)"],
+  },
+
+  // ============================================
+  // ENRICHED: Ethical, Legal & Environmental (1.6)
+  // ============================================
+  {
+    id: "p1-el-010", question: "Explain what is meant by 'The Digital Divide'.", marks: 3, difficulty: "mixed", topic: "Ethical, Legal & Environmental", paper: "1", type: "explain",
+    correctAnswer: "The Digital Divide is the gap between people who have access to technology and those who do not. This can be due to geography (rural vs urban), wealth (rich vs poor countries), or age (younger people more comfortable with technology).",
+    modelAnswer: "The Digital Divide is the gap between those with access to technology and those without (1). This can be due to geography — people in cities have better infrastructure than rural areas (1). It can also be due to wealth or age — richer and younger people tend to have better access (1).",
+    markScheme: ["Gap between those with/without technology access (1)", "Geographical factors (urban vs rural, rich vs poor countries) (1)", "Other factors: age, wealth, education (1)"],
+  },
+  {
+    id: "p1-el-011", question: "Describe two negative environmental impacts of technology.", marks: 4, difficulty: "mixed", topic: "Ethical, Legal & Environmental", paper: "1", type: "explain",
+    correctAnswer: "E-waste: Discarded electronics contain toxic chemicals that pollute landfill sites and damage the environment. Energy consumption: Data centres and devices use huge amounts of electricity, contributing to carbon emissions and climate change.",
+    modelAnswer: "E-waste: discarded electronics contain noxious chemicals that end up in landfill sites, damaging the environment for decades (1)(1). Energy consumption: data centres and computers use large amounts of energy, meaning fossil fuels are burned which contributes to climate change (1)(1).",
+    markScheme: ["E-waste / toxic chemicals in landfill (1)", "Environmental damage from e-waste (1)", "Energy consumption of devices/data centres (1)", "Link to carbon emissions / climate change (1)"],
+  },
+  {
+    id: "p1-el-012", question: "Explain the three offences covered by the Computer Misuse Act 1990.", marks: 3, difficulty: "challenge", topic: "Ethical, Legal & Environmental", paper: "1", type: "explain",
+    correctAnswer: "1) Unauthorised access to computer material (basic hacking). 2) Unauthorised access with intent to commit a further offence (hacking to steal data/money). 3) Unauthorised modification of computer material (deleting/changing data, distributing malware).",
+    modelAnswer: "Unauthorised access to computer material — e.g., basic hacking (1). Unauthorised access with intent to commit further crime — e.g., accessing data to commit fraud (1). Unauthorised modification of computer material — e.g., deleting data or creating/distributing malware (1).",
+    markScheme: ["Unauthorised access to computer systems (1)", "Unauthorised access with intent to commit further offence (1)", "Unauthorised modification of data / creating malware (1)"],
+  },
+  {
+    id: "p1-el-013", question: "State four principles of the Data Protection Act 2018.", marks: 4, difficulty: "mixed", topic: "Ethical, Legal & Environmental", paper: "1", type: "short",
+    correctAnswer: "Data must be: processed fairly and lawfully; used only for the purpose it was gathered; adequate, relevant, and not excessive; accurate and up to date; not kept longer than necessary; processed with the rights of data subjects; protected against unauthorised access; not transferred outside the EEA without adequate protection.",
+    modelAnswer: "Data must be processed fairly and lawfully (1). Data must only be used for the stated purpose (1). Data must be accurate and kept up to date (1). Data must not be kept longer than necessary (1).",
+    markScheme: ["Processed fairly and lawfully (1)", "Used for stated purpose only (1)", "Accurate and up to date (1)", "Not kept longer than necessary (1)", "Adequate, relevant, not excessive (1)", "Any four from DPA principles"],
+  },
+  {
+    id: "p1-el-014", question: "Discuss the impact of technology on employment. Give arguments for and against.", marks: 6, difficulty: "challenge", topic: "Ethical, Legal & Environmental", paper: "1", type: "explain",
+    correctAnswer: "For: technology creates new job roles (web developers, data analysts), increases efficiency and productivity, enables remote working and flexible hours, automates dangerous tasks. Against: automation replaces manual jobs (factory workers, cashiers), AI threatens professional roles, creates a skills gap where workers need retraining, can lead to unemployment in certain sectors.",
+    modelAnswer: "For: creates new job roles like web developers and data analysts (1). Increases productivity and efficiency in businesses (1). Enables flexible/remote working arrangements (1). Against: automation replaces manual/repetitive jobs such as factory workers (1). AI threatens to replace more skilled roles (1). Workers may need expensive retraining, creating a skills gap (1).",
+    markScheme: ["Creates new technology jobs (1)", "Increases efficiency/productivity (1)", "Enables remote/flexible working (1)", "Replaces manual/repetitive jobs (1)", "AI threatens skilled roles (1)", "Skills gap / retraining needed (1)"],
+  },
+  {
+    id: "p1-el-015", question: "Explain the difference between proprietary (closed source) and open source software.", marks: 4, difficulty: "mixed", topic: "Ethical, Legal & Environmental", paper: "1", type: "explain",
+    correctAnswer: "Proprietary software: the source code is not available, you pay for a licence, you cannot modify or redistribute it. Open source software: the source code is freely available, you can modify and redistribute it, it is usually free and maintained by volunteers.",
+    modelAnswer: "Proprietary: source code is hidden/closed (1), you pay for a licence and cannot modify or redistribute it (1). Open source: source code is freely available (1), you can edit, modify and redistribute it, usually free and maintained by volunteers (1).",
+    markScheme: ["Proprietary: source code not available (1)", "Proprietary: paid licence / cannot modify (1)", "Open source: source code available (1)", "Open source: can modify / free / community maintained (1)"],
+  },
+  {
+    id: "p1-el-016", question: "Explain why privacy is a concern in modern society. Give two examples.", marks: 4, difficulty: "mixed", topic: "Ethical, Legal & Environmental", paper: "1", type: "explain",
+    correctAnswer: "Privacy is the right not to be watched or monitored. Modern technology has eroded this right. Examples: CCTV cameras in town centres constantly record people; phone GPS systems track your location; ISPs can record your internet browsing history; number plate recognition tracks vehicle movements.",
+    modelAnswer: "Privacy is the right to not be monitored/watched (1). Modern technology has made it easier to track individuals (1). Example: CCTV cameras record people in public spaces (1). Example: phone GPS / ISPs can track movements and internet habits (1).",
+    markScheme: ["Privacy = right to not be monitored (1)", "Technology erodes this right (1)", "Example: CCTV / surveillance (1)", "Example: GPS tracking / ISP records / ANPR (1)"],
+  },
+  {
+    id: "p1-el-017", question: "A company stores customer data in a database. State two responsibilities they have under the Data Protection Act.", marks: 2, difficulty: "foundation", topic: "Ethical, Legal & Environmental", paper: "1", type: "short",
+    correctAnswer: "They must keep the data secure/protected against unauthorised access. They must not keep the data for longer than necessary.",
+    modelAnswer: "They must protect data against unauthorised access (1). They must not keep data longer than necessary (1).",
+    markScheme: ["Protect against unauthorised access (1)", "Not keep longer than necessary (1)", "Also accept: use only for stated purpose, keep accurate, process fairly"],
+  },
+  {
+    id: "p1-el-018", question: "Explain what 'embedded bias' means in the context of AI systems.", marks: 3, difficulty: "challenge", topic: "Ethical, Legal & Environmental", paper: "1", type: "explain",
+    correctAnswer: "Embedded bias is when AI systems have unintended prejudices built into them, often reflecting biases in their training data. For example, facial recognition systems may be less accurate at recognising certain ethnic groups because training data was not diverse enough.",
+    modelAnswer: "Embedded bias is when AI systems have unintended prejudices built in (1). This often comes from biased training data (1). For example, facial recognition being less accurate for certain ethnic groups due to unrepresentative training data (1).",
+    markScheme: ["Unintended prejudice/bias in AI systems (1)", "Caused by biased/unrepresentative training data (1)", "Example showing real-world impact (1)"],
+  },
+  {
+    id: "p1-el-019", question: "Describe two positive environmental impacts of technology.", marks: 4, difficulty: "mixed", topic: "Ethical, Legal & Environmental", paper: "1", type: "explain",
+    correctAnswer: "Remote working reduces commuting, lowering carbon emissions. Digital communication (emails, digital documents) reduces paper usage and deforestation.",
+    modelAnswer: "Remote working/video conferencing reduces the need to travel, lowering carbon emissions (1)(1). Digital storage and emails reduce paper usage, saving trees and reducing waste (1)(1).",
+    markScheme: ["Remote working reduces travel/emissions (1)", "Link to environmental benefit (1)", "Digital documents reduce paper usage (1)", "Link to environmental benefit (1)"],
+  },
+  {
+    id: "p1-el-020", question: "Which law makes it illegal to copy and distribute software without permission?", marks: 1, difficulty: "foundation", topic: "Ethical, Legal & Environmental", paper: "1", type: "multiple-choice",
+    options: ["Data Protection Act 2018", "Computer Misuse Act 1990", "Copyright, Designs and Patents Act 1988", "Freedom of Information Act 2000"],
+    correctAnswer: "Copyright, Designs and Patents Act 1988",
+    modelAnswer: "The Copyright, Designs and Patents Act 1988 protects creative works including software from being copied or distributed without permission.",
+    markScheme: ["Copyright, Designs and Patents Act 1988 (1)"],
+  },
+  {
+    id: "p1-el-021", question: "Explain what the Freedom of Information Act 2000 allows.", marks: 2, difficulty: "mixed", topic: "Ethical, Legal & Environmental", paper: "1", type: "explain",
+    correctAnswer: "The Freedom of Information Act gives anyone the right to request information held by public bodies such as government departments, NHS trusts, and councils.",
+    modelAnswer: "It gives individuals the right to request information (1) held by public bodies such as government departments or councils (1).",
+    markScheme: ["Right to request information (1)", "From public bodies / government organisations (1)"],
+  },
+  {
+    id: "p1-el-022", question: "Explain what 'planned obsolescence' means and its environmental impact.", marks: 3, difficulty: "challenge", topic: "Ethical, Legal & Environmental", paper: "1", type: "explain",
+    correctAnswer: "Planned obsolescence is when manufacturers deliberately design products to have a limited lifespan so customers need to buy replacements. This increases e-waste as devices are discarded more frequently, contributing to landfill pollution and resource depletion.",
+    modelAnswer: "Planned obsolescence is when devices are deliberately designed to become outdated or stop working after a set period (1). This encourages consumers to buy replacements more frequently (1). It increases e-waste and the demand for raw materials, harming the environment (1).",
+    markScheme: ["Devices designed to have limited lifespan (1)", "Encourages frequent replacement/purchasing (1)", "Increases e-waste / environmental damage (1)"],
+  },
 ];
