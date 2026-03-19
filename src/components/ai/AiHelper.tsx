@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Bot, Send, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { useAiSettings } from "@/lib/useAiSettings";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Message {
   role: "user" | "assistant";
