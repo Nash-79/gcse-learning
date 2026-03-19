@@ -269,6 +269,7 @@ export default function Settings() {
   const [activeTagFilter, setActiveTagFilter] = useState<string | null>(null);
   const [activeProviderFilter, setActiveProviderFilter] = useState<string | null>(null);
   const [showAdminPanel, setShowAdminPanel] = useState(false);
+  const [showUserRoles, setShowUserRoles] = useState(false);
 
   const filteredModels = useMemo(() => {
     return freeModels.filter(m => {

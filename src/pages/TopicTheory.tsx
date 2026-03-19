@@ -354,6 +354,11 @@ export default function TopicTheory() {
           <SectionCard key={section.id} section={section} index={i} />
         ))}
 
+        {/* AI Chat Assistant */}
+        <div className="mt-6">
+          <AiHelper topicSlug={topic.slug} topicTitle={topic.title} />
+        </div>
+
         {/* Practice CTA */}
         <Card className="rounded-2xl border-primary/20 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5">
           <CardContent className="p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4">
