@@ -169,16 +169,26 @@ export function CodingChallengePanel({ topicSlug, topicTitle }: CodingChallengeP
         </div>
 
         {hasAi && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={generateAiChallenges}
-            disabled={isGenerating}
-            className="gap-2 rounded-full border-secondary/30 text-secondary hover:bg-secondary/10 shrink-0"
-          >
-            {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-            AI Challenges
-          </Button>
+          <div className="relative">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowGenMenu(!showGenMenu)}
+              disabled={isGenerating}
+              className="gap-2 rounded-full border-secondary/30 text-secondary hover:bg-secondary/10 shrink-0"
+            >
+              {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+              AI Challenges
+            </Button>
+            {showGenMenu && !isGenerating && (
+              <div className="absolute right-0 top-full mt-1 z-10 bg-card border border-border rounded-xl shadow-lg p-1.5 min-w-[160px] space-y-0.5">
+                <button onClick={() => generateAiChallenges("all")} className="w-full text-left text-xs px-3 py-2 rounded-lg hover:bg-muted transition-colors font-medium">🎯 Mixed (all levels)</button>
+                <button onClick={() => generateAiChallenges("beginner")} className="w-full text-left text-xs px-3 py-2 rounded-lg hover:bg-muted transition-colors font-medium text-green-500">⚡ Beginner × 3</button>
+                <button onClick={() => generateAiChallenges("intermediate")} className="w-full text-left text-xs px-3 py-2 rounded-lg hover:bg-muted transition-colors font-medium text-yellow-500">🔥 Intermediate × 3</button>
+                <button onClick={() => generateAiChallenges("hard")} className="w-full text-left text-xs px-3 py-2 rounded-lg hover:bg-muted transition-colors font-medium text-red-500">🎯 Hard × 3</button>
+              </div>
+            )}
+          </div>
         )}
       </div>
 
