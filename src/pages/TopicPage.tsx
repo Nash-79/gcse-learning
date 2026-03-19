@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { CheckCircle2, ChevronLeft, ChevronRight, BookOpen, Code2, Award, AlertTriangle, Lightbulb, Sparkles, Bot, Loader2, Swords } from "lucide-react";
+import { CheckCircle2, ChevronLeft, ChevronRight, BookOpen, Code2, Award, AlertTriangle, Lightbulb, Sparkles, Bot, Loader2, Swords, GraduationCap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
@@ -9,13 +9,43 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { CodeRunner } from "@/components/code/CodeRunner";
 import { RunnableCode } from "@/components/code/RunnableCode";
 import { QuizComponent } from "@/components/quiz/QuizComponent";
+import { SteppedLearning } from "@/components/learning/SteppedLearning";
 import type { QuizQuestion } from "@/data/topicContent";
 import { AiHelper } from "@/components/ai/AiHelper";
 import { CodingChallengePanel } from "@/components/challenges/CodingChallengePanel";
 import { AiExamValidator } from "@/components/challenges/AiExamValidator";
 import { topicData } from "@/data/topicContent";
+import { topicLearningSteps } from "@/data/learningSteps";
 import { useListTopics, useGetTopicProgress, useUpdateTopicProgress } from "@/hooks/useTopics";
 import { useAiSettings } from "@/lib/useAiSettings";
+
+// Correct YouTube videos per topic
+const topicVideos: Record<string, string> = {
+  "intro-to-python": "https://www.youtube.com/embed/kqtD5dpn9C8",
+  "variables-data-types": "https://www.youtube.com/embed/cQT33yu9pY8",
+  "variables-constants": "https://www.youtube.com/embed/cQT33yu9pY8",
+  "data-types-casting": "https://www.youtube.com/embed/u_ECGvn1Z2c",
+  "input-output-casting": "https://www.youtube.com/embed/I9h1c-121Uk",
+  "arithmetic-operators": "https://www.youtube.com/embed/Aj8FQRIHJSc",
+  "selection-if-else": "https://www.youtube.com/embed/Zp5MuPOtsSY",
+  "iteration": "https://www.youtube.com/embed/6iF8Xb7Z3wQ",
+  "string-handling": "https://www.youtube.com/embed/lSItwlnF0eU",
+  "string-manipulation": "https://www.youtube.com/embed/lSItwlnF0eU",
+  "lists-tuples-dicts": "https://www.youtube.com/embed/W8KRzm-HUcc",
+  "2d-arrays": "https://www.youtube.com/embed/PqFKRqpHrjw",
+  "functions-scope": "https://www.youtube.com/embed/9Os0o3wzS_I",
+  "file-handling": "https://www.youtube.com/embed/Uh2ebFW8OYM",
+  "random-numbers": "https://www.youtube.com/embed/KzqSDvzOFNA",
+  "error-handling": "https://www.youtube.com/embed/NIWwJbo-9_8",
+  "robust-programming": "https://www.youtube.com/embed/NIWwJbo-9_8",
+  "boolean-logic": "https://www.youtube.com/embed/UvI-AMAtrvE",
+  "searching-algorithms": "https://www.youtube.com/embed/YNMnJmv8Cd4",
+  "sorting-algorithms": "https://www.youtube.com/embed/kPRA0W1kECg",
+  "insertion-sort": "https://www.youtube.com/embed/JU767SDMDvA",
+  "sql-basics": "https://www.youtube.com/embed/27axs9dO7AE",
+  "pseudocode-trace-tables": "https://www.youtube.com/embed/4jLO0hXPEAE",
+  "exam-tips": "https://www.youtube.com/embed/4jLO0hXPEAE",
+};
 
 export default function TopicPage() {
   const { slug = "" } = useParams<{ slug: string }>();
@@ -27,6 +57,8 @@ export default function TopicPage() {
 
   const content = topicData[slug];
   const topicMeta = topics?.find(t => t.slug === slug);
+  const learningSteps = topicLearningSteps[slug];
+  const videoUrl = topicVideos[slug] || content?.videoUrl;
 
   const [aiQuestions, setAiQuestions] = useState<QuizQuestion[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -41,6 +73,7 @@ export default function TopicPage() {
     return () => clearInterval(interval);
   }, [slug]);
 
+  // Reset state when topic changes — including AI helper context
   useEffect(() => {
     setAiQuestions([]);
     setShowAiHelper(false);
@@ -115,9 +148,10 @@ export default function TopicPage() {
   const nextTopic = currentIndex < (topics?.length || 0) - 1 ? topics?.[currentIndex + 1] : null;
 
   const allQuestions: QuizQuestion[] = [...content.quiz, ...aiQuestions];
+  const hasSteps = learningSteps && learningSteps.length > 0;
 
   return (
-    <div className="container max-w-5xl mx-auto px-4 py-8 pb-24">
+    <div className="container max-w-6xl mx-auto px-4 py-8 pb-24">
       <motion.div
         initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
         className="mb-8"
@@ -127,9 +161,17 @@ export default function TopicPage() {
           <span>{topicMeta.category}</span>
           <span className="text-muted-foreground/40">·</span>
           <span className="text-muted-foreground text-xs">Topic {currentIndex + 1} of {topics?.length || 0}</span>
+          {topicMeta.ocrRef && (
+            <>
+              <span className="text-muted-foreground/40">·</span>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-semibold flex items-center gap-1">
+                <GraduationCap className="w-3 h-3" /> OCR §{topicMeta.ocrRef}
+              </span>
+            </>
+          )}
         </div>
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <h1 className="text-4xl md:text-5xl font-display font-extrabold tracking-tight text-foreground">
+          <h1 className="text-3xl md:text-4xl font-display font-extrabold tracking-tight text-foreground">
             {topicMeta.title}
           </h1>
           <div className="flex items-center gap-3 shrink-0">
@@ -152,16 +194,22 @@ export default function TopicPage() {
         </div>
       </motion.div>
 
+      {/* AI Helper — key={slug} forces reset when topic changes */}
       {showAiHelper && (
         <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="mb-8">
-          <AiHelper topicSlug={slug} topicTitle={topicMeta.title} />
+          <AiHelper key={slug} topicSlug={slug} topicTitle={topicMeta.title} />
         </motion.div>
       )}
 
-      <Tabs defaultValue="lesson" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 max-w-lg mb-8 h-12 bg-muted/50 p-1 rounded-xl">
+      <Tabs defaultValue={hasSteps ? "learn" : "lesson"} className="w-full">
+        <TabsList className={`grid w-full ${hasSteps ? "grid-cols-5" : "grid-cols-4"} max-w-2xl mb-8 h-12 bg-muted/50 p-1 rounded-xl`}>
+          {hasSteps && (
+            <TabsTrigger value="learn" className="rounded-lg font-medium data-[state=active]:bg-card data-[state=active]:shadow-sm gap-1.5 text-xs sm:text-sm">
+              <GraduationCap className="w-4 h-4" /> <span className="hidden sm:inline">Learn</span>
+            </TabsTrigger>
+          )}
           <TabsTrigger value="lesson" className="rounded-lg font-medium data-[state=active]:bg-card data-[state=active]:shadow-sm gap-1.5 text-xs sm:text-sm">
-            <BookOpen className="w-4 h-4" /> <span className="hidden sm:inline">Lesson</span>
+            <BookOpen className="w-4 h-4" /> <span className="hidden sm:inline">Notes</span>
           </TabsTrigger>
           <TabsTrigger value="challenges" className="rounded-lg font-medium data-[state=active]:bg-card data-[state=active]:shadow-sm gap-1.5 text-xs sm:text-sm">
             <Swords className="w-4 h-4" /> <span className="hidden sm:inline">Challenges</span>
@@ -174,15 +222,38 @@ export default function TopicPage() {
           </TabsTrigger>
         </TabsList>
 
+        {/* Interactive Stepped Learning */}
+        {hasSteps && (
+          <TabsContent value="learn" className="focus-visible:outline-none focus-visible:ring-0">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+              {videoUrl && (
+                <div className="w-full aspect-video rounded-2xl overflow-hidden border border-border/50 shadow-xl bg-black mb-8 neon-glow">
+                  <iframe
+                    width="100%"
+                    height="100%"
+                    src={videoUrl}
+                    title={`${topicMeta.title} video`}
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    className="w-full h-full"
+                  ></iframe>
+                </div>
+              )}
+              <SteppedLearning steps={learningSteps} topicTitle={topicMeta.title} />
+            </motion.div>
+          </TabsContent>
+        )}
+
         <TabsContent value="lesson" className="space-y-10 focus-visible:outline-none focus-visible:ring-0">
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }}>
-            {content.videoUrl && (
+            {!hasSteps && videoUrl && (
               <div className="w-full aspect-video rounded-2xl overflow-hidden border border-border/50 shadow-xl bg-black mb-10 neon-glow">
                 <iframe
                   width="100%"
                   height="100%"
-                  src={content.videoUrl}
-                  title="YouTube video player"
+                  src={videoUrl}
+                  title={`${topicMeta.title} video`}
                   frameBorder="0"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
@@ -259,9 +330,7 @@ export default function TopicPage() {
                 Exam-style coding tasks at every level. Write real code, get AI feedback.
               </p>
             </div>
-
             <CodingChallengePanel topicSlug={slug} topicTitle={topicMeta.title} />
-
             <div className="pt-4">
               <AiExamValidator topicTitle={topicMeta.title} topicSlug={slug} />
             </div>
