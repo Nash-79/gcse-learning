@@ -254,9 +254,9 @@ export default function TopicTheory() {
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
         <BookOpen className="w-12 h-12 text-muted-foreground" />
         <h2 className="text-xl font-display font-bold">Topic Not Found</h2>
-        <Link to="/question-bank">
+        <Link to="/theory">
           <Button variant="outline" className="rounded-full gap-2">
-            <ArrowLeft className="w-4 h-4" /> Back to Question Bank
+            <ArrowLeft className="w-4 h-4" /> Back to Theory
           </Button>
         </Link>
       </div>
@@ -292,8 +292,8 @@ export default function TopicTheory() {
           <div className="absolute top-0 right-0 w-[300px] h-[300px] bg-white/10 rounded-full blur-[80px]" />
         </div>
         <div className="relative z-10 container px-4 md:px-6 mx-auto max-w-4xl py-8">
-          <Link to="/question-bank" className="inline-flex items-center gap-1.5 text-white/70 hover:text-white text-xs mb-4 transition-colors">
-            <ArrowLeft className="w-3.5 h-3.5" /> Question Bank
+          <Link to="/theory" className="inline-flex items-center gap-1.5 text-white/70 hover:text-white text-xs mb-4 transition-colors">
+            <ArrowLeft className="w-3.5 h-3.5" /> Theory Revision
           </Link>
           <div className="flex items-center gap-3">
             <span className="text-4xl">{topic.icon}</span>

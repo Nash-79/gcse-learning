@@ -18,6 +18,7 @@ import AiTutor from "@/pages/AiTutor";
 import Auth from "@/pages/Auth";
 import ExamHistory from "@/pages/ExamHistory";
 import SpacedRepetition from "@/pages/SpacedRepetition";
+import Theory from "@/pages/Theory";
 import NotFound from "@/pages/NotFound";
 import { AppSidebar } from "@/components/layout/AppSidebar";
 import { Header } from "@/components/layout/Header";
@@ -54,6 +55,7 @@ const App = () => {
                         <Route path="/ai-tutor" element={<AiTutor />} />
                         <Route path="/exam-history" element={<ExamHistory />} />
                         <Route path="/spaced-repetition" element={<SpacedRepetition />} />
+                        <Route path="/theory" element={<Theory />} />
                         <Route path="*" element={<NotFound />} />
                       </Routes>
                     </main>
