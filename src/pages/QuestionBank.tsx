@@ -194,8 +194,10 @@ export default function QuestionBank() {
 
           {/* Mock Exams */}
           <motion.section variants={item}>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="text-xl">📝</span>
+            <div className="flex items-center gap-2.5 mb-1">
+              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                <ClipboardCheck className="w-4.5 h-4.5 text-primary" />
+              </div>
               <h2 className="text-xl font-display font-bold">Mock Exam Sets</h2>
             </div>
             <p className="text-xs text-muted-foreground mb-4 ml-8">Full-length 90-minute mock exams matching the OCR J277 exam format. {mockExamSets.length} exams available across both papers.</p>
