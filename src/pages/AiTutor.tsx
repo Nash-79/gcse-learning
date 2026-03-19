@@ -159,6 +159,8 @@ export default function AiTutor() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const { model: settingsModel } = useAiSettings();
+  const [chatModel, setChatModel] = useState(settingsModel);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
