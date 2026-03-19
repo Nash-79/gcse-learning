@@ -29,16 +29,16 @@ export async function appLog(entry: LogEntry) {
     const userId = session?.user?.id;
     const userEmail = session?.user?.email;
 
-    await supabase.from("app_logs").insert({
-      user_id: userId ?? null,
-      user_email: userEmail ?? null,
+    await supabase.from("app_logs").insert([{
+      user_id: userId ?? undefined,
+      user_email: userEmail ?? undefined,
       event_type: entry.event_type,
       origin: entry.origin,
       message: entry.message,
-      details: entry.details ?? {},
-      error_stack: entry.error_stack ?? null,
+      details: (entry.details ?? {}) as any,
+      error_stack: entry.error_stack ?? undefined,
       severity: entry.severity ?? "info",
-    });
+    }]);
   } catch {
     // Silently fail — logging should never break the app
   }
