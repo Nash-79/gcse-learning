@@ -32,6 +32,7 @@ export function AppSidebar() {
   const location = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
   const [boardOpen, setBoardOpen] = useState(false);
+  const { user, signOut } = useAuth();
 
   const { board, setBoard } = useExamBoard();
   const { data: topics, isLoading: topicsLoading } = useListTopics();
