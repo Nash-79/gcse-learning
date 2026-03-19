@@ -254,9 +254,9 @@ export default function TopicTheory() {
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
         <BookOpen className="w-12 h-12 text-muted-foreground" />
         <h2 className="text-xl font-display font-bold">Topic Not Found</h2>
-        <Link to="/question-bank">
+        <Link to="/theory">
           <Button variant="outline" className="rounded-full gap-2">
-            <ArrowLeft className="w-4 h-4" /> Back to Question Bank
+            <ArrowLeft className="w-4 h-4" /> Back to Theory
           </Button>
         </Link>
       </div>
