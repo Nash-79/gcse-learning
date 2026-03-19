@@ -91,7 +91,7 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, model } = await req.json();
+    const { messages, model, provider } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     const OPENROUTER_API_KEY = Deno.env.get("OPENROUTER_API_KEY");
 
@@ -99,7 +99,8 @@ serve(async (req) => {
       throw new Error("No AI API keys configured");
     }
 
-    const requestedModel = model || "google/gemini-3-flash-preview";
+    const preferLovable = provider === "lovable";
+    const requestedModel = model || (preferLovable ? "google/gemini-3-flash-preview" : "meta-llama/llama-3.3-70b-instruct:free");
     const isOpenRouterModel = OPENROUTER_MODELS.has(requestedModel);
 
     const chatMessages = [
