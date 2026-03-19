@@ -40,6 +40,7 @@ const App = () => {
                       <Route path="/topic/:slug" element={<TopicPage />} />
                       <Route path="/playground" element={<Playground />} />
                       <Route path="/question-bank" element={<QuestionBank />} />
+                      <Route path="/exam-session/:setId" element={<ExamSession />} />
                       <Route path="/settings" element={<Settings />} />
                       <Route path="*" element={<NotFound />} />
                     </Routes>
