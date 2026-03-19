@@ -188,7 +188,7 @@ Make questions exam-realistic — reference OCR J277 specification topics. Inclu
           <span className="font-display font-bold text-sm">Exam Question Bank</span>
           <Badge variant="secondary" className="text-[10px] bg-primary/10 text-primary border-none">{questions.length} questions</Badge>
         </div>
-        {hasAi && (
+        {(
           <Button
             variant="outline"
             size="sm"
