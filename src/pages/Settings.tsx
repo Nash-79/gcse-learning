@@ -295,28 +295,22 @@ export default function Settings() {
   const testConnection = async () => {
     setTesting(true);
     setStatus("idle");
-    const settings = JSON.parse(localStorage.getItem("pylearn-ai-settings") || "{}");
     try {
-      const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${settings.apiKey}`,
-        },
-        body: JSON.stringify({
-          model: selectedModel,
+      const { data, error } = await supabase.functions.invoke("ai-chat", {
+        body: {
+          mode: "chat",
+          topicTitle: "Test",
           messages: [{ role: "user", content: "Say 'Hello from PyLearn!' in exactly those words." }],
-          max_tokens: 20,
-        }),
+        },
       });
-      if (!res.ok) throw new Error("API returned " + res.status);
-      const data = await res.json();
-      const reply = data.choices?.[0]?.message?.content || "No response";
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      const reply = data?.content || "No response";
       setStatus("success");
       setStatusMsg(`Connection successful! Model replied: "${reply.substring(0, 60)}"`);
     } catch {
       setStatus("error");
-      setStatusMsg("Connection test failed. Check your API key and try again.");
+      setStatusMsg("Connection test failed. Please try again in a moment.");
     } finally {
       setTesting(false);
     }
