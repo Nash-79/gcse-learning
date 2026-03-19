@@ -1124,5 +1124,21 @@ else:
       { question: "How do you format a float to 2 decimal places in a print statement?", options: ["print(round(x, 2))", "print(f'{x:.2f}')", "print(format(x))", "print(x.2f)"], correctIndex: 1, explanation: "f-strings with :.2f format floats to 2 decimal places: f'{value:.2f}'." },
       { question: "If a GCSE question says 'write an algorithm', which of these is acceptable?", options: ["Pseudocode only", "Flowchart only", "Python code only", "Pseudocode, flowchart, or Python code"], correctIndex: 3, explanation: "Algorithm questions accept pseudocode, flowcharts, or real code — all are valid representations." }
     ]
-  }
+  },
+
+  // New OCR topics
+  "2d-arrays": twoDArrays,
+  "random-numbers": randomNumbers,
+  "robust-programming": robustProgramming,
+  "boolean-logic": booleanLogic,
+  "insertion-sort": insertionSort,
+  "sql-basics": sqlBasics,
+
+  // Imported topic files
+  "arithmetic-operators": arithmeticOperators,
+  "selection-if-else": selectionIfElse,
+  "string-handling": stringHandling,
+  "data-types-casting": dataTypesCasting,
+  "variables-constants": variablesConstants,
+  "intro-to-python": introToPython,
 };
