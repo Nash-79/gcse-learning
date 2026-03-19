@@ -567,6 +567,67 @@ export const paper1Theory: TopicTheoryData[] = [
           ],
         },
       },
+      {
+        id: "binary-arithmetic",
+        title: "Binary Arithmetic",
+        icon: "➕",
+        content: "You need to be able to perform several operations with binary numbers.\n\nBinary Addition follows the same rules as denary but in base 2:\n0 + 0 = 0\n0 + 1 = 1\n1 + 0 = 1\n1 + 1 = 10 (carry the 1)\n1 + 1 + 1 = 11 (carry the 1)\n\nIf the result needs more bits than are available, this causes an overflow error.",
+        tableData: {
+          headers: ["Operation", "Rule", "Example"],
+          rows: [
+            ["Binary Addition", "Add columns right-to-left, carry as needed", "0110 + 0011 = 1001 (6 + 3 = 9)"],
+            ["Overflow", "When the result exceeds the available bits", "1111 + 0001 = 10000 (needs 5 bits, only 4 available)"],
+            ["Left Shift (×2)", "Shift all bits one position left, fill right with 0", "00001010 << 1 = 00010100 (10 × 2 = 20)"],
+            ["Right Shift (÷2)", "Shift all bits one position right, fill left with 0", "00001010 >> 1 = 00000101 (10 ÷ 2 = 5)"],
+          ],
+        },
+        keyTerms: [
+          { term: "Overflow Error", definition: "Occurs when a calculation produces a result too large to store in the available number of bits" },
+          { term: "Binary Shift", definition: "Moving all bits left or right — left shift multiplies by 2, right shift divides by 2" },
+          { term: "Most Significant Bit (MSB)", definition: "The leftmost bit in a binary number — has the highest place value" },
+          { term: "Least Significant Bit (LSB)", definition: "The rightmost bit in a binary number — has the lowest place value (1)" },
+        ],
+        examTip: "Always show your carry row when doing binary addition — you get method marks. For shifts, state the multiplication/division factor: shifting left by n positions multiplies by 2ⁿ.",
+      },
+      {
+        id: "compression",
+        title: "Compression",
+        icon: "📦",
+        content: "Compression reduces file size to save storage space or transmit data faster over a network. There are two types:",
+        comparisonData: {
+          itemA: { title: "Lossy Compression", points: ["Permanently removes some data to reduce size", "Cannot restore original file after compression", "Produces much smaller files than lossless", "Used for media: images (JPEG), audio (MP3), video (MP4)", "Suitable when small loss in quality is acceptable", "Example: reducing image resolution or audio bit depth"] },
+          itemB: { title: "Lossless Compression", points: ["Reduces file size without losing ANY data", "Original file can be perfectly restored", "Files are larger than lossy equivalents", "Used for text, code, spreadsheets, and important data", "Algorithms: Run-Length Encoding (RLE), Huffman Coding", "Example: ZIP files, PNG images"] },
+        },
+        keyTerms: [
+          { term: "Lossy Compression", definition: "Compression that permanently removes some data — smaller files but quality is reduced" },
+          { term: "Lossless Compression", definition: "Compression that reduces file size without losing any data — original can be perfectly restored" },
+          { term: "Run-Length Encoding", definition: "A lossless algorithm that replaces repeated values with a count and value pair (e.g., AAAA → 4A)" },
+          { term: "Huffman Coding", definition: "A lossless algorithm that assigns shorter binary codes to more frequently occurring characters" },
+        ],
+        examTip: "Common exam question: 'Why would lossy compression be unsuitable for a text file?' — because losing characters/words would make the text meaningless.",
+      },
+      {
+        id: "file-size-calculations",
+        title: "Calculating File Sizes",
+        icon: "🧮",
+        content: "You need to be able to calculate file sizes for different types of data using these formulas:",
+        tableData: {
+          headers: ["File Type", "Formula", "Example"],
+          rows: [
+            ["Image", "Width (px) × Height (px) × Colour Depth (bits)", "1920 × 1080 × 24 bits = 49,766,400 bits = 5.93 MB"],
+            ["Sound", "Sample Rate (Hz) × Duration (s) × Bit Depth × Channels", "44,100 × 180 × 16 × 2 = 254,016,000 bits = 30.2 MB"],
+            ["Text", "Number of characters × Bits per character", "1000 chars × 8 bits (ASCII) = 8000 bits = 1 KB"],
+          ],
+        },
+        keyTerms: [
+          { term: "Resolution", definition: "The number of pixels in an image, typically width × height (e.g., 1920×1080)" },
+          { term: "Colour Depth", definition: "Number of bits used per pixel to represent colour — 8-bit = 256 colours, 24-bit = 16.7 million" },
+          { term: "Sample Rate", definition: "How many times per second an analogue sound wave is sampled (measured in Hz)" },
+          { term: "Bit Depth", definition: "Number of bits used to store each sound sample — higher = better quality" },
+          { term: "Metadata", definition: "Data about data — for images includes resolution, colour depth, GPS location, device info" },
+        ],
+        examTip: "Always convert your final answer into appropriate units. Remember: 8 bits = 1 byte, 1024 bytes = 1 KB, 1024 KB = 1 MB. Show ALL working!",
+      },
     ],
   },
 
