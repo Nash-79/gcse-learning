@@ -13,6 +13,7 @@ import { SteppedLearning } from "@/components/learning/SteppedLearning";
 import type { QuizQuestion } from "@/data/topicContent";
 import { AiHelper } from "@/components/ai/AiHelper";
 import { CodingChallengePanel } from "@/components/challenges/CodingChallengePanel";
+import { ExamQuestionBank } from "@/components/quiz/ExamQuestionBank";
 import { AiExamValidator } from "@/components/challenges/AiExamValidator";
 import { topicData } from "@/data/topicContent";
 import { topicLearningSteps } from "@/data/learningSteps";
