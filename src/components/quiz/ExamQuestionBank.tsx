@@ -145,39 +145,29 @@ export function ExamQuestionBank({ topicSlug, topicTitle, questions, onQuestions
   }), [questions]);
 
   const generateExamQuestions = useCallback(async () => {
-    if (!hasAi) return;
     setIsGenerating(true);
     setGenError(null);
     try {
-      const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${settings.apiKey}`,
-          "HTTP-Referer": window.location.origin,
-        },
-        body: JSON.stringify({
-          model: settings.model,
-          messages: [{
-            role: "system",
-            content: `You are an OCR GCSE Computer Science exam question writer. Generate exactly 9 multiple-choice exam-style questions about "${topicTitle}" — 3 easy, 3 medium, 3 hard. 
+      const systemPrompt = `You are an OCR GCSE Computer Science exam question writer. Generate exactly 9 multiple-choice exam-style questions about "${topicTitle}" — 3 easy, 3 medium, 3 hard. 
             
 Each question MUST include a "hint" field containing pseudocode or a structured hint that helps students plan their answer. The pseudocode should use standard OCR pseudocode notation where applicable (e.g., IF...THEN...ENDIF, FOR...NEXT, WHILE...ENDWHILE, INPUT, OUTPUT, PRINT).
 
-Return ONLY a JSON array of objects with: question (string), options (array of 4 strings), correctIndex (0-3), explanation (string), hint (string - pseudocode or structured hint), difficulty ("easy"|"medium"|"hard").
+Return ONLY a JSON object with a "questions" array of objects with: question (string), options (array of 4 strings), correctIndex (0-3), explanation (string), hint (string - pseudocode or structured hint), difficulty ("easy"|"medium"|"hard").
 
-Make questions exam-realistic — reference OCR J277 specification topics. Include questions about tracing code, identifying errors, predicting output, and understanding concepts. Do not repeat these existing questions: ${questions.slice(0, 5).map(q => q.question).join("; ")}`
-          }, {
-            role: "user",
-            content: `Generate 9 OCR GCSE exam-style questions about ${topicTitle} with pseudocode hints.`
-          }],
-          max_tokens: 3000,
-          response_format: { type: "json_object" },
-        }),
+Make questions exam-realistic — reference OCR J277 specification topics. Include questions about tracing code, identifying errors, predicting output, and understanding concepts. Do not repeat these existing questions: ${questions.slice(0, 5).map(q => q.question).join("; ")}`;
+
+      const { data, error } = await supabase.functions.invoke("ai-chat", {
+        body: {
+          mode: "generate",
+          topicTitle,
+          systemPromptOverride: systemPrompt,
+          userPromptOverride: `Generate 9 OCR GCSE exam-style questions about ${topicTitle} with pseudocode hints.`,
+          maxTokens: 3000,
+        },
       });
-      if (!res.ok) throw new Error("Failed to generate questions");
-      const data = await res.json();
-      const text = data.choices?.[0]?.message?.content || "";
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      const text = data?.content || "";
       const parsed = JSON.parse(text);
       const newQuestions: QuizQuestion[] = Array.isArray(parsed) ? parsed : parsed.questions || [];
       if (newQuestions.length === 0) throw new Error("No questions generated");
@@ -188,7 +178,7 @@ Make questions exam-realistic — reference OCR J277 specification topics. Inclu
     } finally {
       setIsGenerating(false);
     }
-  }, [topicTitle, questions, hasAi, settings, onQuestionsGenerated]);
+  }, [topicTitle, questions, onQuestionsGenerated]);
 
   return (
     <Card className="border-border/50 rounded-2xl overflow-hidden">
