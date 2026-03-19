@@ -38,6 +38,7 @@ const App = () => {
                       <Route path="/" element={<Home />} />
                       <Route path="/topic/:slug" element={<TopicPage />} />
                       <Route path="/playground" element={<Playground />} />
+                      <Route path="/question-bank" element={<QuestionBank />} />
                       <Route path="/settings" element={<Settings />} />
                       <Route path="*" element={<NotFound />} />
                     </Routes>

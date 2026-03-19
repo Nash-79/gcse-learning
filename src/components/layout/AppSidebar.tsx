@@ -140,6 +140,14 @@ export function AppSidebar() {
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={location.pathname === "/question-bank"}>
+                  <Link to="/question-bank">
+                    <FileText className="h-4 w-4 text-primary" />
+                    <span className="font-medium">Question Bank</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={location.pathname === "/settings"}>
                   <Link to="/settings">
                     <Settings className="h-4 w-4 text-muted-foreground" />
