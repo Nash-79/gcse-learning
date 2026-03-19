@@ -157,7 +157,7 @@ export function CodingChallengePanel({ topicSlug, topicTitle }: CodingChallengeP
           })}
         </div>
 
-        {hasAi && (
+        {(
           <div className="relative">
             <Button
               variant="outline"
