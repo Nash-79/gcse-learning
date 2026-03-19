@@ -4,7 +4,8 @@ import { motion } from "framer-motion";
 import {
   FileText, BookOpen, Clock, Target, Zap,
   ChevronRight, Sparkles, Layers, Calendar, ArrowRight,
-  GraduationCap, Trophy, BarChart3, Play
+  GraduationCap, Trophy, BarChart3, Play, Brain,
+  ClipboardCheck, Flame, NotebookPen, LayoutGrid
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -69,8 +70,11 @@ function SetCard({ set }: { set: PaperSetType }) {
         </div>
         <Link to={`/exam-session/${set.id}`}>
           <Button size="sm" variant="outline" className="w-fit rounded-full text-xs h-8 gap-1.5 border-primary/30 text-primary hover:bg-primary/10">
-            <Play className="w-3 h-3" /> Start Practice <ArrowRight className="w-3 h-3" />
+            <Play className="w-3 h-3" /> Start Practice
           </Button>
+          <span className="text-[9px] text-muted-foreground/60 flex items-center gap-1">
+            <Brain className="w-3 h-3" /> AI explains answers
+          </span>
         </Link>
       </CardContent>
     </Card>
@@ -128,15 +132,15 @@ export default function QuestionBank() {
         <div className="relative z-10 container px-4 md:px-6 mx-auto max-w-6xl py-10 lg:py-14">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 rounded-xl bg-white/15 backdrop-blur-sm flex items-center justify-center">
-                <FileText className="w-6 h-6 text-white" />
+              <div className="w-12 h-12 rounded-xl bg-white/15 backdrop-blur-sm flex items-center justify-center border border-white/10">
+                <Brain className="w-6 h-6 text-white" />
               </div>
               <div>
                 <h1 className="text-3xl md:text-4xl lg:text-5xl font-display font-extrabold text-white tracking-tight">
                   Question Bank Practice
                 </h1>
                 <p className="text-white/70 text-sm md:text-base mt-1">
-                  Practice OCR J277 exam-style questions — Full specification coverage
+                  Practice OCR J277 exam-style questions with <span className="text-white font-semibold">AI-powered marking &amp; explanations</span>
                 </p>
               </div>
             </div>
@@ -193,8 +197,10 @@ export default function QuestionBank() {
 
           {/* Mock Exams */}
           <motion.section variants={item}>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="text-xl">📝</span>
+            <div className="flex items-center gap-2.5 mb-1">
+              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                <ClipboardCheck className="w-4.5 h-4.5 text-primary" />
+              </div>
               <h2 className="text-xl font-display font-bold">Mock Exam Sets</h2>
             </div>
             <p className="text-xs text-muted-foreground mb-4 ml-8">Full-length 90-minute mock exams matching the OCR J277 exam format. {mockExamSets.length} exams available across both papers.</p>
@@ -205,8 +211,10 @@ export default function QuestionBank() {
 
           {/* Practice Papers */}
           <motion.section variants={item}>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="text-xl">📄</span>
+            <div className="flex items-center gap-2.5 mb-1">
+              <div className="w-8 h-8 rounded-lg bg-secondary/10 flex items-center justify-center">
+                <NotebookPen className="w-4.5 h-4.5 text-secondary" />
+              </div>
               <h2 className="text-xl font-display font-bold">Practice Paper Sets</h2>
             </div>
             <p className="text-xs text-muted-foreground mb-4 ml-8">60-minute practice papers at Foundation, Mixed, and Challenge levels. {practicePaperSets.length} papers — 3 per paper, progressing in difficulty.</p>
@@ -232,8 +240,10 @@ export default function QuestionBank() {
 
           {/* Topic Mastery */}
           <motion.section variants={item}>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="text-xl">🎯</span>
+            <div className="flex items-center gap-2.5 mb-1">
+              <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center">
+                <Target className="w-4.5 h-4.5 text-amber-500" />
+              </div>
               <h2 className="text-xl font-display font-bold">Topic Mastery Sets</h2>
             </div>
             <p className="text-xs text-muted-foreground mb-4 ml-8">Targeted practice for individual topics. {topicMasterySets.length} topic sets covering all {paper1Topics.length + paper2Topics.length} specification areas.</p>
@@ -245,8 +255,10 @@ export default function QuestionBank() {
 
           {/* Five A Day */}
           <motion.section variants={item}>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="text-xl">🌟</span>
+            <div className="flex items-center gap-2.5 mb-1">
+              <div className="w-8 h-8 rounded-lg bg-secondary/10 flex items-center justify-center">
+                <Flame className="w-4.5 h-4.5 text-secondary" />
+              </div>
               <h2 className="text-xl font-display font-bold">Five A Day Sets</h2>
             </div>
             <p className="text-xs text-muted-foreground mb-4 ml-8">Daily bite-sized practice — 5 questions per session. {fiveADaySets.length} daily sets to keep your knowledge sharp.</p>
