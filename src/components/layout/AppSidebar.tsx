@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { BookOpen, Code2, LayoutDashboard, CheckCircle2, Search, Settings, GraduationCap, ChevronDown, FileText, Bot } from "lucide-react";
+import { BookOpen, Code2, LayoutDashboard, CheckCircle2, Search, Settings, GraduationCap, ChevronDown, FileText, Bot, History, Brain, LogIn, LogOut, User } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useListTopics, useGetProgress, useExamBoard, type Topic, type ExamBoard } from "@/hooks/useTopics";
+import { useAuth } from "@/hooks/useAuth";
 
 const boardLabels: Record<ExamBoard, string> = {
   ocr: "OCR J277",
@@ -31,6 +32,7 @@ export function AppSidebar() {
   const location = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
   const [boardOpen, setBoardOpen] = useState(false);
+  const { user, signOut } = useAuth();
 
   const { board, setBoard } = useExamBoard();
   const { data: topics, isLoading: topicsLoading } = useListTopics();
@@ -156,12 +158,44 @@ export function AppSidebar() {
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={location.pathname === "/exam-history"}>
+                  <Link to="/exam-history">
+                    <History className="h-4 w-4 text-primary" />
+                    <span className="font-medium">Exam History</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={location.pathname === "/spaced-repetition"}>
+                  <Link to="/spaced-repetition">
+                    <Brain className="h-4 w-4 text-secondary" />
+                    <span className="font-medium text-secondary">Spaced Repetition</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={location.pathname === "/settings"}>
                   <Link to="/settings">
                     <Settings className="h-4 w-4 text-muted-foreground" />
                     <span>Settings</span>
                   </Link>
                 </SidebarMenuButton>
+              </SidebarMenuItem>
+              {/* Auth */}
+              <SidebarMenuItem>
+                {user ? (
+                  <SidebarMenuButton onClick={() => signOut()}>
+                    <LogOut className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-muted-foreground">Sign Out</span>
+                  </SidebarMenuButton>
+                ) : (
+                  <SidebarMenuButton asChild isActive={location.pathname === "/auth"}>
+                    <Link to="/auth">
+                      <LogIn className="h-4 w-4 text-primary" />
+                      <span className="font-medium text-primary">Sign In</span>
+                    </Link>
+                  </SidebarMenuButton>
+                )}
               </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>

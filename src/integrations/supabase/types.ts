@@ -14,7 +14,191 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      exam_answers: {
+        Row: {
+          attempt_id: string
+          created_at: string
+          difficulty: string | null
+          feedback: string | null
+          grade: string | null
+          id: string
+          improvement_tip: string | null
+          mark_breakdown: Json | null
+          marks_awarded: number
+          question_id: string
+          question_text: string
+          student_answer: string
+          topic: string | null
+          total_marks: number
+          user_id: string
+        }
+        Insert: {
+          attempt_id: string
+          created_at?: string
+          difficulty?: string | null
+          feedback?: string | null
+          grade?: string | null
+          id?: string
+          improvement_tip?: string | null
+          mark_breakdown?: Json | null
+          marks_awarded?: number
+          question_id: string
+          question_text: string
+          student_answer: string
+          topic?: string | null
+          total_marks?: number
+          user_id: string
+        }
+        Update: {
+          attempt_id?: string
+          created_at?: string
+          difficulty?: string | null
+          feedback?: string | null
+          grade?: string | null
+          id?: string
+          improvement_tip?: string | null
+          mark_breakdown?: Json | null
+          marks_awarded?: number
+          question_id?: string
+          question_text?: string
+          student_answer?: string
+          topic?: string | null
+          total_marks?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exam_answers_attempt_id_fkey"
+            columns: ["attempt_id"]
+            isOneToOne: false
+            referencedRelation: "exam_attempts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      exam_attempts: {
+        Row: {
+          answered_count: number
+          completed_at: string
+          created_at: string
+          duration_seconds: number | null
+          grade: string
+          id: string
+          marks_awarded: number
+          paper_number: string
+          paper_set_id: string
+          paper_title: string
+          percentage: number
+          question_count: number
+          total_marks: number
+          user_id: string
+        }
+        Insert: {
+          answered_count?: number
+          completed_at?: string
+          created_at?: string
+          duration_seconds?: number | null
+          grade?: string
+          id?: string
+          marks_awarded?: number
+          paper_number?: string
+          paper_set_id: string
+          paper_title: string
+          percentage?: number
+          question_count?: number
+          total_marks?: number
+          user_id: string
+        }
+        Update: {
+          answered_count?: number
+          completed_at?: string
+          created_at?: string
+          duration_seconds?: number | null
+          grade?: string
+          id?: string
+          marks_awarded?: number
+          paper_number?: string
+          paper_set_id?: string
+          paper_title?: string
+          percentage?: number
+          question_count?: number
+          total_marks?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          display_name: string | null
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string | null
+          id: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string | null
+          id?: string
+        }
+        Relationships: []
+      }
+      spaced_repetition: {
+        Row: {
+          created_at: string
+          difficulty: string | null
+          ease_factor: number
+          id: string
+          interval_days: number
+          last_reviewed_at: string | null
+          next_review_at: string
+          question_data: Json
+          question_id: string
+          question_text: string
+          repetitions: number
+          times_correct: number
+          times_incorrect: number
+          topic: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          difficulty?: string | null
+          ease_factor?: number
+          id?: string
+          interval_days?: number
+          last_reviewed_at?: string | null
+          next_review_at?: string
+          question_data: Json
+          question_id: string
+          question_text: string
+          repetitions?: number
+          times_correct?: number
+          times_incorrect?: number
+          topic?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          difficulty?: string | null
+          ease_factor?: number
+          id?: string
+          interval_days?: number
+          last_reviewed_at?: string | null
+          next_review_at?: string
+          question_data?: Json
+          question_id?: string
+          question_text?: string
+          repetitions?: number
+          times_correct?: number
+          times_incorrect?: number
+          topic?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
