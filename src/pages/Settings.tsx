@@ -669,6 +669,47 @@ export default function Settings() {
           </CardContent>
         </Card>
 
+        {/* Admin Panel */}
+        {user && isAdmin && (
+          <div className="space-y-4">
+            <Card className="rounded-2xl">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-display font-bold flex items-center gap-2">
+                      <ShieldAlert className="w-5 h-5 text-primary" />
+                      Admin Panel
+                    </h3>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      View application logs, user activity, errors, and progress data
+                    </p>
+                  </div>
+                  <Button
+                    variant={showAdminPanel ? "default" : "outline"}
+                    onClick={() => setShowAdminPanel(!showAdminPanel)}
+                    className="gap-2 rounded-xl"
+                  >
+                    <Lock className="w-4 h-4" />
+                    {showAdminPanel ? "Hide Logs" : "View Logs"}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            <AnimatePresence>
+              {showAdminPanel && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                >
+                  <AdminLogViewer />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        )}
+
         {/* About */}
         <Card className="rounded-2xl">
           <CardContent className="p-6">
