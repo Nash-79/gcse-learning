@@ -70,8 +70,11 @@ function SetCard({ set }: { set: PaperSetType }) {
         </div>
         <Link to={`/exam-session/${set.id}`}>
           <Button size="sm" variant="outline" className="w-fit rounded-full text-xs h-8 gap-1.5 border-primary/30 text-primary hover:bg-primary/10">
-            <Play className="w-3 h-3" /> Start Practice <ArrowRight className="w-3 h-3" />
+            <Play className="w-3 h-3" /> Start Practice
           </Button>
+          <span className="text-[9px] text-muted-foreground/60 flex items-center gap-1">
+            <Brain className="w-3 h-3" /> AI explains answers
+          </span>
         </Link>
       </CardContent>
     </Card>
