@@ -1,3 +1,17 @@
+import { twoDArrays } from "./topics/twoDArrays";
+import { randomNumbers } from "./topics/randomNumbers";
+import { robustProgramming } from "./topics/robustProgramming";
+import { booleanLogic } from "./topics/booleanLogic";
+import { insertionSort } from "./topics/insertionSort";
+import { sqlBasics } from "./topics/sqlBasics";
+import { arithmeticOperators } from "./topics/arithmeticOperators";
+import { selectionIfElse } from "./topics/selectionIfElse";
+import { stringHandling } from "./topics/stringHandling";
+import { dataTypesCasting } from "./topics/dataTypesCasting";
+import { variablesConstants } from "./topics/variablesConstants";
+import { inputOutputConcatenation } from "./topics/inputOutputConcatenation";
+import { introToPython } from "./topics/introToPython";
+
 export type Difficulty = "easy" | "medium" | "hard";
 
 export interface QuizQuestion {
