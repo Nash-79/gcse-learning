@@ -52,7 +52,7 @@ export function AiHelper({ topicSlug, topicTitle }: AiHelperProps) {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
-  const { model: settingsModel } = useAiSettings();
+  const { model: settingsModel, provider: settingsProvider } = useAiSettings();
   const [chatModel, setChatModel] = useState(settingsModel);
   const [showModelPicker, setShowModelPicker] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
