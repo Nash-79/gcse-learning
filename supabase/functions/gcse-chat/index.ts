@@ -110,8 +110,8 @@ serve(async (req) => {
 
     let response: Response;
 
-    // Route to OpenRouter for free-tier models, Lovable AI for others
-    if (isOpenRouterModel && OPENROUTER_API_KEY) {
+    // Route: prefer user's chosen provider, fallback to the other
+    if (!preferLovable && isOpenRouterModel && OPENROUTER_API_KEY) {
       response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
         method: "POST",
         headers: {

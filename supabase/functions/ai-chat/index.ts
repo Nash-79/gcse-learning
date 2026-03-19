@@ -123,10 +123,10 @@ Be encouraging but honest. Reference OCR J277 exam expectations where relevant.`
       requestBody.response_format = { type: "json_object" };
     }
 
-    // Try OpenRouter for free models, fallback to Lovable AI
+    // Route based on provider preference
     let response: Response | null = null;
 
-    if (isOpenRouterModel && OPENROUTER_API_KEY) {
+    if (!preferLovable && isOpenRouterModel && OPENROUTER_API_KEY) {
       response = await callAI(OPENROUTER_API_KEY, requestBody, true);
       if (response.status === 429 && LOVABLE_API_KEY) {
         console.log("OpenRouter rate limited, falling back to Lovable AI");
