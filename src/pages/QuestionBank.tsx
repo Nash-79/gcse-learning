@@ -108,7 +108,6 @@ function TopicMasteryCard({ title, topics, paper }: { title: string; topics: str
 export default function QuestionBank() {
   const { data: topics } = useListTopics();
   const { board } = useExamBoard();
-  const totalQuestions = topics?.reduce((sum, t) => sum + (t.questionCount || 0), 0) || 600;
 
   return (
     <div className="flex flex-col min-h-full pb-20">
