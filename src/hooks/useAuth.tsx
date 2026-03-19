@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { appLog } from "@/lib/appLogger";
 
 interface AuthContextType {
   user: User | null;
@@ -23,6 +24,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+      if (_event === "SIGNED_IN" && session?.user) {
+        appLog({ event_type: "login", origin: "useAuth/onAuthStateChange", message: `User signed in: ${session.user.email}`, details: { email: session.user.email } });
+      } else if (_event === "SIGNED_OUT") {
+        appLog({ event_type: "logout", origin: "useAuth/onAuthStateChange", message: "User signed out" });
+      }
     });
 
     supabase.auth.getSession().then(({ data: { session } }) => {

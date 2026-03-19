@@ -1,10 +1,13 @@
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Settings as SettingsIcon, Key, Bot, Save, CheckCircle2, AlertCircle, Loader2, ExternalLink, Sparkles, Zap, Brain, Code2, Eye, Search, X, ChevronDown, Clock, AlertTriangle, Hash, Server } from "lucide-react";
+import { Settings as SettingsIcon, Key, Bot, Save, CheckCircle2, AlertCircle, Loader2, ExternalLink, Sparkles, Zap, Brain, Code2, Eye, Search, X, ChevronDown, Clock, AlertTriangle, Hash, Server, ShieldAlert, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAiSettings } from "@/lib/useAiSettings";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { useAdminRole } from "@/hooks/useAdminRole";
+import AdminLogViewer from "@/components/admin/AdminLogViewer";
 
 interface FreeModel {
   id: string;
@@ -252,6 +255,8 @@ const allProviders = [...new Set(freeModels.map(m => m.provider))];
 
 export default function Settings() {
   const { hasAi, maskedKey, model: currentModel, updateSettings } = useAiSettings();
+  const { user } = useAuth();
+  const { isAdmin, loading: adminLoading } = useAdminRole();
   const [apiKey, setApiKey] = useState("");
   const [selectedModel, setSelectedModel] = useState(currentModel);
   const [expandedModel, setExpandedModel] = useState<string | null>(null);
@@ -262,6 +267,7 @@ export default function Settings() {
   const [modelSearch, setModelSearch] = useState("");
   const [activeTagFilter, setActiveTagFilter] = useState<string | null>(null);
   const [activeProviderFilter, setActiveProviderFilter] = useState<string | null>(null);
+  const [showAdminPanel, setShowAdminPanel] = useState(false);
 
   const filteredModels = useMemo(() => {
     return freeModels.filter(m => {
@@ -662,6 +668,47 @@ export default function Settings() {
             </Button>
           </CardContent>
         </Card>
+
+        {/* Admin Panel */}
+        {user && isAdmin && (
+          <div className="space-y-4">
+            <Card className="rounded-2xl">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-display font-bold flex items-center gap-2">
+                      <ShieldAlert className="w-5 h-5 text-primary" />
+                      Admin Panel
+                    </h3>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      View application logs, user activity, errors, and progress data
+                    </p>
+                  </div>
+                  <Button
+                    variant={showAdminPanel ? "default" : "outline"}
+                    onClick={() => setShowAdminPanel(!showAdminPanel)}
+                    className="gap-2 rounded-xl"
+                  >
+                    <Lock className="w-4 h-4" />
+                    {showAdminPanel ? "Hide Logs" : "View Logs"}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            <AnimatePresence>
+              {showAdminPanel && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                >
+                  <AdminLogViewer />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        )}
 
         {/* About */}
         <Card className="rounded-2xl">
