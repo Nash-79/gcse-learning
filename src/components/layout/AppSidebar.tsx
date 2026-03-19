@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useListTopics, useGetProgress, useExamBoard, type Topic, type ExamBoard } from "@/hooks/useTopics";
+import { useAuth } from "@/hooks/useAuth";
 
 const boardLabels: Record<ExamBoard, string> = {
   ocr: "OCR J277",
