@@ -232,11 +232,17 @@ else:
     },
     videoUrl: "https://www.youtube.com/embed/PqFKRqpHrjw",
     quiz: [
-      { question: "What does 17 % 5 evaluate to?", options: ["3", "2", "3.4", "85"], correctIndex: 1, explanation: "Modulo gives the remainder of division. 17 ÷ 5 = 3 remainder 2." },
-      { question: "What is the result of 10 / 2 in Python?", options: ["5", "5.0", "Integer 5", "Error"], correctIndex: 1, explanation: "The / operator always returns a float in Python 3." },
-      { question: "How do you raise 3 to the power of 4?", options: ["3 ^ 4", "3 * 4", "3 ** 4", "pow(3,4)"], correctIndex: 2, explanation: "** is the exponentiation operator in Python." },
-      { question: "What will 'Hi' * 3 produce?", options: ["Error", "Hi3", "HiHiHi", "Hi Hi Hi"], correctIndex: 2, explanation: "Multiplying a string by a number repeats it." },
-      { question: "Which operator finds the integer remainder?", options: ["/", "//", "%", "^"], correctIndex: 2, explanation: "% is the modulo (remainder) operator." }
+      { question: "What does 17 % 5 evaluate to?", options: ["3", "2", "3.4", "85"], correctIndex: 1, explanation: "Modulo gives the remainder of division. 17 ÷ 5 = 3 remainder 2.", hint: "Pseudocode: result ← 17 MOD 5. MOD returns the remainder after integer division.", difficulty: "easy" },
+      { question: "What is the result of 10 / 2 in Python?", options: ["5", "5.0", "Integer 5", "Error"], correctIndex: 1, explanation: "The / operator always returns a float in Python 3.", hint: "In Python 3, the / operator always returns a float, even when dividing evenly.", difficulty: "easy" },
+      { question: "How do you raise 3 to the power of 4?", options: ["3 ^ 4", "3 * 4", "3 ** 4", "pow(3,4)"], correctIndex: 2, explanation: "** is the exponentiation operator in Python.", hint: "Pseudocode: result ← 3 ^ 4. In Python, the power operator uses double asterisks.", difficulty: "easy" },
+      { question: "What will 'Hi' * 3 produce?", options: ["Error", "Hi3", "HiHiHi", "Hi Hi Hi"], correctIndex: 2, explanation: "Multiplying a string by a number repeats it.", hint: "String * integer repeats the string that many times — no spaces added.", difficulty: "medium" },
+      { question: "Which operator finds the integer remainder?", options: ["/", "//", "%", "^"], correctIndex: 2, explanation: "% is the modulo (remainder) operator.", hint: "Pseudocode: x MOD y gives the remainder. In Python this is written as x % y.", difficulty: "easy" },
+      { question: "What does 15 // 4 evaluate to?", options: ["3", "3.75", "4", "3.0"], correctIndex: 0, explanation: "// is integer (floor) division. 15 ÷ 4 = 3.75, floored to 3.", hint: "Pseudocode: result ← 15 DIV 4. DIV gives the whole number part of division.", difficulty: "medium" },
+      { question: "What is the output of: print('Score: ' + str(95))?", options: ["Score: 95", "Error", "Score: str(95)", "Score:95"], correctIndex: 0, explanation: "str(95) converts the integer to a string, allowing concatenation.", hint: "You cannot concatenate a string and integer directly. Use str() to cast first.", difficulty: "medium" },
+      { question: "What will print(2 ** 3 + 1) output?", options: ["7", "9", "16", "Error"], correctIndex: 1, explanation: "2 ** 3 = 8, then 8 + 1 = 9. Exponentiation has higher precedence than addition.", hint: "Pseudocode: Step 1: 2^3 = 8, Step 2: 8 + 1 = 9. Power is evaluated before addition (BODMAS).", difficulty: "medium" },
+      { question: "Which expression checks if a number is even?", options: ["number / 2 == 0", "number // 2 == 0", "number % 2 == 0", "number ** 2 == 0"], correctIndex: 2, explanation: "number % 2 == 0 checks if the remainder when dividing by 2 is zero.", hint: "Pseudocode: IF number MOD 2 = 0 THEN OUTPUT 'Even'", difficulty: "hard" },
+      { question: "What is the result of: len('Hello' + ' ' + 'World')?", options: ["10", "11", "12", "Error"], correctIndex: 1, explanation: "'Hello' + ' ' + 'World' = 'Hello World' which has 11 characters including the space.", hint: "First concatenate: 'Hello World' (5 + 1 + 5 = 11 chars). Then len() counts all characters.", difficulty: "hard" },
+      { question: "What does print(10 % 3 + 10 // 3) output?", options: ["4", "5", "6", "3"], correctIndex: 0, explanation: "10 % 3 = 1, 10 // 3 = 3, so 1 + 3 = 4.", hint: "Pseudocode: Step 1: 10 MOD 3 = 1, Step 2: 10 DIV 3 = 3, Step 3: 1 + 3 = 4.", difficulty: "hard" }
     ]
   },
 
