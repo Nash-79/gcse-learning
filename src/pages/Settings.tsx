@@ -255,6 +255,8 @@ const allProviders = [...new Set(freeModels.map(m => m.provider))];
 
 export default function Settings() {
   const { hasAi, maskedKey, model: currentModel, updateSettings } = useAiSettings();
+  const { user } = useAuth();
+  const { isAdmin, loading: adminLoading } = useAdminRole();
   const [apiKey, setApiKey] = useState("");
   const [selectedModel, setSelectedModel] = useState(currentModel);
   const [expandedModel, setExpandedModel] = useState<string | null>(null);
@@ -265,6 +267,7 @@ export default function Settings() {
   const [modelSearch, setModelSearch] = useState("");
   const [activeTagFilter, setActiveTagFilter] = useState<string | null>(null);
   const [activeProviderFilter, setActiveProviderFilter] = useState<string | null>(null);
+  const [showAdminPanel, setShowAdminPanel] = useState(false);
 
   const filteredModels = useMemo(() => {
     return freeModels.filter(m => {
