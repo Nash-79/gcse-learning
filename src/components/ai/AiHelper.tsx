@@ -41,43 +41,19 @@ export function AiHelper({ topicSlug, topicTitle }: AiHelperProps) {
     setInput("");
     setIsLoading(true);
 
-    if (!hasAi) {
-      setTimeout(() => {
-        setMessages(prev => [...prev, {
-          role: "assistant",
-          content: `To use the AI assistant, please configure an OpenRouter API key in the Settings page. It's free — no credit card needed!`
-        }]);
-        setIsLoading(false);
-      }, 500);
-      return;
-    }
-
     try {
-      const systemPrompt = `You are a GCSE Computer Science tutor helping a student learn Python. The current topic is "${topicTitle}". Keep explanations clear, concise, and appropriate for 14-16 year old students. Use Python code examples when helpful. Format code blocks with triple backticks.`;
-
-      const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${settings.apiKey}`,
-          "HTTP-Referer": window.location.origin,
+      const { data, error } = await supabase.functions.invoke("ai-chat", {
+        body: {
+          mode: "chat",
+          topicTitle,
+          messages: newMessages.map(m => ({ role: m.role, content: m.content })),
         },
-        body: JSON.stringify({
-          model: settings.model,
-          messages: [
-            { role: "system", content: systemPrompt },
-            ...newMessages.map(m => ({ role: m.role, content: m.content })),
-          ],
-          max_tokens: 1000,
-        }),
       });
 
-      if (!res.ok) {
-        throw new Error(`API error: ${res.status}`);
-      }
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
 
-      const data = await res.json();
-      const reply = data.choices?.[0]?.message?.content || "Sorry, I couldn't generate a response.";
+      const reply = data?.content || "Sorry, I couldn't generate a response.";
       setMessages(prev => [...prev, { role: "assistant", content: reply }]);
     } catch (err) {
       setMessages(prev => [...prev, {
