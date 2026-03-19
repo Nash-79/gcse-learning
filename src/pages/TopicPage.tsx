@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { CheckCircle2, ChevronLeft, ChevronRight, BookOpen, Code2, Award, AlertTriangle, Lightbulb, Sparkles, Bot, Loader2 } from "lucide-react";
+import { CheckCircle2, ChevronLeft, ChevronRight, BookOpen, Code2, Award, AlertTriangle, Lightbulb, Sparkles, Bot, Loader2, Swords } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
@@ -11,6 +11,8 @@ import { RunnableCode } from "@/components/code/RunnableCode";
 import { QuizComponent } from "@/components/quiz/QuizComponent";
 import type { QuizQuestion } from "@/data/topicContent";
 import { AiHelper } from "@/components/ai/AiHelper";
+import { CodingChallengePanel } from "@/components/challenges/CodingChallengePanel";
+import { AiExamValidator } from "@/components/challenges/AiExamValidator";
 import { topicData } from "@/data/topicContent";
 import { useListTopics, useGetTopicProgress, useUpdateTopicProgress } from "@/hooks/useTopics";
 import { useAiSettings } from "@/lib/useAiSettings";
@@ -72,7 +74,6 @@ export default function TopicPage() {
       if (!res.ok) throw new Error("Failed to generate questions");
       const data = await res.json();
       const text = data.choices?.[0]?.message?.content || "";
-      // Try to parse questions from the response
       const parsed = JSON.parse(text);
       const questions: QuizQuestion[] = Array.isArray(parsed) ? parsed : parsed.questions || [];
       if (questions.length === 0) throw new Error("No questions generated");
@@ -158,15 +159,18 @@ export default function TopicPage() {
       )}
 
       <Tabs defaultValue="lesson" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 max-w-md mb-8 h-12 bg-muted/50 p-1 rounded-xl">
-          <TabsTrigger value="lesson" className="rounded-lg font-medium data-[state=active]:bg-card data-[state=active]:shadow-sm gap-2">
-            <BookOpen className="w-4 h-4" /> Lesson
+        <TabsList className="grid w-full grid-cols-4 max-w-lg mb-8 h-12 bg-muted/50 p-1 rounded-xl">
+          <TabsTrigger value="lesson" className="rounded-lg font-medium data-[state=active]:bg-card data-[state=active]:shadow-sm gap-1.5 text-xs sm:text-sm">
+            <BookOpen className="w-4 h-4" /> <span className="hidden sm:inline">Lesson</span>
           </TabsTrigger>
-          <TabsTrigger value="practice" className="rounded-lg font-medium data-[state=active]:bg-card data-[state=active]:shadow-sm gap-2">
-            <Code2 className="w-4 h-4" /> Practice
+          <TabsTrigger value="challenges" className="rounded-lg font-medium data-[state=active]:bg-card data-[state=active]:shadow-sm gap-1.5 text-xs sm:text-sm">
+            <Swords className="w-4 h-4" /> <span className="hidden sm:inline">Challenges</span>
           </TabsTrigger>
-          <TabsTrigger value="quiz" className="rounded-lg font-medium data-[state=active]:bg-card data-[state=active]:shadow-sm gap-2">
-            <Award className="w-4 h-4" /> Quiz
+          <TabsTrigger value="practice" className="rounded-lg font-medium data-[state=active]:bg-card data-[state=active]:shadow-sm gap-1.5 text-xs sm:text-sm">
+            <Code2 className="w-4 h-4" /> <span className="hidden sm:inline">Practice</span>
+          </TabsTrigger>
+          <TabsTrigger value="quiz" className="rounded-lg font-medium data-[state=active]:bg-card data-[state=active]:shadow-sm gap-1.5 text-xs sm:text-sm">
+            <Award className="w-4 h-4" /> <span className="hidden sm:inline">Quiz</span>
           </TabsTrigger>
         </TabsList>
 
@@ -244,27 +248,23 @@ export default function TopicPage() {
                 </CardContent>
               </Card>
             )}
+          </motion.div>
+        </TabsContent>
 
-            {/* AI Code Review prompt */}
-            {hasAi && (
-              <Card className="mt-6 border-secondary/20 bg-secondary/5 shadow-none rounded-2xl">
-                <CardContent className="p-6">
-                  <h3 className="flex items-center gap-2 text-lg font-bold text-secondary mb-2 font-display">
-                    <Sparkles className="w-5 h-5" /> AI Code Review
-                  </h3>
-                  <p className="text-sm text-muted-foreground mb-3">
-                    Write your solution above, then ask the AI to review and grade your code.
-                  </p>
-                  <Button
-                    variant="outline"
-                    onClick={() => setShowAiHelper(true)}
-                    className="gap-2 border-secondary/30 hover:bg-secondary/10 text-secondary"
-                  >
-                    <Bot className="w-4 h-4" /> Open AI Assistant
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
+        <TabsContent value="challenges" className="focus-visible:outline-none focus-visible:ring-0">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8">
+            <div>
+              <h2 className="text-2xl font-display font-bold mb-2">Coding Challenges</h2>
+              <p className="text-muted-foreground text-sm">
+                Exam-style coding tasks at every level. Write real code, get AI feedback.
+              </p>
+            </div>
+
+            <CodingChallengePanel topicSlug={slug} topicTitle={topicMeta.title} />
+
+            <div className="pt-4">
+              <AiExamValidator topicTitle={topicMeta.title} topicSlug={slug} />
+            </div>
           </motion.div>
         </TabsContent>
 
