@@ -1,8 +1,10 @@
-import { useState, useRef, useEffect, useCallback } from "react";
-import { Bot, Send, Loader2, Trash2, Sparkles, Code2, GraduationCap, Lightbulb, BookOpen } from "lucide-react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import { Bot, Send, Loader2, Trash2, Sparkles, Code2, GraduationCap, Lightbulb, BookOpen, Home } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import ReactMarkdown from "react-markdown";
+import { ChatMessage } from "@/components/chat/ChatMessage";
+import { FollowUpSuggestions } from "@/components/chat/FollowUpSuggestions";
 
 interface Message {
   role: "user" | "assistant";
@@ -17,6 +19,48 @@ const suggestedPrompts = [
   { icon: Lightbulb, label: "Explain a concept", prompt: "Explain how for loops work in Python with a commented example and expected output." },
   { icon: BookOpen, label: "Practice question", prompt: "Give me an OCR exam-style Python question about lists and arrays, then walk me through the answer with comments." },
 ];
+
+// Extract follow-up suggestions from AI response
+function extractFollowUps(content: string): { cleanContent: string; suggestions: string[] } {
+  const lines = content.split("\n");
+  const suggestions: string[] = [];
+  let followUpStart = -1;
+
+  for (let i = lines.length - 1; i >= 0; i--) {
+    const line = lines[i].trim();
+    if (line.match(/^\*?\*?🔗/)) {
+      followUpStart = i;
+      break;
+    }
+  }
+
+  if (followUpStart === -1) {
+    // Try finding the separator before follow-ups
+    for (let i = lines.length - 1; i >= Math.max(0, lines.length - 12); i--) {
+      if (lines[i].trim() === "---" && i < lines.length - 2) {
+        const nextNonEmpty = lines.slice(i + 1).find(l => l.trim());
+        if (nextNonEmpty && nextNonEmpty.includes("🔗")) {
+          followUpStart = i;
+          break;
+        }
+      }
+    }
+  }
+
+  if (followUpStart >= 0) {
+    for (let i = followUpStart; i < lines.length; i++) {
+      const line = lines[i].trim();
+      const match = line.match(/^[-•*]\s*"?(.+?)"?\s*$/);
+      if (match) {
+        suggestions.push(match[1].replace(/^[""]|[""]$/g, ""));
+      }
+    }
+    const cleanContent = lines.slice(0, followUpStart).join("\n").trimEnd();
+    return { cleanContent, suggestions };
+  }
+
+  return { cleanContent: content, suggestions: [] };
+}
 
 async function streamChat({
   messages,
@@ -89,7 +133,6 @@ async function streamChat({
     }
   }
 
-  // Flush remaining
   if (textBuffer.trim()) {
     for (let raw of textBuffer.split("\n")) {
       if (!raw) continue;
@@ -114,11 +157,23 @@ export default function AiTutor() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages]);
+
+  // Extract follow-ups from the last assistant message
+  const lastAssistantMsg = useMemo(() => {
+    for (let i = messages.length - 1; i >= 0; i--) {
+      if (messages[i].role === "assistant") return messages[i].content;
+    }
+    return "";
+  }, [messages]);
+
+  const { suggestions: followUps } = useMemo(
+    () => extractFollowUps(lastAssistantMsg),
+    [lastAssistantMsg]
+  );
 
   const send = useCallback(async (text: string) => {
     if (!text.trim() || isLoading) return;
@@ -228,28 +283,25 @@ export default function AiTutor() {
             </div>
           )}
 
-          {messages.map((msg, i) => (
-            <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-              {msg.role === "assistant" && (
-                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-secondary/10 mr-3 mt-1 shrink-0">
-                  <Bot className="w-4 h-4 text-secondary" />
-                </div>
-              )}
-              <div className={`max-w-[85%] ${
-                msg.role === "user"
-                  ? "bg-primary text-primary-foreground px-4 py-2.5 rounded-2xl rounded-br-md"
-                  : "bg-transparent"
-              }`}>
-                {msg.role === "user" ? (
-                  <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.content}</p>
-                ) : (
-                  <div className="prose prose-sm dark:prose-invert max-w-none prose-pre:bg-muted prose-pre:border prose-pre:border-border/50 prose-pre:rounded-xl prose-code:text-secondary prose-code:before:content-none prose-code:after:content-none prose-headings:font-display prose-headings:tracking-tight">
-                    <ReactMarkdown>{msg.content}</ReactMarkdown>
-                  </div>
+          {messages.map((msg, i) => {
+            const isLastAssistant = msg.role === "assistant" && i === messages.length - 1 && !isLoading;
+            const { cleanContent, suggestions } = isLastAssistant
+              ? extractFollowUps(msg.content)
+              : { cleanContent: msg.content, suggestions: [] };
+
+            return (
+              <div key={i}>
+                <ChatMessage role={msg.role} content={cleanContent} />
+                {isLastAssistant && suggestions.length > 0 && (
+                  <FollowUpSuggestions
+                    suggestions={suggestions}
+                    onSelect={send}
+                    showHomeLink={true}
+                  />
                 )}
               </div>
-            </div>
-          ))}
+            );
+          })}
 
           {isLoading && messages[messages.length - 1]?.role === "user" && (
             <div className="flex justify-start">
@@ -280,7 +332,6 @@ export default function AiTutor() {
             )}
             <div className="flex-1 relative">
               <textarea
-                ref={inputRef}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
