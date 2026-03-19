@@ -359,7 +359,7 @@ export default function TopicPage() {
                 <h2 className="text-2xl font-display font-bold mb-2">Quiz</h2>
                 <p className="text-muted-foreground">Test your understanding of {topicMeta.title}.</p>
               </div>
-              {hasAi && (
+              {(
                 <Button
                   variant="outline"
                   size="sm"
