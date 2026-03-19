@@ -11,6 +11,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { allQuestions, mockExamSets, practicePaperSets, topicMasterySets, fiveADaySets, allPaperSets } from "@/data/questionBank/paperSets";
 import { PaperSet as PaperSetType } from "@/data/questionBank/types";
+import { paper1Theory } from "@/data/questionBank/paper1Theory";
+import { paper2Theory } from "@/data/questionBank/paper2Theory";
 
 const container = {
   hidden: { opacity: 0 },
