@@ -81,33 +81,22 @@ export default function TopicPage() {
   }, [slug]);
 
   const generateMoreQuestions = useCallback(async () => {
-    if (!content || !hasAi) return;
+    if (!content) return;
     setIsGenerating(true);
     setGenerationError(null);
     try {
-      const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${settings.apiKey}`,
-          "HTTP-Referer": window.location.origin,
+      const { data, error } = await supabase.functions.invoke("ai-chat", {
+        body: {
+          mode: "generate",
+          topicTitle: topicMeta?.title || slug,
+          systemPromptOverride: `You are a GCSE Computer Science quiz generator. Generate exactly 5 multiple-choice questions about "${topicMeta?.title || slug}" for Python programming. Return ONLY a JSON object with a "questions" array of objects with these fields: question (string), options (array of 4 strings), correctIndex (0-3), explanation (string), hint (string), difficulty ("easy"|"medium"|"hard"). Do not include any other text.`,
+          userPromptOverride: `Generate 5 new quiz questions about ${topicMeta?.title || slug}. Existing questions to avoid repeating: ${content.quiz.map(q => q.question).join("; ")}`,
+          maxTokens: 2000,
         },
-        body: JSON.stringify({
-          model: settings.model,
-          messages: [{
-            role: "system",
-            content: `You are a GCSE Computer Science quiz generator. Generate exactly 5 multiple-choice questions about "${topicMeta?.title || slug}" for Python programming. Return ONLY a JSON array of objects with these fields: question (string), options (array of 4 strings), correctIndex (0-3), explanation (string), hint (string), difficulty ("easy"|"medium"|"hard"). Do not include any other text.`
-          }, {
-            role: "user",
-            content: `Generate 5 new quiz questions about ${topicMeta?.title || slug}. Existing questions to avoid repeating: ${content.quiz.map(q => q.question).join("; ")}`
-          }],
-          max_tokens: 2000,
-          response_format: { type: "json_object" },
-        }),
       });
-      if (!res.ok) throw new Error("Failed to generate questions");
-      const data = await res.json();
-      const text = data.choices?.[0]?.message?.content || "";
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      const text = data?.content || "";
       const parsed = JSON.parse(text);
       const questions: QuizQuestion[] = Array.isArray(parsed) ? parsed : parsed.questions || [];
       if (questions.length === 0) throw new Error("No questions generated");
@@ -117,7 +106,7 @@ export default function TopicPage() {
     } finally {
       setIsGenerating(false);
     }
-  }, [slug, content, topicMeta, hasAi, settings]);
+  }, [slug, content, topicMeta]);
 
   if (topicsLoading) {
     return (
