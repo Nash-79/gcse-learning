@@ -62,7 +62,7 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, mode, topicTitle, code, taskDescription, systemPromptOverride, userPromptOverride, maxTokens, model } = await req.json();
+    const { messages, mode, topicTitle, code, taskDescription, systemPromptOverride, userPromptOverride, maxTokens, model, provider } = await req.json();
 
     const OPENROUTER_API_KEY = Deno.env.get("OPENROUTER_API_KEY");
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
@@ -71,7 +71,8 @@ serve(async (req) => {
       throw new Error("No AI API keys configured");
     }
 
-    const requestedModel = model || "meta-llama/llama-3.3-70b-instruct:free";
+    const preferLovable = provider === "lovable";
+    const requestedModel = model || (preferLovable ? "google/gemini-2.5-flash" : "meta-llama/llama-3.3-70b-instruct:free");
     const isOpenRouterModel = OPENROUTER_MODELS.has(requestedModel);
 
     let systemPrompt: string;
@@ -122,10 +123,10 @@ Be encouraging but honest. Reference OCR J277 exam expectations where relevant.`
       requestBody.response_format = { type: "json_object" };
     }
 
-    // Try OpenRouter for free models, fallback to Lovable AI
+    // Route based on provider preference
     let response: Response | null = null;
 
-    if (isOpenRouterModel && OPENROUTER_API_KEY) {
+    if (!preferLovable && isOpenRouterModel && OPENROUTER_API_KEY) {
       response = await callAI(OPENROUTER_API_KEY, requestBody, true);
       if (response.status === 429 && LOVABLE_API_KEY) {
         console.log("OpenRouter rate limited, falling back to Lovable AI");

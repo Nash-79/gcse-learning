@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Settings as SettingsIcon, Key, Bot, Save, CheckCircle2, AlertCircle, Loader2, ExternalLink, Sparkles, Zap, Brain, Code2, Eye, Search, X, ChevronDown, Clock, AlertTriangle, Hash, Server, ShieldAlert, Lock, Users } from "lucide-react";
+import { Settings as SettingsIcon, Key, Bot, Save, CheckCircle2, AlertCircle, Loader2, ExternalLink, Sparkles, Zap, Brain, Code2, Eye, Search, X, ChevronDown, Clock, AlertTriangle, Hash, Server, ShieldAlert, Lock, Users, Globe, Cloud } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAiSettings } from "@/lib/useAiSettings";
@@ -255,7 +255,7 @@ const allTags = ["Tools", "Reasoning", "Vision", "Code", "Best Quality"] as cons
 const allProviders = [...new Set(freeModels.map(m => m.provider))];
 
 export default function Settings() {
-  const { hasAi, maskedKey, model: currentModel, updateSettings } = useAiSettings();
+  const { hasAi, maskedKey, model: currentModel, provider: currentProvider, updateSettings } = useAiSettings();
   const { user } = useAuth();
   const { isAdmin, loading: adminLoading } = useAdminRole();
   const [apiKey, setApiKey] = useState("");
@@ -348,67 +348,120 @@ export default function Settings() {
       </motion.div>
 
       <div className="space-y-8">
-        {/* API Key Section */}
+        {/* AI Provider Selection */}
         <Card className="rounded-2xl overflow-hidden">
           <CardContent className="p-6">
             <h3 className="text-lg font-display font-bold mb-1 flex items-center gap-2">
-              <Key className="w-5 h-5 text-primary" />
-              API Key
+              <Server className="w-5 h-5 text-primary" />
+              AI Provider
             </h3>
             <p className="text-sm text-muted-foreground mb-4">
-              Sign up free at{" "}
-              <a href="https://openrouter.ai/keys" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline inline-flex items-center gap-1">
-                openrouter.ai/keys <ExternalLink className="w-3 h-3" />
-              </a>
-              {" "}— no credit card needed
+              Choose which AI backend to use for chat, exam marking, and quiz generation.
             </p>
 
-            {hasAi && (
-              <div className="mb-4 flex items-center gap-2 text-sm bg-green-500/10 text-green-500 border border-green-500/20 rounded-xl px-4 py-2.5">
-                <CheckCircle2 className="w-4 h-4 shrink-0" />
-                <span>API key configured: <code className="font-mono text-xs">{maskedKey}</code></span>
-              </div>
-            )}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <button
+                onClick={() => updateSettings({ provider: "openrouter" })}
+                className={`p-4 rounded-xl border-2 text-left transition-all ${
+                  currentProvider === "openrouter"
+                    ? "border-primary/50 bg-primary/5 shadow-lg shadow-primary/5"
+                    : "border-border/40 hover:border-primary/30"
+                }`}
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <Globe className="w-5 h-5 text-primary" />
+                  <span className="font-display font-bold">OpenRouter</span>
+                  {currentProvider === "openrouter" && (
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/20 text-primary font-semibold ml-auto">Active</span>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground">Free tier models from Meta, Google, Qwen, NVIDIA &amp; more. Requires API key. Rate limits may apply.</p>
+              </button>
 
-            <div className="space-y-3">
-              <label className="text-sm font-medium text-foreground">
-                {hasAi ? "Update API Key" : "Enter API Key"}
-              </label>
-              <input
-                type="password"
-                value={apiKey}
-                onChange={e => setApiKey(e.target.value)}
-                placeholder="sk-or-v1-..."
-                className="w-full bg-background border border-border rounded-xl px-4 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all"
-              />
-            </div>
-
-            <AnimatePresence>
-              {status !== "idle" && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
-                  className={`mt-3 flex items-center gap-2 text-sm px-4 py-2.5 rounded-xl border ${
-                    status === "success" ? "bg-green-500/10 text-green-500 border-green-500/20" : "bg-destructive/10 text-destructive border-destructive/20"
-                  }`}
-                >
-                  {status === "success" ? <CheckCircle2 className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
-                  {statusMsg}
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            <div className="flex gap-3 mt-4">
-              <Button onClick={saveKey} disabled={!apiKey.trim() || saving} className="gap-2 rounded-xl">
-                {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                {hasAi ? "Update Key" : "Save Key"}
-              </Button>
-              <Button variant="outline" onClick={testConnection} disabled={!hasAi || testing} className="gap-2 rounded-xl">
-                {testing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Bot className="w-4 h-4" />}
-                Test Connection
-              </Button>
+              <button
+                onClick={() => updateSettings({ provider: "lovable" })}
+                className={`p-4 rounded-xl border-2 text-left transition-all ${
+                  currentProvider === "lovable"
+                    ? "border-secondary/50 bg-secondary/5 shadow-lg shadow-secondary/5"
+                    : "border-border/40 hover:border-secondary/30"
+                }`}
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <Cloud className="w-5 h-5 text-secondary" />
+                  <span className="font-display font-bold">Lovable AI</span>
+                  {currentProvider === "lovable" && (
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-secondary/20 text-secondary font-semibold ml-auto">Active</span>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground">Powered by Gemini 3 Flash. No API key needed. More reliable, automatic fallback.</p>
+              </button>
             </div>
           </CardContent>
         </Card>
+
+        {/* API Key Section — only show for OpenRouter */}
+        {currentProvider === "openrouter" && (
+          <Card className="rounded-2xl overflow-hidden">
+            <CardContent className="p-6">
+              <h3 className="text-lg font-display font-bold mb-1 flex items-center gap-2">
+                <Key className="w-5 h-5 text-primary" />
+                OpenRouter API Key
+              </h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Sign up free at{" "}
+                <a href="https://openrouter.ai/keys" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline inline-flex items-center gap-1">
+                  openrouter.ai/keys <ExternalLink className="w-3 h-3" />
+                </a>
+                {" "}— no credit card needed
+              </p>
+
+              {hasAi && (
+                <div className="mb-4 flex items-center gap-2 text-sm bg-green-500/10 text-green-500 border border-green-500/20 rounded-xl px-4 py-2.5">
+                  <CheckCircle2 className="w-4 h-4 shrink-0" />
+                  <span>API key configured: <code className="font-mono text-xs">{maskedKey}</code></span>
+                </div>
+              )}
+
+              <div className="space-y-3">
+                <label className="text-sm font-medium text-foreground">
+                  {hasAi ? "Update API Key" : "Enter API Key"}
+                </label>
+                <input
+                  type="password"
+                  value={apiKey}
+                  onChange={e => setApiKey(e.target.value)}
+                  placeholder="sk-or-v1-..."
+                  className="w-full bg-background border border-border rounded-xl px-4 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all"
+                />
+              </div>
+
+              <AnimatePresence>
+                {status !== "idle" && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
+                    className={`mt-3 flex items-center gap-2 text-sm px-4 py-2.5 rounded-xl border ${
+                      status === "success" ? "bg-green-500/10 text-green-500 border-green-500/20" : "bg-destructive/10 text-destructive border-destructive/20"
+                    }`}
+                  >
+                    {status === "success" ? <CheckCircle2 className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+                    {statusMsg}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              <div className="flex gap-3 mt-4">
+                <Button onClick={saveKey} disabled={!apiKey.trim() || saving} className="gap-2 rounded-xl">
+                  {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                  {hasAi ? "Update Key" : "Save Key"}
+                </Button>
+                <Button variant="outline" onClick={testConnection} disabled={testing} className="gap-2 rounded-xl">
+                  {testing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Bot className="w-4 h-4" />}
+                  Test Connection
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Model Selection */}
         <Card className="rounded-2xl overflow-hidden">

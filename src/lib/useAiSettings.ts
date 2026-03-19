@@ -1,16 +1,26 @@
 import { useState, useEffect, useCallback } from "react";
 
+export type AiProvider = "openrouter" | "lovable";
+
 interface AiSettings {
   apiKey: string;
   model: string;
+  provider: AiProvider;
 }
 
 function loadSettings(): AiSettings {
   try {
     const stored = localStorage.getItem("pylearn-ai-settings");
-    if (stored) return JSON.parse(stored);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      return {
+        apiKey: parsed.apiKey || "",
+        model: parsed.model || "meta-llama/llama-3.3-70b-instruct:free",
+        provider: parsed.provider || "openrouter",
+      };
+    }
   } catch {}
-  return { apiKey: "", model: "meta-llama/llama-3.3-70b-instruct:free" };
+  return { apiKey: "", model: "meta-llama/llama-3.3-70b-instruct:free", provider: "openrouter" };
 }
 
 function saveSettings(s: AiSettings) {
@@ -43,6 +53,7 @@ export function useAiSettings() {
     hasAi: !!settings.apiKey,
     maskedKey,
     model: settings.model,
+    provider: settings.provider,
     updateSettings,
   };
 }

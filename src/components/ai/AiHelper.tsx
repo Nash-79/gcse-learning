@@ -52,7 +52,7 @@ export function AiHelper({ topicSlug, topicTitle }: AiHelperProps) {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
-  const { model: settingsModel } = useAiSettings();
+  const { model: settingsModel, provider: settingsProvider } = useAiSettings();
   const [chatModel, setChatModel] = useState(settingsModel);
   const [showModelPicker, setShowModelPicker] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -83,6 +83,7 @@ export function AiHelper({ topicSlug, topicTitle }: AiHelperProps) {
           mode: "chat",
           topicTitle,
           model: chatModel,
+          provider: settingsProvider,
           messages: newMessages.map(m => ({ role: m.role, content: m.content })),
         },
       });
@@ -132,11 +133,16 @@ export function AiHelper({ topicSlug, topicTitle }: AiHelperProps) {
             className="w-full text-xs bg-background border border-border rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary/50"
           >
             <option value={settingsModel}>Settings Default ({settingsModel.split("/").pop()?.replace(":free", "")})</option>
-            <option value="google/gemini-3-flash-preview">Gemini 3 Flash (Lovable AI)</option>
-            <option value="meta-llama/llama-3.3-70b-instruct:free">Llama 3.3 70B</option>
-            <option value="google/gemma-3-27b-it:free">Gemma 3 27B</option>
-            <option value="qwen/qwen3-coder:free">Qwen3 Coder 480B</option>
-            <option value="mistralai/mistral-small-3.1-24b-instruct:free">Mistral Small 3.1</option>
+            <optgroup label="Lovable AI">
+              <option value="google/gemini-3-flash-preview">Gemini 3 Flash</option>
+              <option value="google/gemini-2.5-flash">Gemini 2.5 Flash</option>
+            </optgroup>
+            <optgroup label="OpenRouter Free">
+              <option value="meta-llama/llama-3.3-70b-instruct:free">Llama 3.3 70B</option>
+              <option value="google/gemma-3-27b-it:free">Gemma 3 27B</option>
+              <option value="qwen/qwen3-coder:free">Qwen3 Coder 480B</option>
+              <option value="mistralai/mistral-small-3.1-24b-instruct:free">Mistral Small 3.1</option>
+            </optgroup>
           </select>
         </div>
       )}
