@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { BookOpen, Code2, LayoutDashboard, CheckCircle2, Search, Settings, GraduationCap, ChevronDown } from "lucide-react";
+import { BookOpen, Code2, LayoutDashboard, CheckCircle2, Search, Settings, GraduationCap, ChevronDown, FileText } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -136,6 +136,14 @@ export function AppSidebar() {
                   <Link to="/playground">
                     <Code2 className="h-4 w-4 text-secondary" />
                     <span className="font-medium text-secondary">Python Sandbox</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={location.pathname === "/question-bank"}>
+                  <Link to="/question-bank">
+                    <FileText className="h-4 w-4 text-primary" />
+                    <span className="font-medium">Question Bank</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
