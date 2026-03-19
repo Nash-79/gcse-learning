@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { ThemeProvider } from "@/lib/theme";
+import { AuthProvider } from "@/hooks/useAuth";
 
 import Home from "@/pages/Home";
 import TopicPage from "@/pages/TopicPage";
@@ -14,6 +15,9 @@ import ExamSession from "@/pages/ExamSession";
 import TopicTheory from "@/pages/TopicTheory";
 import Settings from "@/pages/Settings";
 import AiTutor from "@/pages/AiTutor";
+import Auth from "@/pages/Auth";
+import ExamHistory from "@/pages/ExamHistory";
+import SpacedRepetition from "@/pages/SpacedRepetition";
 import NotFound from "@/pages/NotFound";
 import { AppSidebar } from "@/components/layout/AppSidebar";
 import { Header } from "@/components/layout/Header";
@@ -29,37 +33,42 @@ const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="dark" storageKey="pylearn-theme">
-        <TooltipProvider>
-          <BrowserRouter>
-            <SidebarProvider style={sidebarStyle}>
-              <div className="flex h-screen w-full overflow-hidden bg-background">
-                <AppSidebar />
-                <div className="flex flex-col flex-1 min-w-0">
-                  <Header />
-                  <main className="flex-1 overflow-y-auto overflow-x-hidden relative scroll-smooth">
-                    <Routes>
-                      <Route path="/" element={<Home />} />
-                      <Route path="/topic/:slug" element={<TopicPage />} />
-                      <Route path="/playground" element={<Playground />} />
-                      <Route path="/question-bank" element={<QuestionBank />} />
-                      <Route path="/exam-session/:setId" element={<ExamSession />} />
-                      <Route path="/topic-theory/:slug" element={<TopicTheory />} />
-                      <Route path="/settings" element={<Settings />} />
-                      <Route path="/ai-tutor" element={<AiTutor />} />
-                      <Route path="*" element={<NotFound />} />
-                    </Routes>
-                  </main>
-                  <footer className="shrink-0 border-t border-border/50 bg-muted/20 px-6 py-3 text-xs text-muted-foreground flex items-center justify-between">
-                    <span>PyLearn — GCSE Computer Science Revision</span>
-                    <span>AQA &amp; OCR syllabus · Master Python. Ace Your Exams.</span>
-                  </footer>
+        <AuthProvider>
+          <TooltipProvider>
+            <BrowserRouter>
+              <SidebarProvider style={sidebarStyle}>
+                <div className="flex h-screen w-full overflow-hidden bg-background">
+                  <AppSidebar />
+                  <div className="flex flex-col flex-1 min-w-0">
+                    <Header />
+                    <main className="flex-1 overflow-y-auto overflow-x-hidden relative scroll-smooth">
+                      <Routes>
+                        <Route path="/" element={<Home />} />
+                        <Route path="/auth" element={<Auth />} />
+                        <Route path="/topic/:slug" element={<TopicPage />} />
+                        <Route path="/playground" element={<Playground />} />
+                        <Route path="/question-bank" element={<QuestionBank />} />
+                        <Route path="/exam-session/:setId" element={<ExamSession />} />
+                        <Route path="/topic-theory/:slug" element={<TopicTheory />} />
+                        <Route path="/settings" element={<Settings />} />
+                        <Route path="/ai-tutor" element={<AiTutor />} />
+                        <Route path="/exam-history" element={<ExamHistory />} />
+                        <Route path="/spaced-repetition" element={<SpacedRepetition />} />
+                        <Route path="*" element={<NotFound />} />
+                      </Routes>
+                    </main>
+                    <footer className="shrink-0 border-t border-border/50 bg-muted/20 px-6 py-3 text-xs text-muted-foreground flex items-center justify-between">
+                      <span>PyLearn — GCSE Computer Science Revision</span>
+                      <span>AQA &amp; OCR syllabus · Master Python. Ace Your Exams.</span>
+                    </footer>
+                  </div>
                 </div>
-              </div>
-            </SidebarProvider>
-          </BrowserRouter>
-          <Toaster />
-          <Sonner />
-        </TooltipProvider>
+              </SidebarProvider>
+            </BrowserRouter>
+            <Toaster />
+            <Sonner />
+          </TooltipProvider>
+        </AuthProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );
