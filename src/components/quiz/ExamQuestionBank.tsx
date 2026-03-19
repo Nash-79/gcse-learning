@@ -246,7 +246,7 @@ Make questions exam-realistic — reference OCR J277 specification topics. Inclu
         <div className="space-y-1.5 max-h-[600px] overflow-y-auto pr-1">
           {filtered.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-6">
-              No questions for this difficulty. {hasAi && "Try generating some with AI!"}
+              No questions for this difficulty. {"Try generating some with AI!"}
             </p>
           ) : (
             filtered.map((q, i) => (
