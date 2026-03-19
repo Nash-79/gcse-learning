@@ -2,6 +2,8 @@ import { useState, useRef, useEffect } from "react";
 import { Bot, Send, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { ChatMessage } from "@/components/chat/ChatMessage";
+import { FollowUpSuggestions } from "@/components/chat/FollowUpSuggestions";
 import { supabase } from "@/integrations/supabase/client";
 
 interface Message {
@@ -12,6 +14,36 @@ interface Message {
 interface AiHelperProps {
   topicSlug: string;
   topicTitle: string;
+}
+
+function extractFollowUps(content: string): { cleanContent: string; suggestions: string[] } {
+  const lines = content.split("\n");
+  const suggestions: string[] = [];
+  let followUpStart = -1;
+
+  for (let i = lines.length - 1; i >= 0; i--) {
+    const line = lines[i].trim();
+    if (line.match(/^\*?\*?🔗/)) { followUpStart = i; break; }
+  }
+
+  if (followUpStart === -1) {
+    for (let i = lines.length - 1; i >= Math.max(0, lines.length - 12); i--) {
+      if (lines[i].trim() === "---" && i < lines.length - 2) {
+        const nextNonEmpty = lines.slice(i + 1).find(l => l.trim());
+        if (nextNonEmpty && nextNonEmpty.includes("🔗")) { followUpStart = i; break; }
+      }
+    }
+  }
+
+  if (followUpStart >= 0) {
+    for (let i = followUpStart; i < lines.length; i++) {
+      const match = lines[i].trim().match(/^[-•*]\s*"?(.+?)"?\s*$/);
+      if (match) suggestions.push(match[1].replace(/^[""]|[""]$/g, ""));
+    }
+    return { cleanContent: lines.slice(0, followUpStart).join("\n").trimEnd(), suggestions };
+  }
+
+  return { cleanContent: content, suggestions: [] };
 }
 
 export function AiHelper({ topicSlug, topicTitle }: AiHelperProps) {
@@ -78,7 +110,7 @@ export function AiHelper({ topicSlug, topicTitle }: AiHelperProps) {
         </div>
       </div>
 
-      <div ref={scrollRef} className="h-[300px] overflow-y-auto p-4 space-y-4">
+      <div ref={scrollRef} className="h-[400px] overflow-y-auto p-4 space-y-4">
         {messages.length === 0 && (
           <div className="h-full flex flex-col items-center justify-center text-center gap-3">
             <Bot className="w-10 h-10 text-secondary/50" />
@@ -97,22 +129,34 @@ export function AiHelper({ topicSlug, topicTitle }: AiHelperProps) {
           </div>
         )}
 
-        {messages.map((msg, i) => (
-          <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-            <div className={`max-w-[85%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${
-              msg.role === "user"
-                ? "bg-primary text-primary-foreground rounded-br-md"
-                : "bg-muted rounded-bl-md"
-            }`}>
-              {msg.content}
+        {messages.map((msg, i) => {
+          const isLastAssistant = msg.role === "assistant" && i === messages.length - 1 && !isLoading;
+          const { cleanContent, suggestions } = isLastAssistant
+            ? extractFollowUps(msg.content)
+            : { cleanContent: msg.content, suggestions: [] };
+
+          return (
+            <div key={i}>
+              <ChatMessage role={msg.role} content={cleanContent} />
+              {isLastAssistant && suggestions.length > 0 && (
+                <FollowUpSuggestions
+                  suggestions={suggestions}
+                  onSelect={sendMessage}
+                  showHomeLink={false}
+                />
+              )}
             </div>
-          </div>
-        ))}
+          );
+        })}
 
         {isLoading && (
           <div className="flex justify-start">
-            <div className="bg-muted px-4 py-2.5 rounded-2xl rounded-bl-md">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-secondary/10 mr-3 shrink-0">
+              <Bot className="w-4 h-4 text-secondary" />
+            </div>
+            <div className="bg-muted/50 px-4 py-2.5 rounded-2xl rounded-bl-md flex items-center gap-2">
               <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+              <span className="text-xs text-muted-foreground">Thinking...</span>
             </div>
           </div>
         )}
