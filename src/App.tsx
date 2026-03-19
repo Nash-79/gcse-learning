@@ -10,6 +10,7 @@ import Home from "@/pages/Home";
 import TopicPage from "@/pages/TopicPage";
 import Playground from "@/pages/Playground";
 import QuestionBank from "@/pages/QuestionBank";
+import ExamSession from "@/pages/ExamSession";
 import Settings from "@/pages/Settings";
 import NotFound from "@/pages/NotFound";
 import { AppSidebar } from "@/components/layout/AppSidebar";
@@ -39,6 +40,7 @@ const App = () => {
                       <Route path="/topic/:slug" element={<TopicPage />} />
                       <Route path="/playground" element={<Playground />} />
                       <Route path="/question-bank" element={<QuestionBank />} />
+                      <Route path="/exam-session/:setId" element={<ExamSession />} />
                       <Route path="/settings" element={<Settings />} />
                       <Route path="*" element={<NotFound />} />
                     </Routes>
