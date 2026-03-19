@@ -2,30 +2,55 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-async function callOpenRouter(apiKey: string, body: Record<string, unknown>): Promise<Response> {
-  return fetch("https://openrouter.ai/api/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${apiKey}`,
-      "HTTP-Referer": "https://lovable.dev",
-    },
-    body: JSON.stringify(body),
-  });
-}
+// Models supported by OpenRouter free tier
+const OPENROUTER_MODELS = new Set([
+  "meta-llama/llama-3.3-70b-instruct:free",
+  "google/gemma-3-27b-it:free",
+  "qwen/qwen3-coder:free",
+  "nvidia/nemotron-3-super-120b-a12b:free",
+  "qwen/qwen3-next-80b-a3b-instruct:free",
+  "openai/gpt-oss-120b:free",
+  "stepfun/step-3.5-flash:free",
+  "mistralai/mistral-small-3.1-24b-instruct:free",
+  "arcee-ai/trinity-large-preview:free",
+  "openai/gpt-oss-20b:free",
+  "minimax/minimax-m2.5:free",
+  "nvidia/nemotron-3-nano-30b-a3b:free",
+  "nousresearch/hermes-3-llama-3.1-405b:free",
+  "nvidia/nemotron-nano-12b-v2-vl:free",
+  "nvidia/nemotron-nano-9b-v2:free",
+  "z-ai/glm-4.5-air:free",
+  "arcee-ai/trinity-mini:free",
+  "google/gemma-3-12b-it:free",
+  "google/gemma-3-4b-it:free",
+  "qwen/qwen3-4b:free",
+  "meta-llama/llama-3.2-3b-instruct:free",
+  "meta-llama/llama-3.1-8b-instruct:free",
+]);
 
-async function callLovableAI(apiKey: string, body: Record<string, unknown>): Promise<Response> {
-  // Switch model to one supported by Lovable AI gateway
+async function callAI(apiKey: string, body: Record<string, unknown>, isOpenRouter: boolean): Promise<Response> {
+  if (isOpenRouter) {
+    return fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+        "HTTP-Referer": "https://lovable.dev",
+      },
+      body: JSON.stringify(body),
+    });
+  }
+  // Lovable AI gateway - override model
   const lovableBody = { ...body, model: "google/gemini-2.5-flash" };
-  delete lovableBody.response_format; // Use plain text, parse JSON ourselves
+  delete lovableBody.response_format;
   return fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "Authorization": `Bearer ${apiKey}`,
+      Authorization: `Bearer ${apiKey}`,
     },
     body: JSON.stringify(lovableBody),
   });
@@ -37,7 +62,7 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, mode, topicTitle, code, taskDescription, systemPromptOverride, userPromptOverride, maxTokens } = await req.json();
+    const { messages, mode, topicTitle, code, taskDescription, systemPromptOverride, userPromptOverride, maxTokens, model } = await req.json();
 
     const OPENROUTER_API_KEY = Deno.env.get("OPENROUTER_API_KEY");
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
@@ -45,6 +70,9 @@ serve(async (req) => {
     if (!OPENROUTER_API_KEY && !LOVABLE_API_KEY) {
       throw new Error("No AI API keys configured");
     }
+
+    const requestedModel = model || "meta-llama/llama-3.3-70b-instruct:free";
+    const isOpenRouterModel = OPENROUTER_MODELS.has(requestedModel);
 
     let systemPrompt: string;
     let userMessages: Array<{ role: string; content: string }>;
@@ -72,7 +100,6 @@ Be encouraging but honest. Reference OCR J277 exam expectations where relevant.`
       }];
       wantJson = true;
     } else if (mode === "generate") {
-      // Generic JSON generation mode for challenges, questions, etc.
       systemPrompt = systemPromptOverride || "";
       userMessages = userPromptOverride
         ? [{ role: "user", content: userPromptOverride }]
@@ -83,7 +110,7 @@ Be encouraging but honest. Reference OCR J277 exam expectations where relevant.`
     }
 
     const requestBody: Record<string, unknown> = {
-      model: "meta-llama/llama-3.3-70b-instruct:free",
+      model: requestedModel,
       messages: [
         { role: "system", content: systemPrompt },
         ...userMessages,
@@ -95,20 +122,19 @@ Be encouraging but honest. Reference OCR J277 exam expectations where relevant.`
       requestBody.response_format = { type: "json_object" };
     }
 
-    // Try OpenRouter first, fallback to Lovable AI on 429
+    // Try OpenRouter for free models, fallback to Lovable AI
     let response: Response | null = null;
-    let usedFallback = false;
 
-    if (OPENROUTER_API_KEY) {
-      response = await callOpenRouter(OPENROUTER_API_KEY, requestBody);
+    if (isOpenRouterModel && OPENROUTER_API_KEY) {
+      response = await callAI(OPENROUTER_API_KEY, requestBody, true);
       if (response.status === 429 && LOVABLE_API_KEY) {
-        console.log("OpenRouter rate limited, falling back to Lovable AI gateway");
-        response = await callLovableAI(LOVABLE_API_KEY, requestBody);
-        usedFallback = true;
+        console.log("OpenRouter rate limited, falling back to Lovable AI");
+        response = await callAI(LOVABLE_API_KEY, requestBody, false);
       }
     } else if (LOVABLE_API_KEY) {
-      response = await callLovableAI(LOVABLE_API_KEY, requestBody);
-      usedFallback = true;
+      response = await callAI(LOVABLE_API_KEY, requestBody, false);
+    } else if (OPENROUTER_API_KEY) {
+      response = await callAI(OPENROUTER_API_KEY, requestBody, true);
     }
 
     if (!response || !response.ok) {
