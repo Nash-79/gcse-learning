@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -13,6 +13,7 @@ import { Progress } from "@/components/ui/progress";
 import { allPaperSets, getQuestionsForSet } from "@/data/questionBank/paperSets";
 import { ExamQuestion } from "@/data/questionBank/types";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 
 interface AiMarking {
