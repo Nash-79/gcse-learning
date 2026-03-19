@@ -36,9 +36,16 @@ export function CodingChallengePanel({ topicSlug, topicTitle }: CodingChallengeP
     hard: allChallenges.filter(c => c.difficulty === "hard").length,
   };
 
-  const generateAiChallenges = useCallback(async () => {
+  const [genDifficulty, setGenDifficulty] = useState<ChallengeDifficulty | "all">("all");
+  const [showGenMenu, setShowGenMenu] = useState(false);
+
+  const generateAiChallenges = useCallback(async (difficulty: ChallengeDifficulty | "all" = "all") => {
     if (!hasAi) return;
     setIsGenerating(true);
+    setShowGenMenu(false);
+    const diffPrompt = difficulty === "all"
+      ? 'Generate exactly 3 Python coding challenges — one beginner, one intermediate, one hard.'
+      : `Generate exactly 3 Python coding challenges, ALL at the "${difficulty}" difficulty level.`;
     try {
       const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
         method: "POST",
@@ -51,7 +58,7 @@ export function CodingChallengePanel({ topicSlug, topicTitle }: CodingChallengeP
           model: settings.model,
           messages: [{
             role: "system",
-            content: `You are a GCSE Computer Science exam challenge generator. Generate exactly 3 Python coding challenges about "${topicTitle}" — one beginner, one intermediate, one hard. Return ONLY a JSON object with a "challenges" array. Each object must have: id (string), title (string), description (string, 2-3 sentences describing the task), difficulty ("beginner"|"intermediate"|"hard"), starterCode (string, Python starter code with comments), hints (array of 2-3 strings), examStyle (boolean, true if exam-style). Make challenges practical and aligned with OCR J277 exam style.`
+            content: `You are a GCSE Computer Science exam challenge generator. ${diffPrompt} about "${topicTitle}". Return ONLY a JSON object with a "challenges" array. Each object must have: id (string), title (string), description (string, 2-3 sentences describing the task), difficulty ("beginner"|"intermediate"|"hard"), starterCode (string, Python starter code with comments), hints (array of 2-3 strings), examStyle (boolean, true if exam-style). Make challenges practical and aligned with OCR J277 exam style.`
           }],
           max_tokens: 2000,
           response_format: { type: "json_object" },
@@ -162,16 +169,26 @@ export function CodingChallengePanel({ topicSlug, topicTitle }: CodingChallengeP
         </div>
 
         {hasAi && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={generateAiChallenges}
-            disabled={isGenerating}
-            className="gap-2 rounded-full border-secondary/30 text-secondary hover:bg-secondary/10 shrink-0"
-          >
-            {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-            AI Challenges
-          </Button>
+          <div className="relative">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowGenMenu(!showGenMenu)}
+              disabled={isGenerating}
+              className="gap-2 rounded-full border-secondary/30 text-secondary hover:bg-secondary/10 shrink-0"
+            >
+              {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+              AI Challenges
+            </Button>
+            {showGenMenu && !isGenerating && (
+              <div className="absolute right-0 top-full mt-1 z-10 bg-card border border-border rounded-xl shadow-lg p-1.5 min-w-[160px] space-y-0.5">
+                <button onClick={() => generateAiChallenges("all")} className="w-full text-left text-xs px-3 py-2 rounded-lg hover:bg-muted transition-colors font-medium">🎯 Mixed (all levels)</button>
+                <button onClick={() => generateAiChallenges("beginner")} className="w-full text-left text-xs px-3 py-2 rounded-lg hover:bg-muted transition-colors font-medium text-green-500">⚡ Beginner × 3</button>
+                <button onClick={() => generateAiChallenges("intermediate")} className="w-full text-left text-xs px-3 py-2 rounded-lg hover:bg-muted transition-colors font-medium text-yellow-500">🔥 Intermediate × 3</button>
+                <button onClick={() => generateAiChallenges("hard")} className="w-full text-left text-xs px-3 py-2 rounded-lg hover:bg-muted transition-colors font-medium text-red-500">🎯 Hard × 3</button>
+              </div>
+            )}
+          </div>
         )}
       </div>
 
