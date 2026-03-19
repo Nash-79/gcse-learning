@@ -158,6 +158,22 @@ export function AppSidebar() {
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={location.pathname === "/exam-history"}>
+                  <Link to="/exam-history">
+                    <History className="h-4 w-4 text-primary" />
+                    <span className="font-medium">Exam History</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={location.pathname === "/spaced-repetition"}>
+                  <Link to="/spaced-repetition">
+                    <Brain className="h-4 w-4 text-secondary" />
+                    <span className="font-medium text-secondary">Spaced Repetition</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={location.pathname === "/settings"}>
                   <Link to="/settings">
                     <Settings className="h-4 w-4 text-muted-foreground" />
@@ -165,7 +181,22 @@ export function AppSidebar() {
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
-            </SidebarMenu>
+              {/* Auth */}
+              <SidebarMenuItem>
+                {user ? (
+                  <SidebarMenuButton onClick={() => signOut()}>
+                    <LogOut className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-muted-foreground">Sign Out</span>
+                  </SidebarMenuButton>
+                ) : (
+                  <SidebarMenuButton asChild isActive={location.pathname === "/auth"}>
+                    <Link to="/auth">
+                      <LogIn className="h-4 w-4 text-primary" />
+                      <span className="font-medium text-primary">Sign In</span>
+                    </Link>
+                  </SidebarMenuButton>
+                )}
+              </SidebarMenuItem>
           </SidebarGroupContent>
         </SidebarGroup>
 
