@@ -4,7 +4,8 @@ import { motion } from "framer-motion";
 import {
   FileText, BookOpen, Clock, Target, Zap,
   ChevronRight, Sparkles, Layers, Calendar, ArrowRight,
-  GraduationCap, Trophy, BarChart3, Play
+  GraduationCap, Trophy, BarChart3, Play, Brain,
+  ClipboardCheck, Flame, NotebookPen, LayoutGrid
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
