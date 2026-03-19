@@ -13,6 +13,7 @@ import QuestionBank from "@/pages/QuestionBank";
 import ExamSession from "@/pages/ExamSession";
 import TopicTheory from "@/pages/TopicTheory";
 import Settings from "@/pages/Settings";
+import AiTutor from "@/pages/AiTutor";
 import NotFound from "@/pages/NotFound";
 import { AppSidebar } from "@/components/layout/AppSidebar";
 import { Header } from "@/components/layout/Header";
