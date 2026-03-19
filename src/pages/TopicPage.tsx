@@ -18,7 +18,7 @@ import { AiExamValidator } from "@/components/challenges/AiExamValidator";
 import { topicData } from "@/data/topicContent";
 import { topicLearningSteps } from "@/data/learningSteps";
 import { useListTopics, useGetTopicProgress, useUpdateTopicProgress } from "@/hooks/useTopics";
-import { useAiSettings } from "@/lib/useAiSettings";
+import { supabase } from "@/integrations/supabase/client";
 
 // Correct YouTube videos per topic
 const topicVideos: Record<string, string> = {
