@@ -121,14 +121,14 @@ Be encouraging but honest. Reference OCR J277 exam expectations where relevant.`
     const data = await response.json();
     const content = data.choices?.[0]?.message?.content || "";
 
-    if (mode === "validate") {
-      const jsonMatch = content.match(/\{[\s\S]*\}/);
+    if (wantJson) {
+      const jsonMatch = content.match(/[\[{][\s\S]*[\]}]/);
       if (jsonMatch) {
-        return new Response(jsonMatch[0], {
+        return new Response(JSON.stringify({ content: jsonMatch[0] }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      throw new Error("Could not parse AI validation response");
+      throw new Error("Could not parse AI JSON response");
     }
 
     return new Response(JSON.stringify({ content }), {
