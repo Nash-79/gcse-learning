@@ -126,7 +126,7 @@ function QuestionItem({ question, index }: { question: QuizQuestion; index: numb
 }
 
 export function ExamQuestionBank({ topicSlug, topicTitle, questions, onQuestionsGenerated }: ExamQuestionBankProps) {
-  const { hasAi, settings } = useAiSettings();
+  
   const [filterDifficulty, setFilterDifficulty] = useState<"all" | "easy" | "medium" | "hard">("all");
   const [isGenerating, setIsGenerating] = useState(false);
   const [genError, setGenError] = useState<string | null>(null);

@@ -192,7 +192,7 @@ export function CodingChallengePanel({ topicSlug, topicTitle }: CodingChallengeP
         <div className="text-center py-12 text-muted-foreground">
           <Code2 className="w-10 h-10 mx-auto mb-3 opacity-40" />
           <p className="text-sm">No challenges at this difficulty level yet.</p>
-          {hasAi && <p className="text-xs mt-1">Click "AI Challenges" to generate some!</p>}
+          {<p className="text-xs mt-1">Click "AI Challenges" to generate some!</p>}
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
