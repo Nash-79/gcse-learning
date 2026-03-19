@@ -6,6 +6,7 @@ import {
   Lightbulb, GraduationCap, Target, CheckCircle2,
   ArrowRight, Layers, Sparkles, Play
 } from "lucide-react";
+import { AiHelper } from "@/components/ai/AiHelper";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -352,6 +353,11 @@ export default function TopicTheory() {
         {topic.sections.map((section, i) => (
           <SectionCard key={section.id} section={section} index={i} />
         ))}
+
+        {/* AI Chat Assistant */}
+        <div className="mt-6">
+          <AiHelper topicSlug={topic.slug} topicTitle={topic.title} />
+        </div>
 
         {/* Practice CTA */}
         <Card className="rounded-2xl border-primary/20 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5">

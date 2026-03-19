@@ -1,10 +1,11 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
-import { Bot, Send, Loader2, Trash2, Sparkles, Code2, GraduationCap, Lightbulb, BookOpen, Home } from "lucide-react";
+import { Bot, Send, Loader2, Trash2, Sparkles, Code2, GraduationCap, Lightbulb, BookOpen, Home, ChevronDown } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ChatMessage } from "@/components/chat/ChatMessage";
 import { FollowUpSuggestions } from "@/components/chat/FollowUpSuggestions";
+import { useAiSettings } from "@/lib/useAiSettings";
 
 interface Message {
   role: "user" | "assistant";
@@ -64,11 +65,13 @@ function extractFollowUps(content: string): { cleanContent: string; suggestions:
 
 async function streamChat({
   messages,
+  model,
   onDelta,
   onDone,
   onError,
 }: {
   messages: Message[];
+  model?: string;
   onDelta: (text: string) => void;
   onDone: () => void;
   onError: (msg: string) => void;
@@ -79,7 +82,7 @@ async function streamChat({
       "Content-Type": "application/json",
       Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
     },
-    body: JSON.stringify({ messages }),
+    body: JSON.stringify({ messages, model }),
   });
 
   if (!resp.ok) {
@@ -156,6 +159,8 @@ export default function AiTutor() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const { model: settingsModel } = useAiSettings();
+  const [chatModel, setChatModel] = useState(settingsModel);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -199,6 +204,7 @@ export default function AiTutor() {
     try {
       await streamChat({
         messages: allMessages,
+        model: chatModel,
         onDelta: (chunk) => upsertAssistant(chunk),
         onDone: () => setIsLoading(false),
         onError: (msg) => {
@@ -237,7 +243,7 @@ export default function AiTutor() {
             <p className="text-sm text-muted-foreground">Your GCSE Computer Science study buddy — ask anything about Python!</p>
           </div>
         </div>
-        <div className="flex flex-wrap gap-2 mt-3">
+        <div className="flex flex-wrap items-center gap-2 mt-3">
           <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-semibold flex items-center gap-1">
             <GraduationCap className="w-3 h-3" /> OCR J277
           </span>
@@ -247,6 +253,26 @@ export default function AiTutor() {
           <span className="text-[10px] px-2 py-0.5 rounded-full bg-accent/10 text-accent font-semibold flex items-center gap-1">
             <Sparkles className="w-3 h-3" /> Streaming AI
           </span>
+          <div className="ml-auto flex items-center gap-1.5">
+            <Bot className="w-3.5 h-3.5 text-muted-foreground" />
+            <select
+              value={chatModel}
+              onChange={(e) => setChatModel(e.target.value)}
+              className="text-[11px] bg-muted/50 border border-border rounded-lg px-2 py-1 text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50 max-w-[200px] truncate"
+            >
+              <option value="google/gemini-3-flash-preview">Gemini 3 Flash (Default)</option>
+              <option value="meta-llama/llama-3.3-70b-instruct:free">Llama 3.3 70B</option>
+              <option value="google/gemma-3-27b-it:free">Gemma 3 27B</option>
+              <option value="qwen/qwen3-coder:free">Qwen3 Coder 480B</option>
+              <option value="nvidia/nemotron-3-super-120b-a12b:free">Nemotron 3 Super 120B</option>
+              <option value="openai/gpt-oss-120b:free">GPT-OSS 120B</option>
+              <option value="mistralai/mistral-small-3.1-24b-instruct:free">Mistral Small 3.1</option>
+              <option value="nousresearch/hermes-3-llama-3.1-405b:free">Hermes 3 405B</option>
+              {settingsModel && !["google/gemini-3-flash-preview"].includes(settingsModel) && (
+                <option value={settingsModel}>Settings: {settingsModel.split("/").pop()}</option>
+              )}
+            </select>
+          </div>
         </div>
       </div>
 

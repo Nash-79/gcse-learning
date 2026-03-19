@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Settings as SettingsIcon, Key, Bot, Save, CheckCircle2, AlertCircle, Loader2, ExternalLink, Sparkles, Zap, Brain, Code2, Eye, Search, X, ChevronDown, Clock, AlertTriangle, Hash, Server, ShieldAlert, Lock } from "lucide-react";
+import { Settings as SettingsIcon, Key, Bot, Save, CheckCircle2, AlertCircle, Loader2, ExternalLink, Sparkles, Zap, Brain, Code2, Eye, Search, X, ChevronDown, Clock, AlertTriangle, Hash, Server, ShieldAlert, Lock, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAiSettings } from "@/lib/useAiSettings";
@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useAdminRole } from "@/hooks/useAdminRole";
 import AdminLogViewer from "@/components/admin/AdminLogViewer";
+import AdminUserRoles from "@/components/admin/AdminUserRoles";
 
 interface FreeModel {
   id: string;
@@ -268,6 +269,7 @@ export default function Settings() {
   const [activeTagFilter, setActiveTagFilter] = useState<string | null>(null);
   const [activeProviderFilter, setActiveProviderFilter] = useState<string | null>(null);
   const [showAdminPanel, setShowAdminPanel] = useState(false);
+  const [showUserRoles, setShowUserRoles] = useState(false);
 
   const filteredModels = useMemo(() => {
     return freeModels.filter(m => {
@@ -674,27 +676,49 @@ export default function Settings() {
           <div className="space-y-4">
             <Card className="rounded-2xl">
               <CardContent className="p-6">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between flex-wrap gap-3">
                   <div>
                     <h3 className="text-lg font-display font-bold flex items-center gap-2">
                       <ShieldAlert className="w-5 h-5 text-primary" />
                       Admin Panel
                     </h3>
                     <p className="text-xs text-muted-foreground mt-0.5">
-                      View application logs, user activity, errors, and progress data
+                      Manage users, roles, and view application logs
                     </p>
                   </div>
-                  <Button
-                    variant={showAdminPanel ? "default" : "outline"}
-                    onClick={() => setShowAdminPanel(!showAdminPanel)}
-                    className="gap-2 rounded-xl"
-                  >
-                    <Lock className="w-4 h-4" />
-                    {showAdminPanel ? "Hide Logs" : "View Logs"}
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      variant={showUserRoles ? "default" : "outline"}
+                      onClick={() => setShowUserRoles(!showUserRoles)}
+                      className="gap-2 rounded-xl"
+                    >
+                      <Users className="w-4 h-4" />
+                      {showUserRoles ? "Hide Users" : "Manage Users"}
+                    </Button>
+                    <Button
+                      variant={showAdminPanel ? "default" : "outline"}
+                      onClick={() => setShowAdminPanel(!showAdminPanel)}
+                      className="gap-2 rounded-xl"
+                    >
+                      <Lock className="w-4 h-4" />
+                      {showAdminPanel ? "Hide Logs" : "View Logs"}
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
+
+            <AnimatePresence>
+              {showUserRoles && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                >
+                  <AdminUserRoles />
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             <AnimatePresence>
               {showAdminPanel && (

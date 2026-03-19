@@ -1,10 +1,11 @@
 import { useState, useRef, useEffect } from "react";
-import { Bot, Send, Loader2 } from "lucide-react";
+import { Bot, Send, Loader2, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ChatMessage } from "@/components/chat/ChatMessage";
 import { FollowUpSuggestions } from "@/components/chat/FollowUpSuggestions";
 import { supabase } from "@/integrations/supabase/client";
+import { useAiSettings } from "@/lib/useAiSettings";
 
 interface Message {
   role: "user" | "assistant";
@@ -51,6 +52,9 @@ export function AiHelper({ topicSlug, topicTitle }: AiHelperProps) {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
+  const { model: settingsModel } = useAiSettings();
+  const [chatModel, setChatModel] = useState(settingsModel);
+  const [showModelPicker, setShowModelPicker] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -78,6 +82,7 @@ export function AiHelper({ topicSlug, topicTitle }: AiHelperProps) {
         body: {
           mode: "chat",
           topicTitle,
+          model: chatModel,
           messages: newMessages.map(m => ({ role: m.role, content: m.content })),
         },
       });
@@ -98,6 +103,8 @@ export function AiHelper({ topicSlug, topicTitle }: AiHelperProps) {
     }
   };
 
+  const modelLabel = chatModel.split("/").pop()?.replace(":free", "") || chatModel;
+
   return (
     <Card className="border-secondary/30 overflow-hidden rounded-2xl neon-glow-purple">
       <div className="flex items-center justify-between px-4 py-3 border-b bg-gradient-to-r from-secondary/10 to-primary/10">
@@ -108,7 +115,31 @@ export function AiHelper({ topicSlug, topicTitle }: AiHelperProps) {
             {hasError ? "Error" : "Connected"}
           </span>
         </div>
+        <button
+          onClick={() => setShowModelPicker(!showModelPicker)}
+          className="text-[10px] text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors"
+        >
+          {modelLabel}
+          <ChevronDown className={`w-3 h-3 transition-transform ${showModelPicker ? "rotate-180" : ""}`} />
+        </button>
       </div>
+
+      {showModelPicker && (
+        <div className="px-4 py-2 border-b border-border/50 bg-muted/20">
+          <select
+            value={chatModel}
+            onChange={(e) => { setChatModel(e.target.value); setShowModelPicker(false); }}
+            className="w-full text-xs bg-background border border-border rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary/50"
+          >
+            <option value={settingsModel}>Settings Default ({settingsModel.split("/").pop()?.replace(":free", "")})</option>
+            <option value="google/gemini-3-flash-preview">Gemini 3 Flash (Lovable AI)</option>
+            <option value="meta-llama/llama-3.3-70b-instruct:free">Llama 3.3 70B</option>
+            <option value="google/gemma-3-27b-it:free">Gemma 3 27B</option>
+            <option value="qwen/qwen3-coder:free">Qwen3 Coder 480B</option>
+            <option value="mistralai/mistral-small-3.1-24b-instruct:free">Mistral Small 3.1</option>
+          </select>
+        </div>
+      )}
 
       <div ref={scrollRef} className="h-[400px] overflow-y-auto p-4 space-y-4">
         {messages.length === 0 && (

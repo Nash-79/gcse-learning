@@ -59,34 +59,104 @@ Then list exactly 3 short follow-up questions as bullet points that naturally ex
 - Don't use jargon without explaining it first
 - If asked something off-topic, gently redirect: "That's a great question! But let's stay focused on GCSE Computer Science 🎯"`;
 
+// Models supported by OpenRouter free tier
+const OPENROUTER_MODELS = new Set([
+  "meta-llama/llama-3.3-70b-instruct:free",
+  "google/gemma-3-27b-it:free",
+  "qwen/qwen3-coder:free",
+  "nvidia/nemotron-3-super-120b-a12b:free",
+  "qwen/qwen3-next-80b-a3b-instruct:free",
+  "openai/gpt-oss-120b:free",
+  "stepfun/step-3.5-flash:free",
+  "mistralai/mistral-small-3.1-24b-instruct:free",
+  "arcee-ai/trinity-large-preview:free",
+  "openai/gpt-oss-20b:free",
+  "minimax/minimax-m2.5:free",
+  "nvidia/nemotron-3-nano-30b-a3b:free",
+  "nousresearch/hermes-3-llama-3.1-405b:free",
+  "nvidia/nemotron-nano-12b-v2-vl:free",
+  "nvidia/nemotron-nano-9b-v2:free",
+  "z-ai/glm-4.5-air:free",
+  "arcee-ai/trinity-mini:free",
+  "google/gemma-3-12b-it:free",
+  "google/gemma-3-4b-it:free",
+  "qwen/qwen3-4b:free",
+  "meta-llama/llama-3.2-3b-instruct:free",
+  "meta-llama/llama-3.1-8b-instruct:free",
+]);
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { messages } = await req.json();
+    const { messages, model } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    const OPENROUTER_API_KEY = Deno.env.get("OPENROUTER_API_KEY");
 
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
+    if (!LOVABLE_API_KEY && !OPENROUTER_API_KEY) {
+      throw new Error("No AI API keys configured");
     }
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [
-          { role: "system", content: SYSTEM_PROMPT },
-          ...messages,
-        ],
-        stream: true,
-      }),
-    });
+    const requestedModel = model || "google/gemini-3-flash-preview";
+    const isOpenRouterModel = OPENROUTER_MODELS.has(requestedModel);
+
+    const chatMessages = [
+      { role: "system", content: SYSTEM_PROMPT },
+      ...messages,
+    ];
+
+    let response: Response;
+
+    // Route to OpenRouter for free-tier models, Lovable AI for others
+    if (isOpenRouterModel && OPENROUTER_API_KEY) {
+      response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${OPENROUTER_API_KEY}`,
+          "HTTP-Referer": "https://lovable.dev",
+        },
+        body: JSON.stringify({
+          model: requestedModel,
+          messages: chatMessages,
+          stream: true,
+        }),
+      });
+
+      // Fallback to Lovable AI on rate limit
+      if (response.status === 429 && LOVABLE_API_KEY) {
+        console.log("OpenRouter rate limited, falling back to Lovable AI");
+        response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${LOVABLE_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "google/gemini-3-flash-preview",
+            messages: chatMessages,
+            stream: true,
+          }),
+        });
+      }
+    } else if (LOVABLE_API_KEY) {
+      response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-3-flash-preview",
+          messages: chatMessages,
+          stream: true,
+        }),
+      });
+    } else {
+      throw new Error("No suitable AI provider available for the selected model");
+    }
 
     if (!response.ok) {
       if (response.status === 429) {
