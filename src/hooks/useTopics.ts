@@ -1,27 +1,98 @@
 import { useState, useEffect, useCallback } from "react";
 import { topicData } from "@/data/topicContent";
 
+export type ExamBoard = "ocr" | "aqa" | "all";
+
 export interface Topic {
   id: number;
   slug: string;
   title: string;
   category: string;
   order: number;
+  examBoards: ExamBoard[];
+  ocrRef?: string;
+  aqaRef?: string;
 }
 
 const topicsList: Topic[] = [
-  { id: 1, slug: "variables-data-types", title: "Variables & Data Types", category: "Fundamentals", order: 1 },
-  { id: 2, slug: "input-output-casting", title: "Input, Output & Casting", category: "Fundamentals", order: 2 },
-  { id: 3, slug: "arithmetic-operators", title: "Arithmetic Operators", category: "Fundamentals", order: 3 },
-  { id: 4, slug: "string-handling", title: "String Handling", category: "Data & Variables", order: 4 },
-  { id: 5, slug: "data-types-casting", title: "Data Types & Casting", category: "Data & Variables", order: 5 },
-  { id: 6, slug: "variables-constants", title: "Variables & Constants", category: "Data & Variables", order: 6 },
-  { id: 7, slug: "selection-if-else", title: "Selection (If/Else)", category: "Control Flow", order: 7 },
-  { id: 8, slug: "intro-to-python", title: "Intro to Python", category: "Fundamentals", order: 0 },
+  // === Fundamentals (both boards) ===
+  { id: 8, slug: "intro-to-python", title: "Intro to Python", category: "Getting Started", order: 0, examBoards: ["ocr", "aqa"] },
+
+  // === 2.2 Programming Fundamentals (OCR) ===
+  { id: 1, slug: "variables-data-types", title: "Variables & Data Types", category: "Programming Fundamentals", order: 1, examBoards: ["ocr", "aqa"], ocrRef: "2.2" },
+  { id: 6, slug: "variables-constants", title: "Variables & Constants", category: "Programming Fundamentals", order: 2, examBoards: ["ocr", "aqa"], ocrRef: "2.2" },
+  { id: 5, slug: "data-types-casting", title: "Data Types & Casting", category: "Programming Fundamentals", order: 3, examBoards: ["ocr", "aqa"], ocrRef: "2.2" },
+  { id: 2, slug: "input-output-casting", title: "Input, Output & Casting", category: "Programming Fundamentals", order: 4, examBoards: ["ocr", "aqa"], ocrRef: "2.2" },
+  { id: 3, slug: "arithmetic-operators", title: "Arithmetic Operators", category: "Programming Fundamentals", order: 5, examBoards: ["ocr", "aqa"], ocrRef: "2.2" },
+  { id: 7, slug: "selection-if-else", title: "Selection (If/Else)", category: "Programming Fundamentals", order: 6, examBoards: ["ocr", "aqa"], ocrRef: "2.2" },
+  { id: 9, slug: "iteration", title: "Iteration (Loops)", category: "Programming Fundamentals", order: 7, examBoards: ["ocr", "aqa"], ocrRef: "2.2" },
+
+  // === Data Structures ===
+  { id: 4, slug: "string-handling", title: "String Handling", category: "Data Structures & Strings", order: 8, examBoards: ["ocr", "aqa"], ocrRef: "2.2" },
+  { id: 10, slug: "string-manipulation", title: "String Manipulation", category: "Data Structures & Strings", order: 9, examBoards: ["ocr", "aqa"], ocrRef: "2.2" },
+  { id: 11, slug: "lists-tuples-dicts", title: "Arrays, Lists & Dictionaries", category: "Data Structures & Strings", order: 10, examBoards: ["ocr", "aqa"], ocrRef: "2.2" },
+  { id: 20, slug: "2d-arrays", title: "2D Arrays", category: "Data Structures & Strings", order: 11, examBoards: ["ocr", "aqa"], ocrRef: "2.2" },
+
+  // === Subroutines & Scope ===
+  { id: 12, slug: "functions-scope", title: "Subroutines & Scope", category: "Subroutines", order: 12, examBoards: ["ocr", "aqa"], ocrRef: "2.2" },
+  { id: 13, slug: "file-handling", title: "File Handling", category: "Subroutines", order: 13, examBoards: ["ocr", "aqa"], ocrRef: "2.2" },
+  { id: 21, slug: "random-numbers", title: "Random Number Generation", category: "Subroutines", order: 14, examBoards: ["ocr", "aqa"], ocrRef: "2.2" },
+
+  // === 2.3 Producing Robust Programs (OCR) ===
+  { id: 14, slug: "error-handling", title: "Error Handling (Try/Except)", category: "Robust Programming", order: 15, examBoards: ["ocr", "aqa"], ocrRef: "2.3" },
+  { id: 22, slug: "robust-programming", title: "Input Validation & Authentication", category: "Robust Programming", order: 16, examBoards: ["ocr", "aqa"], ocrRef: "2.3" },
+
+  // === 2.4 Boolean Logic (OCR) ===
+  { id: 23, slug: "boolean-logic", title: "Boolean Logic & Truth Tables", category: "Boolean Logic", order: 17, examBoards: ["ocr"], ocrRef: "2.4" },
+
+  // === 2.1 Algorithms (OCR) ===
+  { id: 15, slug: "searching-algorithms", title: "Searching Algorithms", category: "Algorithms", order: 18, examBoards: ["ocr", "aqa"], ocrRef: "2.1" },
+  { id: 16, slug: "sorting-algorithms", title: "Sorting Algorithms", category: "Algorithms", order: 19, examBoards: ["ocr", "aqa"], ocrRef: "2.1" },
+  { id: 24, slug: "insertion-sort", title: "Insertion Sort", category: "Algorithms", order: 20, examBoards: ["ocr"], ocrRef: "2.1" },
+
+  // === 2.5 SQL & IDEs (OCR) ===
+  { id: 25, slug: "sql-basics", title: "SQL (Structured Query Language)", category: "SQL & IDEs", order: 21, examBoards: ["ocr"], ocrRef: "2.2" },
+
+  // === Exam Preparation ===
+  { id: 17, slug: "pseudocode-trace-tables", title: "Pseudocode & Trace Tables", category: "Exam Preparation", order: 22, examBoards: ["ocr", "aqa"], ocrRef: "2.1" },
+  { id: 18, slug: "exam-tips", title: "Exam Tips & Strategies", category: "Exam Preparation", order: 23, examBoards: ["ocr", "aqa"] },
 ];
 
-export function useListTopics() {
-  return { data: topicsList, isLoading: false };
+function getStoredBoard(): ExamBoard {
+  try {
+    const stored = localStorage.getItem("pylearn-exam-board");
+    if (stored === "ocr" || stored === "aqa" || stored === "all") return stored;
+  } catch {}
+  return "ocr";
+}
+
+export function useExamBoard() {
+  const [board, setBoard] = useState<ExamBoard>(getStoredBoard);
+
+  const updateBoard = useCallback((b: ExamBoard) => {
+    localStorage.setItem("pylearn-exam-board", b);
+    setBoard(b);
+    window.dispatchEvent(new Event("pylearn-board-update"));
+  }, []);
+
+  useEffect(() => {
+    const handler = () => setBoard(getStoredBoard());
+    window.addEventListener("pylearn-board-update", handler);
+    return () => window.removeEventListener("pylearn-board-update", handler);
+  }, []);
+
+  return { board, setBoard: updateBoard };
+}
+
+export function useListTopics(filterBoard?: ExamBoard) {
+  const { board } = useExamBoard();
+  const activeBoard = filterBoard || board;
+
+  const filtered = activeBoard === "all"
+    ? topicsList
+    : topicsList.filter(t => t.examBoards.includes(activeBoard));
+
+  return { data: filtered, isLoading: false };
 }
 
 interface TopicProgress {
@@ -59,7 +130,7 @@ function saveProgress(p: Progress) {
 
 export function useGetProgress() {
   const [progress, setProgress] = useState<Progress>(loadProgress);
-  
+
   useEffect(() => {
     const handler = () => setProgress(loadProgress());
     window.addEventListener("pylearn-progress-update", handler);
@@ -109,7 +180,7 @@ export function useSubmitQuizResult() {
       const progress = loadProgress();
       const existing = progress.topicProgress.find(t => t.topicSlug === data.topicSlug);
       const passed = data.score >= data.totalQuestions * 0.6;
-      
+
       if (existing) {
         if (existing.bestScore === null || data.score > existing.bestScore) {
           existing.bestScore = data.score;
@@ -127,11 +198,11 @@ export function useSubmitQuizResult() {
         });
         if (passed) progress.completedTopics++;
       }
-      
+
       if (progress.overallBestScore === null || data.score > progress.overallBestScore) {
         progress.overallBestScore = data.score;
       }
-      
+
       saveProgress(progress);
       window.dispatchEvent(new Event("pylearn-progress-update"));
       options?.onSuccess?.();
