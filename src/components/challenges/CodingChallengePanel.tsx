@@ -36,9 +36,16 @@ export function CodingChallengePanel({ topicSlug, topicTitle }: CodingChallengeP
     hard: allChallenges.filter(c => c.difficulty === "hard").length,
   };
 
-  const generateAiChallenges = useCallback(async () => {
+  const [genDifficulty, setGenDifficulty] = useState<ChallengeDifficulty | "all">("all");
+  const [showGenMenu, setShowGenMenu] = useState(false);
+
+  const generateAiChallenges = useCallback(async (difficulty: ChallengeDifficulty | "all" = "all") => {
     if (!hasAi) return;
     setIsGenerating(true);
+    setShowGenMenu(false);
+    const diffPrompt = difficulty === "all"
+      ? 'Generate exactly 3 Python coding challenges — one beginner, one intermediate, one hard.'
+      : `Generate exactly 3 Python coding challenges, ALL at the "${difficulty}" difficulty level.`;
     try {
       const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
         method: "POST",
@@ -51,7 +58,7 @@ export function CodingChallengePanel({ topicSlug, topicTitle }: CodingChallengeP
           model: settings.model,
           messages: [{
             role: "system",
-            content: `You are a GCSE Computer Science exam challenge generator. Generate exactly 3 Python coding challenges about "${topicTitle}" — one beginner, one intermediate, one hard. Return ONLY a JSON object with a "challenges" array. Each object must have: id (string), title (string), description (string, 2-3 sentences describing the task), difficulty ("beginner"|"intermediate"|"hard"), starterCode (string, Python starter code with comments), hints (array of 2-3 strings), examStyle (boolean, true if exam-style). Make challenges practical and aligned with OCR J277 exam style.`
+            content: `You are a GCSE Computer Science exam challenge generator. ${diffPrompt} about "${topicTitle}". Return ONLY a JSON object with a "challenges" array. Each object must have: id (string), title (string), description (string, 2-3 sentences describing the task), difficulty ("beginner"|"intermediate"|"hard"), starterCode (string, Python starter code with comments), hints (array of 2-3 strings), examStyle (boolean, true if exam-style). Make challenges practical and aligned with OCR J277 exam style.`
           }],
           max_tokens: 2000,
           response_format: { type: "json_object" },
