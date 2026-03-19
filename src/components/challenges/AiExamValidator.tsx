@@ -55,20 +55,6 @@ export function AiExamValidator({ topicTitle, topicSlug }: AiExamValidatorProps)
     }
   };
 
-  if (!hasAi) {
-    return (
-      <Card className="border-secondary/20 rounded-2xl">
-        <CardContent className="p-6 text-center">
-          <Bot className="w-10 h-10 mx-auto mb-3 text-secondary/50" />
-          <h3 className="font-display font-bold mb-1">AI Exam Validator</h3>
-          <p className="text-sm text-muted-foreground mb-3">
-            Configure an OpenRouter API key in Settings to unlock AI-powered code grading.
-          </p>
-        </CardContent>
-      </Card>
-    );
-  }
-
   const gradeColor = (grade: string) => {
     if (grade === "A*" || grade === "A") return "text-green-500";
     if (grade === "B") return "text-blue-400";
