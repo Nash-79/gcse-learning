@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useAdminRole } from "@/hooks/useAdminRole";
 import AdminLogViewer from "@/components/admin/AdminLogViewer";
+import AdminUserRoles from "@/components/admin/AdminUserRoles";
 
 interface FreeModel {
   id: string;
