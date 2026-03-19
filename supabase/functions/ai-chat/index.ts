@@ -5,6 +5,32 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+async function callOpenRouter(apiKey: string, body: Record<string, unknown>): Promise<Response> {
+  return fetch("https://openrouter.ai/api/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${apiKey}`,
+      "HTTP-Referer": "https://lovable.dev",
+    },
+    body: JSON.stringify(body),
+  });
+}
+
+async function callLovableAI(apiKey: string, body: Record<string, unknown>): Promise<Response> {
+  // Switch model to one supported by Lovable AI gateway
+  const lovableBody = { ...body, model: "google/gemini-2.5-flash" };
+  delete lovableBody.response_format; // Use plain text, parse JSON ourselves
+  return fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify(lovableBody),
+  });
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -14,19 +40,19 @@ serve(async (req) => {
     const { messages, mode, topicTitle, code, taskDescription } = await req.json();
 
     const OPENROUTER_API_KEY = Deno.env.get("OPENROUTER_API_KEY");
-    if (!OPENROUTER_API_KEY) {
-      throw new Error("OPENROUTER_API_KEY is not configured");
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+
+    if (!OPENROUTER_API_KEY && !LOVABLE_API_KEY) {
+      throw new Error("No AI API keys configured");
     }
 
     let systemPrompt: string;
     let userMessages: Array<{ role: string; content: string }>;
 
     if (mode === "chat") {
-      // AI Helper chat mode
       systemPrompt = `You are a GCSE Computer Science tutor helping a student learn Python. The current topic is "${topicTitle}". Keep explanations clear, concise, and appropriate for 14-16 year old students. Use Python code examples when helpful. Format code blocks with triple backticks.`;
       userMessages = messages;
     } else if (mode === "validate") {
-      // AI Exam Validator mode
       systemPrompt = `You are an OCR GCSE Computer Science exam marker. Grade Python code submissions for the topic "${topicTitle}". 
 
 Return ONLY a JSON object with:
@@ -37,12 +63,6 @@ Return ONLY a JSON object with:
 - strengths (array of 2-3 things done well)
 - improvements (array of 1-3 things to improve)
 - examTips (array of 1-2 OCR exam-specific tips relevant to this code)
-
-Grade using OCR mark scheme criteria:
-- Correct syntax and logic (3 marks)
-- Appropriate use of programming constructs (2 marks)  
-- Code clarity and comments (2 marks)
-- Completeness of solution (3 marks)
 
 Be encouraging but honest. Reference OCR J277 exam expectations where relevant.`;
       userMessages = [{
@@ -66,33 +86,33 @@ Be encouraging but honest. Reference OCR J277 exam expectations where relevant.`
       requestBody.response_format = { type: "json_object" };
     }
 
-    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
-        "HTTP-Referer": "https://lovable.dev",
-      },
-      body: JSON.stringify(requestBody),
-    });
+    // Try OpenRouter first, fallback to Lovable AI on 429
+    let response: Response | null = null;
+    let usedFallback = false;
 
-    if (!response.ok) {
-      if (response.status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limit exceeded. Please wait a moment and try again." }), {
-          status: 429,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+    if (OPENROUTER_API_KEY) {
+      response = await callOpenRouter(OPENROUTER_API_KEY, requestBody);
+      if (response.status === 429 && LOVABLE_API_KEY) {
+        console.log("OpenRouter rate limited, falling back to Lovable AI gateway");
+        response = await callLovableAI(LOVABLE_API_KEY, requestBody);
+        usedFallback = true;
       }
-      const errorText = await response.text();
-      console.error("OpenRouter error:", response.status, errorText);
-      throw new Error(`OpenRouter API error: ${response.status}`);
+    } else if (LOVABLE_API_KEY) {
+      response = await callLovableAI(LOVABLE_API_KEY, requestBody);
+      usedFallback = true;
+    }
+
+    if (!response || !response.ok) {
+      const status = response?.status || 500;
+      const errorText = response ? await response.text() : "No response";
+      console.error("AI error:", status, errorText);
+      throw new Error(`AI API error: ${status}`);
     }
 
     const data = await response.json();
     const content = data.choices?.[0]?.message?.content || "";
 
     if (mode === "validate") {
-      // Parse and return JSON for validation mode
       const jsonMatch = content.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         return new Response(jsonMatch[0], {
@@ -102,7 +122,6 @@ Be encouraging but honest. Reference OCR J277 exam expectations where relevant.`
       throw new Error("Could not parse AI validation response");
     }
 
-    // Chat mode - return the content directly
     return new Response(JSON.stringify({ content }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
