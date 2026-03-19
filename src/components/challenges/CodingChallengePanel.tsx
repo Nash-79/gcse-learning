@@ -3,7 +3,8 @@ import { Sparkles, Loader2, Zap, Flame, Target, Code2, GraduationCap } from "luc
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { CodeRunner } from "@/components/code/CodeRunner";
-import { useAiSettings } from "@/lib/useAiSettings";
+import { supabase } from "@/integrations/supabase/client";
+import type { CodingChallenge, ChallengeDifficulty } from "@/data/codingChallenges";
 import type { CodingChallenge, ChallengeDifficulty } from "@/data/codingChallenges";
 import { getChallengesForTopic } from "@/data/codingChallenges";
 
