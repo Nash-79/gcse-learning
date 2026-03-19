@@ -13,6 +13,7 @@ import { variablesConstants } from "./topics/variablesConstants";
 import { introToPython } from "./topics/introToPython";
 
 export type Difficulty = "easy" | "medium" | "hard";
+export type StepDifficulty = "beginner" | "intermediate" | "hard";
 
 export interface QuizQuestion {
   question: string;
@@ -21,6 +22,15 @@ export interface QuizQuestion {
   explanation: string;
   hint?: string;
   difficulty?: Difficulty;
+}
+
+export interface LearningStep {
+  title: string;
+  difficulty: StepDifficulty;
+  explanation: string;
+  examples: Array<{ code: string; description?: string }>;
+  hints: string[];
+  interactiveTask?: { instruction: string; starterCode: string };
 }
 
 export interface TopicContent {
@@ -32,6 +42,7 @@ export interface TopicContent {
   workedExample: { title: string; problem: string; solution: string; code: string };
   videoUrl: string;
   quiz: QuizQuestion[];
+  learningSteps?: LearningStep[];
 }
 
 export const topicData: Record<string, TopicContent> = {
