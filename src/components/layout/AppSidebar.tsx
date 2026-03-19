@@ -142,6 +142,14 @@ export function AppSidebar() {
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={location.pathname === "/theory" || location.pathname.startsWith("/topic-theory/")}>
+                  <Link to="/theory">
+                    <Library className="h-4 w-4 text-primary" />
+                    <span className="font-medium">Theory Revision</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={location.pathname === "/question-bank"}>
                   <Link to="/question-bank">
                     <FileText className="h-4 w-4 text-primary" />

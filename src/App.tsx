@@ -55,6 +55,7 @@ const App = () => {
                         <Route path="/ai-tutor" element={<AiTutor />} />
                         <Route path="/exam-history" element={<ExamHistory />} />
                         <Route path="/spaced-repetition" element={<SpacedRepetition />} />
+                        <Route path="/theory" element={<Theory />} />
                         <Route path="*" element={<NotFound />} />
                       </Routes>
                     </main>
