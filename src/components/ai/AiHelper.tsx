@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Bot, Send, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { useAiSettings } from "@/lib/useAiSettings";
 
 interface Message {
   role: "user" | "assistant";
@@ -17,6 +18,12 @@ export function AiHelper({ topicSlug, topicTitle }: AiHelperProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const { hasAi, settings } = useAiSettings();
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+  }, [messages]);
 
   const suggestedQuestions = [
     `Explain ${topicTitle} in simple terms`,
@@ -27,20 +34,59 @@ export function AiHelper({ topicSlug, topicTitle }: AiHelperProps) {
 
   const sendMessage = async (text: string) => {
     if (!text.trim() || isLoading) return;
-    
+
     const userMsg: Message = { role: "user", content: text.trim() };
-    setMessages(prev => [...prev, userMsg]);
+    const newMessages = [...messages, userMsg];
+    setMessages(newMessages);
     setInput("");
     setIsLoading(true);
 
-    // Simulate AI response (no backend available)
-    setTimeout(() => {
+    if (!hasAi) {
+      setTimeout(() => {
+        setMessages(prev => [...prev, {
+          role: "assistant",
+          content: `To use the AI assistant, please configure an OpenRouter API key in the Settings page. It's free — no credit card needed!`
+        }]);
+        setIsLoading(false);
+      }, 500);
+      return;
+    }
+
+    try {
+      const systemPrompt = `You are a GCSE Computer Science tutor helping a student learn Python. The current topic is "${topicTitle}". Keep explanations clear, concise, and appropriate for 14-16 year old students. Use Python code examples when helpful. Format code blocks with triple backticks.`;
+
+      const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${settings.apiKey}`,
+          "HTTP-Referer": window.location.origin,
+        },
+        body: JSON.stringify({
+          model: settings.model,
+          messages: [
+            { role: "system", content: systemPrompt },
+            ...newMessages.map(m => ({ role: m.role, content: m.content })),
+          ],
+          max_tokens: 1000,
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error(`API error: ${res.status}`);
+      }
+
+      const data = await res.json();
+      const reply = data.choices?.[0]?.message?.content || "Sorry, I couldn't generate a response.";
+      setMessages(prev => [...prev, { role: "assistant", content: reply }]);
+    } catch (err) {
       setMessages(prev => [...prev, {
         role: "assistant",
-        content: `Great question about ${topicTitle}! This feature requires an AI backend to be configured. You can set up an API key in the Settings page to enable AI-powered assistance.`
+        content: "Sorry, something went wrong. Please check your API key in Settings and try again."
       }]);
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   return (
@@ -49,11 +95,13 @@ export function AiHelper({ topicSlug, topicTitle }: AiHelperProps) {
         <div className="flex items-center gap-2">
           <Bot className="w-5 h-5 text-secondary" />
           <span className="font-semibold text-sm">AI Learning Assistant</span>
-          <span className="text-[10px] px-2 py-0.5 rounded-full bg-secondary/20 text-secondary font-medium">Beta</span>
+          <span className="text-[10px] px-2 py-0.5 rounded-full bg-secondary/20 text-secondary font-medium">
+            {hasAi ? "Connected" : "Setup Required"}
+          </span>
         </div>
       </div>
 
-      <div className="h-[300px] overflow-y-auto p-4 space-y-4">
+      <div ref={scrollRef} className="h-[300px] overflow-y-auto p-4 space-y-4">
         {messages.length === 0 && (
           <div className="h-full flex flex-col items-center justify-center text-center gap-3">
             <Bot className="w-10 h-10 text-secondary/50" />
