@@ -6,6 +6,7 @@ import {
   Lightbulb, GraduationCap, Target, CheckCircle2,
   ArrowRight, Layers, Sparkles, Play
 } from "lucide-react";
+import { AiHelper } from "@/components/ai/AiHelper";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
