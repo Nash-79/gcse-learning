@@ -66,12 +66,14 @@ function extractFollowUps(content: string): { cleanContent: string; suggestions:
 async function streamChat({
   messages,
   model,
+  provider,
   onDelta,
   onDone,
   onError,
 }: {
   messages: Message[];
   model?: string;
+  provider?: string;
   onDelta: (text: string) => void;
   onDone: () => void;
   onError: (msg: string) => void;
