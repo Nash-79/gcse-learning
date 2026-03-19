@@ -483,7 +483,7 @@ export default function Settings() {
             )}
 
             {/* Model List */}
-            <div className="space-y-2 max-h-[600px] overflow-y-auto pr-1">
+            <div className="space-y-3 max-h-[700px] overflow-y-auto pr-1">
               {filteredModels.length === 0 ? (
                 <div className="text-center py-8">
                   <Search className="w-8 h-8 text-muted-foreground/40 mx-auto mb-2" />
@@ -496,74 +496,140 @@ export default function Settings() {
                   return (
                     <div
                       key={m.id}
-                      className={`rounded-xl border transition-all ${
+                      onClick={() => handleSelectModel(m)}
+                      className={`rounded-2xl border-2 transition-all cursor-pointer group ${
                         isSelected
-                          ? "border-primary/40 bg-primary/5 neon-border"
-                          : "border-border/50 bg-card hover:border-border"
+                          ? "border-primary/50 bg-gradient-to-br from-primary/5 via-card to-secondary/5 shadow-lg shadow-primary/5"
+                          : "border-border/40 bg-card hover:border-primary/30 hover:shadow-md"
                       }`}
                     >
-                      <button onClick={() => handleSelectModel(m)} className="w-full text-left p-3 pb-2">
-                        <div className="flex items-start justify-between gap-2">
+                      {/* Header */}
+                      <div className="p-4 pb-3">
+                        <div className="flex items-start justify-between gap-3">
                           <div className="min-w-0">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span className="font-semibold text-sm text-foreground">{m.name}</span>
-                              <span className="text-[10px] text-muted-foreground">{m.provider}</span>
+                            <div className="flex items-center gap-2 flex-wrap mb-1">
+                              <div className={`w-2 h-2 rounded-full shrink-0 ${isSelected ? "bg-primary animate-pulse" : "bg-muted-foreground/30"}`} />
+                              <h4 className="font-display font-bold text-base text-foreground">{m.name}</h4>
+                              <span className="text-xs text-muted-foreground font-medium px-2 py-0.5 rounded-md bg-muted/50">{m.provider}</span>
                               {m.recommended && (
-                                <span className="text-[10px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded">Recommended</span>
-                              )}
-                              {m.deprecated && (
-                                <span className="text-[10px] text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded flex items-center gap-0.5">
-                                  <AlertTriangle className="w-2.5 h-2.5" /> {m.deprecated}
+                                <span className="text-[11px] font-bold bg-gradient-to-r from-primary/20 to-secondary/20 text-primary px-2 py-0.5 rounded-md flex items-center gap-1 border border-primary/20">
+                                  <Sparkles className="w-3 h-3" /> Recommended
                                 </span>
                               )}
                             </div>
+                            {m.deprecated && (
+                              <span className="text-[10px] text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-md inline-flex items-center gap-1 mt-1">
+                                <AlertTriangle className="w-3 h-3" /> {m.deprecated}
+                              </span>
+                            )}
                           </div>
-                          <div className="text-right shrink-0">
-                            <span className="text-[10px] font-bold text-green-500 bg-green-500/10 px-1.5 py-0.5 rounded">FREE</span>
+                          <div className="flex flex-col items-end gap-1 shrink-0">
+                            <span className="text-xs font-bold text-green-400 bg-green-500/15 px-2.5 py-1 rounded-lg border border-green-500/20">FREE</span>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                          <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
-                            <Hash className="w-2.5 h-2.5" />{formatContext(m.contextWindow)} ctx
+
+                        {/* Quick specs row */}
+                        <div className="flex items-center gap-3 mt-3 flex-wrap">
+                          <span className="text-[11px] text-muted-foreground">
+                            In: <span className="text-green-400 font-semibold">{m.inputPrice}</span>
                           </span>
-                          {m.tags.map(t => <TagBadge key={t} tag={t} />)}
+                          <span className="text-[11px] text-muted-foreground">
+                            Out: <span className="text-green-400 font-semibold">{m.outputPrice}</span>
+                          </span>
+                          <span className="text-muted-foreground/30">|</span>
+                          <span className="text-[11px] text-muted-foreground flex items-center gap-1">
+                            <Hash className="w-3 h-3" /> {formatContext(m.contextWindow)} ctx
+                          </span>
+                          <div className="flex items-center gap-1.5 ml-auto">
+                            {m.tags.map(t => <TagBadge key={t} tag={t} size="md" />)}
+                          </div>
                         </div>
-                      </button>
+                      </div>
+
+                      {/* Expand toggle */}
                       <button
-                        onClick={() => setExpandedModel(isExpanded ? null : m.id)}
-                        className="w-full flex items-center justify-center gap-1 py-1.5 text-[10px] text-muted-foreground hover:text-foreground transition-colors border-t border-border/30"
+                        onClick={(e) => { e.stopPropagation(); setExpandedModel(isExpanded ? null : m.id); }}
+                        className="w-full flex items-center justify-center gap-1.5 py-2 text-[11px] text-muted-foreground hover:text-foreground transition-colors border-t border-border/30"
                       >
-                        <ChevronDown className={`w-3 h-3 transition-transform ${isExpanded ? "rotate-180" : ""}`} />
+                        <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`} />
                         {isExpanded ? "Less details" : "More details"}
                       </button>
+
+                      {/* Expanded Details */}
                       <AnimatePresence>
                         {isExpanded && (
                           <motion.div
                             initial={{ height: 0, opacity: 0 }}
                             animate={{ height: "auto", opacity: 1 }}
                             exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.2 }}
                             className="overflow-hidden"
                           >
-                            <div className="px-3 pb-3 space-y-2">
-                              <p className="text-xs text-muted-foreground leading-relaxed">{m.description}</p>
-                              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                                <div className="p-2 rounded-lg bg-muted/30 border border-border/30">
-                                  <p className="text-[10px] text-muted-foreground">Context Window</p>
-                                  <p className="text-xs font-semibold">{formatContext(m.contextWindow)}</p>
+                            <div className="px-4 pb-4 space-y-3 border-t border-border/30 pt-3">
+                              <p className="text-sm text-muted-foreground leading-relaxed">{m.description}</p>
+
+                              {/* Specs Grid — OpenRouter style */}
+                              <div className="grid grid-cols-2 gap-2">
+                                <div className="p-3 rounded-xl bg-muted/30 border border-border/30">
+                                  <div className="flex items-center gap-1.5 mb-1">
+                                    <span className="text-muted-foreground">↕</span>
+                                    <span className="text-[11px] text-muted-foreground font-medium">Input Price</span>
+                                  </div>
+                                  <p className="text-lg font-display font-bold text-green-400">{m.inputPrice}</p>
+                                  <p className="text-[10px] text-muted-foreground">/ M tokens</p>
                                 </div>
-                                <div className="p-2 rounded-lg bg-muted/30 border border-border/30">
-                                  <p className="text-[10px] text-muted-foreground">Max Output</p>
-                                  <p className="text-xs font-semibold">{m.maxOutput ? formatContext(m.maxOutput) : "N/A"}</p>
+                                <div className="p-3 rounded-xl bg-muted/30 border border-border/30">
+                                  <div className="flex items-center gap-1.5 mb-1">
+                                    <span className="text-muted-foreground">↕</span>
+                                    <span className="text-[11px] text-muted-foreground font-medium">Output Price</span>
+                                  </div>
+                                  <p className="text-lg font-display font-bold text-green-400">{m.outputPrice}</p>
+                                  <p className="text-[10px] text-muted-foreground">/ M tokens</p>
                                 </div>
-                                <div className="p-2 rounded-lg bg-muted/30 border border-border/30">
-                                  <p className="text-[10px] text-muted-foreground">Architecture</p>
-                                  <p className="text-xs font-semibold">{m.architecture}</p>
+                                <div className="p-3 rounded-xl bg-muted/30 border border-border/30">
+                                  <div className="flex items-center gap-1.5 mb-1">
+                                    <Hash className="w-3.5 h-3.5 text-muted-foreground" />
+                                    <span className="text-[11px] text-muted-foreground font-medium">Context Window</span>
+                                  </div>
+                                  <p className="text-lg font-display font-bold">{formatContext(m.contextWindow)}</p>
+                                  <p className="text-[10px] text-muted-foreground">tokens</p>
                                 </div>
-                                <div className="p-2 rounded-lg bg-muted/30 border border-border/30">
-                                  <p className="text-[10px] text-muted-foreground">Tokenizer</p>
-                                  <p className="text-xs font-semibold">{m.tokenizer}</p>
+                                <div className="p-3 rounded-xl bg-muted/30 border border-border/30">
+                                  <div className="flex items-center gap-1.5 mb-1">
+                                    <Hash className="w-3.5 h-3.5 text-muted-foreground" />
+                                    <span className="text-[11px] text-muted-foreground font-medium">Max Output</span>
+                                  </div>
+                                  <p className="text-lg font-display font-bold">{m.maxOutput ? formatContext(m.maxOutput) : "Unlimited"}</p>
+                                  <p className="text-[10px] text-muted-foreground">tokens</p>
+                                </div>
+                                <div className="p-3 rounded-xl bg-muted/30 border border-border/30">
+                                  <div className="flex items-center gap-1.5 mb-1">
+                                    <Server className="w-3.5 h-3.5 text-muted-foreground" />
+                                    <span className="text-[11px] text-muted-foreground font-medium">Architecture</span>
+                                  </div>
+                                  <p className="text-sm font-semibold font-mono">{m.architecture}</p>
+                                </div>
+                                <div className="p-3 rounded-xl bg-muted/30 border border-border/30">
+                                  <div className="flex items-center gap-1.5 mb-1">
+                                    <Clock className="w-3.5 h-3.5 text-muted-foreground" />
+                                    <span className="text-[11px] text-muted-foreground font-medium">Tokenizer</span>
+                                  </div>
+                                  <p className="text-sm font-semibold font-mono">{m.tokenizer}</p>
                                 </div>
                               </div>
+
+                              {/* Capabilities */}
+                              {m.tags.length > 0 && (
+                                <div>
+                                  <p className="text-[11px] text-muted-foreground font-medium mb-2">Capabilities</p>
+                                  <div className="flex flex-wrap gap-2">
+                                    {m.tags.map(t => <TagBadge key={t} tag={t} size="md" />)}
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Model ID */}
+                              <p className="text-[11px] text-muted-foreground/50 font-mono">Model ID: {m.id}</p>
                             </div>
                           </motion.div>
                         )}
