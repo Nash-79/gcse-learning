@@ -11,6 +11,7 @@ import TopicPage from "@/pages/TopicPage";
 import Playground from "@/pages/Playground";
 import QuestionBank from "@/pages/QuestionBank";
 import ExamSession from "@/pages/ExamSession";
+import TopicTheory from "@/pages/TopicTheory";
 import Settings from "@/pages/Settings";
 import NotFound from "@/pages/NotFound";
 import { AppSidebar } from "@/components/layout/AppSidebar";
