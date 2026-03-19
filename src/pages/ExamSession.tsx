@@ -41,6 +41,7 @@ const gradeIcons: Record<string, typeof Star> = {
 
 export default function ExamSession() {
   const { setId } = useParams<{ setId: string }>();
+  const { user } = useAuth();
 
   const paperSet = useMemo(() => allPaperSets.find(s => s.id === setId), [setId]);
   const questions = useMemo(() => getQuestionsForSet(setId || ""), [setId]) as ExamQuestion[];
@@ -54,6 +55,89 @@ export default function ExamSession() {
   const [showHint, setShowHint] = useState<Record<string, boolean>>({});
   const [showPseudocode, setShowPseudocode] = useState<Record<string, boolean>>({});
   const [examFinished, setExamFinished] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [startTime] = useState(Date.now());
+
+  // Save attempt when exam finishes
+  useEffect(() => {
+    if (!examFinished || saved || !user || !paperSet) return;
+    const saveAttempt = async () => {
+      const answeredCount = Object.keys(submitted).length;
+      const totalMarks = questions.reduce((sum, q) => sum + q.marks, 0);
+      const totalAwarded = Object.values(aiMarkings).reduce((sum, m) => sum + m.marksAwarded, 0);
+      const percentage = totalMarks > 0 ? Math.round((totalAwarded / totalMarks) * 100) : 0;
+      const grade = percentage >= 80 ? "Excellent" : percentage >= 60 ? "Good" : percentage >= 40 ? "Satisfactory" : "Needs Improvement";
+      const duration = Math.round((Date.now() - startTime) / 1000);
+
+      const { data: attempt, error } = await supabase.from("exam_attempts").insert({
+        user_id: user.id,
+        paper_set_id: paperSet.id,
+        paper_title: paperSet.title,
+        paper_number: paperSet.paper,
+        total_marks: totalMarks,
+        marks_awarded: totalAwarded,
+        percentage,
+        grade,
+        question_count: questions.length,
+        answered_count: answeredCount,
+        duration_seconds: duration,
+      }).select().single();
+
+      if (error) { console.error("Save attempt error:", error); return; }
+
+      // Save individual answers + add wrong ones to spaced repetition
+      const answerRows = questions.filter(q => submitted[q.id]).map(q => {
+        const m = aiMarkings[q.id];
+        return {
+          attempt_id: attempt.id,
+          user_id: user.id,
+          question_id: q.id,
+          question_text: q.question,
+          student_answer: answers[q.id] || "",
+          marks_awarded: m?.marksAwarded || 0,
+          total_marks: q.marks,
+          grade: m?.grade || null,
+          feedback: m?.feedback || null,
+          improvement_tip: m?.improvementTip || null,
+          mark_breakdown: m?.markBreakdown || null,
+          topic: q.topic || null,
+          difficulty: q.difficulty || null,
+        };
+      });
+
+      if (answerRows.length > 0) {
+        await supabase.from("exam_answers").insert(answerRows);
+      }
+
+      // Add wrong answers to spaced repetition
+      const wrongQuestions = questions.filter(q => {
+        const m = aiMarkings[q.id];
+        return m && m.marksAwarded < m.totalMarks;
+      });
+
+      for (const q of wrongQuestions) {
+        await supabase.from("spaced_repetition").upsert({
+          user_id: user.id,
+          question_id: q.id,
+          question_text: q.question,
+          question_data: {
+            options: q.options,
+            correctAnswer: q.correctAnswer,
+            modelAnswer: q.modelAnswer,
+            markScheme: q.markScheme,
+            type: q.type,
+          },
+          topic: q.topic || null,
+          difficulty: q.difficulty || null,
+          next_review_at: new Date().toISOString(),
+        }, { onConflict: "user_id,question_id" });
+      }
+
+      setSaved(true);
+      toast.success("Exam saved to your history!");
+    };
+    saveAttempt();
+  }, [examFinished]);
 
   if (!paperSet || questions.length === 0) {
     return (
