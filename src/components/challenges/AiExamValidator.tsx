@@ -25,7 +25,7 @@ export function AiExamValidator({ topicTitle, topicSlug }: AiExamValidatorProps)
   const [result, setResult] = useState<ValidationResult | null>(null);
   const [isValidating, setIsValidating] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { hasAi, settings } = useAiSettings();
+  // No longer need useAiSettings - backend handles API key
 
   const validate = async () => {
     if (!code.trim() || !hasAi) return;
