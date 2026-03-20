@@ -321,9 +321,20 @@ export default function AiTutor() {
               ? extractFollowUps(msg.content)
               : { cleanContent: msg.content, suggestions: [] };
 
+            const handleRegenerate = msg.role === "assistant" ? () => {
+              let userMsgIndex = -1;
+              for (let j = i - 1; j >= 0; j--) { if (messages[j].role === "user") { userMsgIndex = j; break; } }
+              if (userMsgIndex >= 0) {
+                const userText = messages[userMsgIndex].content;
+                // Remove this assistant message and resend
+                setMessages(prev => prev.slice(0, i));
+                setTimeout(() => send(userText), 100);
+              }
+            } : undefined;
+
             return (
               <div key={i}>
-                <ChatMessage role={msg.role} content={cleanContent} />
+                <ChatMessage role={msg.role} content={cleanContent} onRegenerate={handleRegenerate} />
                 {isLastAssistant && suggestions.length > 0 && (
                   <FollowUpSuggestions
                     suggestions={suggestions}
