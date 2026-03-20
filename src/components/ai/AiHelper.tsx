@@ -179,9 +179,18 @@ export function AiHelper({ topicSlug, topicTitle }: AiHelperProps) {
             ? extractFollowUps(msg.content)
             : { cleanContent: msg.content, suggestions: [] };
 
+          const handleRegenerate = msg.role === "assistant" ? () => {
+            const userMsgIndex = messages.slice(0, i).findLastIndex(m => m.role === "user");
+            if (userMsgIndex >= 0) {
+              const userText = messages[userMsgIndex].content;
+              setMessages(prev => prev.slice(0, i));
+              setTimeout(() => sendMessage(userText), 100);
+            }
+          } : undefined;
+
           return (
             <div key={i}>
-              <ChatMessage role={msg.role} content={cleanContent} />
+              <ChatMessage role={msg.role} content={cleanContent} onRegenerate={handleRegenerate} />
               {isLastAssistant && suggestions.length > 0 && (
                 <FollowUpSuggestions
                   suggestions={suggestions}
