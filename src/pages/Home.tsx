@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { BookOpen, Code2, Trophy, Clock, ArrowRight, Star, Sparkles, Zap, Brain, Target, GraduationCap, Shield, Database, Binary, SortAsc } from "lucide-react";
+import heroSnake from "@/assets/hero-snake.png";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -75,12 +76,12 @@ export default function Home() {
           <div className="absolute bottom-0 right-[20%] w-[400px] h-[400px] bg-secondary/8 rounded-full blur-[120px] glow-pulse" style={{ animationDelay: "1.5s" }}></div>
         </div>
 
-        <div className="container relative z-10 px-4 md:px-6 mx-auto max-w-6xl">
+        <div className="container relative z-10 px-4 md:px-6 mx-auto max-w-6xl flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
           <motion.div
             initial={{ opacity: 0, x: -30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, ease: "easeOut" }}
-            className="max-w-2xl"
+            className="max-w-2xl flex-1"
           >
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
@@ -129,6 +130,20 @@ export default function Home() {
                 </Button>
               </Link>
             </div>
+          </motion.div>
+
+          {/* Hero Image */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.85, x: 30 }}
+            animate={{ opacity: 1, scale: 1, x: 0 }}
+            transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
+            className="hidden lg:flex flex-shrink-0 items-center justify-center"
+          >
+            <img
+              src={heroSnake}
+              alt="PyLearn mascot"
+              className="w-[340px] xl:w-[400px] h-auto drop-shadow-2xl"
+            />
           </motion.div>
         </div>
       </div>
