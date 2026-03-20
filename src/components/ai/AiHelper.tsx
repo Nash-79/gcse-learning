@@ -141,7 +141,14 @@ export function AiHelper({ topicSlug, topicTitle }: AiHelperProps) {
               <option value="meta-llama/llama-3.3-70b-instruct:free">Llama 3.3 70B</option>
               <option value="google/gemma-3-27b-it:free">Gemma 3 27B</option>
               <option value="qwen/qwen3-coder:free">Qwen3 Coder 480B</option>
+              <option value="nvidia/nemotron-3-super-120b-a12b:free">Nemotron 3 Super 120B</option>
+              <option value="openai/gpt-oss-120b:free">GPT-OSS 120B</option>
+              <option value="qwen/qwen3-next-80b-a3b-instruct:free">Qwen3 Next 80B</option>
+              <option value="stepfun/step-3.5-flash:free">Step 3.5 Flash</option>
               <option value="mistralai/mistral-small-3.1-24b-instruct:free">Mistral Small 3.1</option>
+              <option value="arcee-ai/trinity-large-preview:free">Trinity Large</option>
+              <option value="nousresearch/hermes-3-llama-3.1-405b:free">Hermes 3 405B</option>
+              <option value="minimax/minimax-m2.5:free">MiniMax M2.5</option>
             </optgroup>
           </select>
         </div>
