@@ -131,6 +131,20 @@ export default function Home() {
               </Link>
             </div>
           </motion.div>
+
+          {/* Hero Image */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.85, x: 30 }}
+            animate={{ opacity: 1, scale: 1, x: 0 }}
+            transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
+            className="hidden lg:flex flex-shrink-0 items-center justify-center"
+          >
+            <img
+              src={heroSnake}
+              alt="PyLearn mascot"
+              className="w-[340px] xl:w-[400px] h-auto drop-shadow-2xl"
+            />
+          </motion.div>
         </div>
       </div>
 
