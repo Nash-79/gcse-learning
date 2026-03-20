@@ -322,8 +322,8 @@ export default function AiTutor() {
               : { cleanContent: msg.content, suggestions: [] };
 
             const handleRegenerate = msg.role === "assistant" ? () => {
-              // Find the user message before this assistant message
-              const userMsgIndex = messages.slice(0, i).findLastIndex(m => m.role === "user");
+              let userMsgIndex = -1;
+              for (let j = i - 1; j >= 0; j--) { if (messages[j].role === "user") { userMsgIndex = j; break; } }
               if (userMsgIndex >= 0) {
                 const userText = messages[userMsgIndex].content;
                 // Remove this assistant message and resend

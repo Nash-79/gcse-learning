@@ -180,7 +180,8 @@ export function AiHelper({ topicSlug, topicTitle }: AiHelperProps) {
             : { cleanContent: msg.content, suggestions: [] };
 
           const handleRegenerate = msg.role === "assistant" ? () => {
-            const userMsgIndex = messages.slice(0, i).findLastIndex(m => m.role === "user");
+            let userMsgIndex = -1;
+            for (let j = i - 1; j >= 0; j--) { if (messages[j].role === "user") { userMsgIndex = j; break; } }
             if (userMsgIndex >= 0) {
               const userText = messages[userMsgIndex].content;
               setMessages(prev => prev.slice(0, i));
