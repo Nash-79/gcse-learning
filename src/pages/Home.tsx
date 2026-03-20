@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { BookOpen, Code2, Trophy, Clock, ArrowRight, Star, Sparkles, Zap, Brain, Target, GraduationCap, Shield, Database, Binary, SortAsc } from "lucide-react";
+import heroSnake from "@/assets/hero-snake.png";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
