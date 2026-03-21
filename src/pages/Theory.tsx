@@ -2,8 +2,8 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
-  BookOpen, ArrowRight, ChevronRight, Search,
-  GraduationCap, Layers, Sparkles, Monitor, Code2
+  BookOpen, ArrowRight, Search,
+  Layers, Sparkles
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -82,21 +82,16 @@ function TheoryCard({ topic }: { topic: TopicTheoryData }) {
 
 export default function Theory() {
   const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState<"all" | "1" | "2">("all");
 
   const allTheory = [...paper1Theory, ...paper2Theory];
 
   const filtered = allTheory.filter((t) => {
-    const matchesSearch =
+    return (
       !search ||
       t.title.toLowerCase().includes(search.toLowerCase()) ||
-      t.description.toLowerCase().includes(search.toLowerCase());
-    const matchesPaper = filter === "all" || t.paper === filter;
-    return matchesSearch && matchesPaper;
+      t.description.toLowerCase().includes(search.toLowerCase())
+    );
   });
-
-  const paper1 = filtered.filter((t) => t.paper === "1");
-  const paper2 = filtered.filter((t) => t.paper === "2");
 
   return (
     <div className="flex flex-col min-h-full pb-20">
@@ -123,16 +118,15 @@ export default function Theory() {
                   Theory Revision
                 </h1>
                 <p className="text-white/70 text-sm md:text-base mt-1">
-                  Complete OCR J277 specification coverage — <span className="text-white font-semibold">both papers</span>
+                  Complete OCR J277 specification coverage
                 </p>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-8">
+            <div className="grid grid-cols-3 gap-3 mt-8 max-w-lg">
               {[
                 { value: `${allTheory.length}`, label: "Topics" },
                 { value: `${allTheory.reduce((s, t) => s + t.sections.length, 0)}`, label: "Sections" },
-                { value: "2", label: "Papers" },
                 { value: "100%", label: "Spec Coverage" },
               ].map((s, i) => (
                 <motion.div
@@ -151,10 +145,10 @@ export default function Theory() {
         </div>
       </div>
 
-      {/* Filters */}
+      {/* Search */}
       <div className="container px-4 md:px-6 mx-auto max-w-6xl mt-8">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-8">
-          <div className="relative flex-1 max-w-sm">
+        <div className="mb-8 max-w-sm">
+          <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <input
               type="text"
@@ -164,66 +158,13 @@ export default function Theory() {
               className="w-full rounded-xl border border-border bg-muted/40 py-2.5 pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50 focus:border-primary/50 transition-colors"
             />
           </div>
-          <div className="flex gap-1.5">
-            {[
-              { key: "all" as const, label: "All Papers" },
-              { key: "1" as const, label: "Paper 1", icon: <Monitor className="w-3.5 h-3.5" /> },
-              { key: "2" as const, label: "Paper 2", icon: <Code2 className="w-3.5 h-3.5" /> },
-            ].map((f) => (
-              <button
-                key={f.key}
-                onClick={() => setFilter(f.key)}
-                className={`px-3.5 py-2 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all ${
-                  filter === f.key
-                    ? "bg-primary text-primary-foreground shadow-md shadow-primary/25"
-                    : "bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground border border-border/50"
-                }`}
-              >
-                {f.icon}
-                {f.label}
-              </button>
-            ))}
-          </div>
         </div>
 
-        {/* Paper 1 */}
-        {paper1.length > 0 && (
-          <motion.div variants={container} initial="hidden" animate="show" className="mb-10">
-            <div className="flex items-center gap-2.5 mb-4">
-              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Monitor className="w-4 h-4 text-primary" />
-              </div>
-              <div>
-                <h2 className="text-xl font-display font-bold">Paper 1 — Computer Systems</h2>
-                <p className="text-xs text-muted-foreground">
-                  OCR J277/01 · Systems architecture, memory, networks, security & ethics
-                </p>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {paper1.map((t) => (
-                <TheoryCard key={t.slug} topic={t} />
-              ))}
-            </div>
-          </motion.div>
-        )}
-
-        {/* Paper 2 */}
-        {paper2.length > 0 && (
+        {/* All Topics */}
+        {filtered.length > 0 && (
           <motion.div variants={container} initial="hidden" animate="show">
-            <div className="flex items-center gap-2.5 mb-4">
-              <div className="w-8 h-8 rounded-lg bg-secondary/10 flex items-center justify-center">
-                <Code2 className="w-4 h-4 text-secondary" />
-              </div>
-              <div>
-                <h2 className="text-xl font-display font-bold">Paper 2 — Computational Thinking, Algorithms & Programming</h2>
-                <p className="text-xs text-muted-foreground">
-                  OCR J277/02 · Algorithms, programming fundamentals, robust programs, Boolean logic & IDEs
-                </p>
-              </div>
-            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {paper2.map((t) => (
+              {filtered.map((t) => (
                 <TheoryCard key={t.slug} topic={t} />
               ))}
             </div>
