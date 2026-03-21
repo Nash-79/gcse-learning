@@ -5,6 +5,59 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const STRUCTURED_OUTPUT_INSTRUCTION = `
+
+====================
+OUTPUT FORMAT RULES
+====================
+
+Your first priority is to return a valid JSON object.
+If you cannot reliably produce valid JSON, then return clean Markdown using the fallback format below.
+Do not return anything except:
+1. valid JSON matching the schema below, OR
+2. the exact Markdown fallback structure below.
+
+PRIMARY MODE: JSON
+Return this exact JSON shape:
+{
+  "mode": "json",
+  "summary": "string",
+  "sections": [
+    {
+      "heading": "string",
+      "content": "string",
+      "bullets": ["string"]
+    }
+  ],
+  "next_step": "string"
+}
+JSON rules:
+- Output valid JSON only, no markdown, no backticks, no comments, no extra keys
+- Always include: mode, summary, sections, next_step
+- Set "mode" to "json"
+- summary must be 1 to 2 sentences
+- sections must contain 1 to 4 items
+- each section must include "heading" and optionally "content" and/or "bullets"
+- use short content and bullets for lists, steps, comparisons
+- For code examples, put code in content as a plain string
+- next_step may be an empty string
+
+FALLBACK MODE: MARKDOWN
+If you cannot produce valid JSON, output this exact structure:
+MODE: markdown
+SUMMARY:
+<1 to 2 sentence direct answer>
+## <Section Heading>
+<short paragraph>
+- <bullet>
+NEXT STEP:
+<one short practical next step, or leave blank>
+
+STYLE: Be concise, use simple language, avoid filler and repetition, keep output easy to scan.
+DECISION: Prefer JSON. Use Markdown fallback only if JSON reliability is uncertain. Never mix formats.`;
+
+const STRUCTURED_USER_SUFFIX = "\n\nReturn JSON if possible. If not, use the Markdown fallback exactly.";
+
 // Models supported by OpenRouter free tier
 const OPENROUTER_MODELS = new Set([
   "meta-llama/llama-3.3-70b-instruct:free",
@@ -43,7 +96,6 @@ async function callAI(apiKey: string, body: Record<string, unknown>, isOpenRoute
       body: JSON.stringify(body),
     });
   }
-  // Lovable AI gateway - override model
   const lovableBody = { ...body, model: "google/gemini-2.5-flash" };
   delete lovableBody.response_format;
   return fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -80,8 +132,14 @@ serve(async (req) => {
     let wantJson = false;
 
     if (mode === "chat") {
-      systemPrompt = `You are a GCSE Computer Science tutor helping a student learn Python. The current topic is "${topicTitle}". Keep explanations clear, concise, and appropriate for 14-16 year old students. Use Python code examples when helpful. Format code blocks with triple backticks.`;
-      userMessages = messages;
+      systemPrompt = `You are a GCSE Computer Science tutor helping a student learn Python. The current topic is "${topicTitle}". Keep explanations clear, concise, and appropriate for 14-16 year old students. Use Python code examples when helpful. Format code blocks with triple backticks.` + STRUCTURED_OUTPUT_INSTRUCTION;
+      // Append structured suffix to last user message
+      userMessages = messages.map((m: { role: string; content: string }, i: number) => {
+        if (i === messages.length - 1 && m.role === "user") {
+          return { ...m, content: m.content + STRUCTURED_USER_SUFFIX };
+        }
+        return m;
+      });
     } else if (mode === "validate") {
       systemPrompt = `You are an OCR GCSE Computer Science exam marker. Grade Python code submissions for the topic "${topicTitle}". 
 
@@ -101,9 +159,9 @@ Be encouraging but honest. Reference OCR J277 exam expectations where relevant.`
       }];
       wantJson = true;
     } else if (mode === "generate") {
-      systemPrompt = systemPromptOverride || "";
+      systemPrompt = (systemPromptOverride || "") + STRUCTURED_OUTPUT_INSTRUCTION;
       userMessages = userPromptOverride
-        ? [{ role: "user", content: userPromptOverride }]
+        ? [{ role: "user", content: userPromptOverride + STRUCTURED_USER_SUFFIX }]
         : (messages || []);
       wantJson = true;
     } else {
@@ -123,7 +181,6 @@ Be encouraging but honest. Reference OCR J277 exam expectations where relevant.`
       requestBody.response_format = { type: "json_object" };
     }
 
-    // Route based on provider preference
     let response: Response | null = null;
 
     if (!preferLovable && isOpenRouterModel && OPENROUTER_API_KEY) {
