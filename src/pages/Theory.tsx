@@ -2,8 +2,8 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
-  BookOpen, ArrowRight, ChevronRight, Search,
-  GraduationCap, Layers, Sparkles, Monitor, Code2
+  BookOpen, ArrowRight, Search,
+  Layers, Sparkles
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
