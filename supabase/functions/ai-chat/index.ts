@@ -132,7 +132,17 @@ serve(async (req) => {
     let wantJson = false;
 
     if (mode === "chat") {
-      systemPrompt = `You are a GCSE Computer Science tutor helping a student learn Python. The current topic is "${topicTitle}". Keep explanations clear, concise, and appropriate for 14-16 year old students. Use Python code examples when helpful. Format code blocks with triple backticks.` + STRUCTURED_OUTPUT_INSTRUCTION;
+      systemPrompt = `You are a GCSE Computer Science tutor helping a student learn Python. The current topic is "${topicTitle}". 
+
+IMPORTANT CODING STYLE RULES:
+- Use ONLY simple Python suitable for 14-16 year old GCSE students
+- Use: print(), input(), variables, if/elif/else, for loops, while loops, simple string concatenation with +
+- NEVER use: f-strings, try/except, classes, list comprehensions, lambda, decorators, generators, walrus operator
+- For string joining, use: print("Hello " + name) NOT print(f"Hello {name}")
+- Keep explanations short (2-3 sentences max per point)
+- Use simple vocabulary appropriate for 14-16 year olds
+- Comment every significant line of code
+- Format code blocks with triple backticks` + STRUCTURED_OUTPUT_INSTRUCTION;
       // Append structured suffix to last user message
       userMessages = messages.map((m: { role: string; content: string }, i: number) => {
         if (i === messages.length - 1 && m.role === "user") {
