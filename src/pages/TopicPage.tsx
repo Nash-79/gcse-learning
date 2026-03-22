@@ -151,10 +151,11 @@ export default function TopicPage() {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => navigate(-1)}
+          onClick={() => (window.history.length > 1 ? navigate(-1) : navigate("/"))}
           className="mb-3 -ml-2 gap-1.5 text-muted-foreground hover:text-foreground text-xs h-8 rounded-lg"
+          aria-label="Go back to previous page"
         >
-          <ChevronLeft className="w-4 h-4" />
+          <ChevronLeft className="w-4 h-4" aria-hidden="true" />
           Back
         </Button>
 
@@ -204,28 +205,30 @@ export default function TopicPage() {
       )}
 
       <Tabs defaultValue={hasSteps ? "learn" : "lesson"} className="w-full">
-        <TabsList className={`grid w-full ${hasSteps ? "grid-cols-6" : "grid-cols-5"} max-w-3xl mb-8 h-12 bg-muted/50 p-1 rounded-xl`}>
+        <div className="overflow-x-auto -mx-4 px-4 mb-8 scrollbar-none">
+        <TabsList className="inline-flex h-11 min-w-max bg-muted/50 p-1 rounded-xl gap-0.5" aria-label="Topic sections">
           {hasSteps && (
-            <TabsTrigger value="learn" className="rounded-lg font-medium data-[state=active]:bg-card data-[state=active]:shadow-sm gap-1.5 text-xs sm:text-sm">
-              <GraduationCap className="w-4 h-4" /> <span className="hidden sm:inline">Learn</span>
+            <TabsTrigger value="learn" className="rounded-lg font-medium data-[state=active]:bg-card data-[state=active]:shadow-sm gap-1.5 text-xs sm:text-sm px-3 py-2">
+              <GraduationCap className="w-4 h-4 shrink-0" aria-hidden="true" /> <span className="hidden sm:inline">Learn</span>
             </TabsTrigger>
           )}
-          <TabsTrigger value="lesson" className="rounded-lg font-medium data-[state=active]:bg-card data-[state=active]:shadow-sm gap-1.5 text-xs sm:text-sm">
-            <BookOpen className="w-4 h-4" /> <span className="hidden sm:inline">Notes</span>
+          <TabsTrigger value="lesson" className="rounded-lg font-medium data-[state=active]:bg-card data-[state=active]:shadow-sm gap-1.5 text-xs sm:text-sm px-3 py-2">
+            <BookOpen className="w-4 h-4 shrink-0" aria-hidden="true" /> <span className="hidden sm:inline">Notes</span>
           </TabsTrigger>
-          <TabsTrigger value="challenges" className="rounded-lg font-medium data-[state=active]:bg-card data-[state=active]:shadow-sm gap-1.5 text-xs sm:text-sm">
-            <Swords className="w-4 h-4" /> <span className="hidden sm:inline">Challenges</span>
+          <TabsTrigger value="challenges" className="rounded-lg font-medium data-[state=active]:bg-card data-[state=active]:shadow-sm gap-1.5 text-xs sm:text-sm px-3 py-2">
+            <Swords className="w-4 h-4 shrink-0" aria-hidden="true" /> <span className="hidden sm:inline">Challenges</span>
           </TabsTrigger>
-          <TabsTrigger value="practice" className="rounded-lg font-medium data-[state=active]:bg-card data-[state=active]:shadow-sm gap-1.5 text-xs sm:text-sm">
-            <Code2 className="w-4 h-4" /> <span className="hidden sm:inline">Practice</span>
+          <TabsTrigger value="practice" className="rounded-lg font-medium data-[state=active]:bg-card data-[state=active]:shadow-sm gap-1.5 text-xs sm:text-sm px-3 py-2">
+            <Code2 className="w-4 h-4 shrink-0" aria-hidden="true" /> <span className="hidden sm:inline">Practice</span>
           </TabsTrigger>
-          <TabsTrigger value="exam" className="rounded-lg font-medium data-[state=active]:bg-card data-[state=active]:shadow-sm gap-1.5 text-xs sm:text-sm">
-            <FileText className="w-4 h-4" /> <span className="hidden sm:inline">Exam Qs</span>
+          <TabsTrigger value="exam" className="rounded-lg font-medium data-[state=active]:bg-card data-[state=active]:shadow-sm gap-1.5 text-xs sm:text-sm px-3 py-2">
+            <FileText className="w-4 h-4 shrink-0" aria-hidden="true" /> <span className="hidden sm:inline">Exam Qs</span>
           </TabsTrigger>
-          <TabsTrigger value="quiz" className="rounded-lg font-medium data-[state=active]:bg-card data-[state=active]:shadow-sm gap-1.5 text-xs sm:text-sm">
-            <Award className="w-4 h-4" /> <span className="hidden sm:inline">Quiz</span>
+          <TabsTrigger value="quiz" className="rounded-lg font-medium data-[state=active]:bg-card data-[state=active]:shadow-sm gap-1.5 text-xs sm:text-sm px-3 py-2">
+            <Award className="w-4 h-4 shrink-0" aria-hidden="true" /> <span className="hidden sm:inline">Quiz</span>
           </TabsTrigger>
         </TabsList>
+        </div>
 
         {/* Interactive Stepped Learning */}
         {hasSteps && (
@@ -409,31 +412,48 @@ export default function TopicPage() {
         </TabsContent>
       </Tabs>
 
-      {/* Navigation */}
-      <div className="flex justify-between mt-16 pt-8 border-t border-border/50">
+      {/* Topic Navigation */}
+      <nav
+        aria-label="Topic navigation"
+        className="flex justify-between gap-3 mt-16 pt-8 border-t border-border/50"
+      >
         {prevTopic ? (
-          <Link to={`/topic/${prevTopic.slug}`}>
-            <Button variant="ghost" className="gap-2 hover:bg-primary/10">
-              <ChevronLeft className="w-4 h-4" />
-              <span className="flex flex-col items-start">
+          <Link
+            to={`/topic/${prevTopic.slug}`}
+            aria-label={`Previous topic: ${prevTopic.title}`}
+            className="flex-1 max-w-[45%]"
+          >
+            <Button
+              variant="ghost"
+              className="w-full justify-start gap-2 hover:bg-primary/10 text-left h-auto py-2 px-3"
+            >
+              <ChevronLeft className="w-4 h-4 shrink-0" aria-hidden="true" />
+              <span className="flex flex-col items-start min-w-0">
                 <span className="text-[10px] text-muted-foreground">Previous</span>
-                <span className="text-sm">{prevTopic.title}</span>
+                <span className="text-sm font-medium truncate w-full">{prevTopic.title}</span>
               </span>
             </Button>
           </Link>
-        ) : <div />}
+        ) : <div className="flex-1" />}
         {nextTopic ? (
-          <Link to={`/topic/${nextTopic.slug}`}>
-            <Button variant="ghost" className="gap-2 hover:bg-primary/10">
-              <span className="flex flex-col items-end">
+          <Link
+            to={`/topic/${nextTopic.slug}`}
+            aria-label={`Next topic: ${nextTopic.title}`}
+            className="flex-1 max-w-[45%]"
+          >
+            <Button
+              variant="ghost"
+              className="w-full justify-end gap-2 hover:bg-primary/10 text-right h-auto py-2 px-3"
+            >
+              <span className="flex flex-col items-end min-w-0">
                 <span className="text-[10px] text-muted-foreground">Up Next</span>
-                <span className="text-sm">{nextTopic.title}</span>
+                <span className="text-sm font-medium truncate w-full">{nextTopic.title}</span>
               </span>
-              <ChevronRight className="w-4 h-4" />
+              <ChevronRight className="w-4 h-4 shrink-0" aria-hidden="true" />
             </Button>
           </Link>
-        ) : <div />}
-      </div>
+        ) : <div className="flex-1" />}
+      </nav>
     </div>
   );
 }

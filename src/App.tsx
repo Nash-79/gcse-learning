@@ -22,13 +22,14 @@ import Theory from "@/pages/Theory";
 import NotFound from "@/pages/NotFound";
 import { AppSidebar } from "@/components/layout/AppSidebar";
 import { Header } from "@/components/layout/Header";
+import { ScrollRestoration } from "@/components/layout/ScrollRestoration";
 
 const queryClient = new QueryClient();
 
 const App = () => {
   const sidebarStyle = {
-    "--sidebar-width": "18rem",
-    "--sidebar-width-icon": "4rem",
+    "--sidebar-width": "17rem",
+    "--sidebar-width-icon": "3.5rem",
   } as React.CSSProperties;
 
   return (
@@ -42,7 +43,12 @@ const App = () => {
                   <AppSidebar />
                   <div className="flex flex-col flex-1 min-w-0">
                     <Header />
-                    <main className="flex-1 overflow-y-auto overflow-x-hidden relative scroll-smooth">
+                    <main
+                      id="main-content"
+                      className="flex-1 overflow-y-auto overflow-x-hidden relative"
+                      tabIndex={-1}
+                    >
+                      <ScrollRestoration />
                       <Routes>
                         <Route path="/" element={<Home />} />
                         <Route path="/auth" element={<Auth />} />
@@ -59,9 +65,9 @@ const App = () => {
                         <Route path="*" element={<NotFound />} />
                       </Routes>
                     </main>
-                    <footer className="shrink-0 border-t border-border/50 bg-muted/20 px-6 py-3 text-xs text-muted-foreground flex items-center justify-between">
+                    <footer className="shrink-0 border-t border-border/50 bg-muted/20 px-6 py-3 text-xs text-muted-foreground flex items-center justify-between gap-4">
                       <span>PyLearn — GCSE Computer Science Revision</span>
-                      <span>AQA &amp; OCR syllabus · Master Python. Ace Your Exams.</span>
+                      <span className="hidden sm:inline">AQA &amp; OCR syllabus · Master Python. Ace Your Exams.</span>
                     </footer>
                   </div>
                 </div>
