@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
   BookOpen, Code2, LayoutDashboard, CheckCircle2, Search, Settings,
@@ -66,6 +66,24 @@ export function AppSidebar() {
     if (isMobile) setOpenMobile(false);
   }, [isMobile, setOpenMobile]);
 
+  // Auto-expand the category containing the active topic
+  useEffect(() => {
+    if (!topics) return;
+    const activeSlug = location.pathname.startsWith("/topic/")
+      ? location.pathname.split("/topic/")[1]
+      : null;
+    if (!activeSlug) return;
+    const activeTopic = topics.find((t) => t.slug === activeSlug);
+    if (!activeTopic) return;
+    setCollapsedCategories((prev) => {
+      if (!prev.has(activeTopic.category)) return prev;
+      const next = new Set(prev);
+      next.delete(activeTopic.category);
+      saveCollapsed(next);
+      return next;
+    });
+  }, [location.pathname, topics]);
+
   const isCompleted = (slug: string) =>
     progress?.topicProgress.some((tp) => tp.topicSlug === slug && tp.completed) ?? false;
 
@@ -111,7 +129,7 @@ export function AppSidebar() {
   };
 
   return (
-    <Sidebar variant="inset" className="border-r border-sidebar-border">
+    <Sidebar variant="sidebar" className="border-r border-sidebar-border">
       <SidebarHeader className="p-3 pb-2 gap-2">
         {/* Branding */}
         <div className="flex items-center gap-3 px-1 py-1">

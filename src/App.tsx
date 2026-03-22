@@ -23,30 +23,40 @@ import NotFound from "@/pages/NotFound";
 import { AppSidebar } from "@/components/layout/AppSidebar";
 import { Header } from "@/components/layout/Header";
 import { ScrollRestoration } from "@/components/layout/ScrollRestoration";
+import { SkipToContent } from "@/components/layout/SkipToContent";
 
 const queryClient = new QueryClient();
 
 const App = () => {
-  const sidebarStyle = {
-    "--sidebar-width": "17rem",
-    "--sidebar-width-icon": "3.5rem",
-  } as React.CSSProperties;
-
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="dark" storageKey="pylearn-theme">
         <AuthProvider>
           <TooltipProvider>
             <BrowserRouter>
-              <SidebarProvider style={sidebarStyle}>
-                <div className="flex h-screen w-full overflow-hidden bg-background">
+              <SidebarProvider
+                style={
+                  {
+                    "--sidebar-width": "17rem",
+                    "--sidebar-width-icon": "3.5rem",
+                  } as React.CSSProperties
+                }
+              >
+                <SkipToContent />
+                {/* Root flex row: sidebar + right panel */}
+                <div className="flex h-svh w-full overflow-hidden bg-background">
                   <AppSidebar />
-                  <div className="flex flex-col flex-1 min-w-0">
+
+                  {/* Right panel: header + scrollable content + footer */}
+                  <div
+                    className="flex flex-col flex-1 min-w-0 overflow-hidden transition-[margin-left] duration-200 ease-linear"
+                  >
                     <Header />
                     <main
                       id="main-content"
-                      className="flex-1 overflow-y-auto overflow-x-hidden relative"
+                      className="flex-1 overflow-y-auto overflow-x-hidden"
                       tabIndex={-1}
+                      aria-label="Main content"
                     >
                       <ScrollRestoration />
                       <Routes>
