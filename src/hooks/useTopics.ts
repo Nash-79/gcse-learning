@@ -106,19 +106,41 @@ interface Progress {
   completedTopics: number;
   totalTopics: number;
   totalTimeSpentSeconds: number;
+  weeklyTimeSpentSeconds: number;
+  weekStartDate: string;
   overallBestScore: number | null;
   topicProgress: TopicProgress[];
+}
+
+function getWeekStart(): string {
+  const now = new Date();
+  const day = now.getDay();
+  const diff = now.getDate() - day + (day === 0 ? -6 : 1); // Monday start
+  const monday = new Date(now.getFullYear(), now.getMonth(), diff);
+  return monday.toISOString().split("T")[0];
 }
 
 function loadProgress(): Progress {
   try {
     const stored = localStorage.getItem("pylearn-progress");
-    if (stored) return JSON.parse(stored);
+    if (stored) {
+      const p = JSON.parse(stored) as Progress;
+      // Reset weekly time if new week
+      const currentWeek = getWeekStart();
+      if (p.weekStartDate !== currentWeek) {
+        p.weeklyTimeSpentSeconds = 0;
+        p.weekStartDate = currentWeek;
+        saveProgress(p);
+      }
+      return p;
+    }
   } catch {}
   return {
     completedTopics: 0,
     totalTopics: topicsList.length,
     totalTimeSpentSeconds: 0,
+    weeklyTimeSpentSeconds: 0,
+    weekStartDate: getWeekStart(),
     overallBestScore: null,
     topicProgress: [],
   };
