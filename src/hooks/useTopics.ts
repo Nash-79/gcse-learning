@@ -187,6 +187,7 @@ export function useUpdateTopicProgress() {
         });
       }
       progress.totalTimeSpentSeconds += data.timeSpentSeconds;
+      progress.weeklyTimeSpentSeconds += data.timeSpentSeconds;
       saveProgress(progress);
       window.dispatchEvent(new Event("pylearn-progress-update"));
     },
