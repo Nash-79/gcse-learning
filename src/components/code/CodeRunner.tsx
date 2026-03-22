@@ -2,9 +2,10 @@ import { useState, useRef } from "react";
 import { Play, RotateCcw, AlertTriangle, Terminal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-interface CodeRunnerProps {
+export interface CodeRunnerProps {
   initialCode?: string;
   height?: string;
+  onOutput?: (output: string) => void;
 }
 
 export function CodeRunner({ initialCode = 'print("Hello, World!")', height = "h-[300px]" }: CodeRunnerProps) {
