@@ -2,12 +2,13 @@ import { useState, useRef } from "react";
 import { Play, RotateCcw, AlertTriangle, Terminal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-interface CodeRunnerProps {
+export interface CodeRunnerProps {
   initialCode?: string;
   height?: string;
+  onOutput?: (output: string) => void;
 }
 
-export function CodeRunner({ initialCode = 'print("Hello, World!")', height = "h-[300px]" }: CodeRunnerProps) {
+export function CodeRunner({ initialCode = 'print("Hello, World!")', height = "h-[300px]", onOutput }: CodeRunnerProps) {
   const [code, setCode] = useState(initialCode);
   const [output, setOutput] = useState("");
   const [error, setError] = useState("");
@@ -27,8 +28,10 @@ export function CodeRunner({ initialCode = 'print("Hello, World!")', height = "h
 
     const Sk = window.Sk;
     Sk.pre = "output";
+    let capturedOutput = "";
     Sk.configure({
       output: (text: string) => {
+        capturedOutput += text;
         setOutput(prev => prev + text);
       },
       read: (x: string) => {
@@ -44,7 +47,7 @@ export function CodeRunner({ initialCode = 'print("Hello, World!")', height = "h
     );
 
     myPromise.then(
-      () => setIsRunning(false),
+      () => { setIsRunning(false); onOutput?.(capturedOutput); },
       (err: unknown) => {
         setError(err instanceof Error ? err.message : String(err));
         setIsRunning(false);

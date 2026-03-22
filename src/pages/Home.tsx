@@ -47,8 +47,9 @@ export default function Home() {
   const totalCount = topics?.length || 0;
   const percentComplete = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
 
-  const timeHours = Math.floor((progress?.totalTimeSpentSeconds || 0) / 3600);
-  const timeMins = Math.floor(((progress?.totalTimeSpentSeconds || 0) % 3600) / 60);
+  const weeklySeconds = progress?.weeklyTimeSpentSeconds || 0;
+  const weekHours = Math.floor(weeklySeconds / 3600);
+  const weekMins = Math.floor((weeklySeconds % 3600) / 60);
 
   const container = {
     hidden: { opacity: 0 },
@@ -182,9 +183,9 @@ export default function Home() {
                     <Clock className="w-6 h-6" />
                   </div>
                   <div>
-                    <p className="text-xs font-medium text-muted-foreground mb-1">Time Learning</p>
+                    <p className="text-xs font-medium text-muted-foreground mb-1">Time This Week</p>
                     <h3 className="text-2xl font-bold font-display">
-                      {timeHours > 0 ? `${timeHours}h ` : ''}{timeMins}m
+                      {weekHours > 0 ? `${weekHours}h ` : ''}{weekMins}m
                     </h3>
                   </div>
                 </CardContent>
