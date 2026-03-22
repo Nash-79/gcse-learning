@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ChatMessage } from "@/components/chat/ChatMessage";
 import { FollowUpSuggestions } from "@/components/chat/FollowUpSuggestions";
-import { supabase } from "@/integrations/supabase/client";
 import { useAiSettings } from "@/lib/useAiSettings";
 
 interface Message {
@@ -78,18 +77,23 @@ export function AiHelper({ topicSlug, topicTitle }: AiHelperProps) {
     setIsLoading(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke("ai-chat", {
-        body: {
+      const response = await fetch("/api/ai-chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
           mode: "chat",
           topicTitle,
           model: chatModel,
           provider: settingsProvider,
           messages: newMessages.map(m => ({ role: m.role, content: m.content })),
-        },
+        }),
       });
 
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
+      const data = await response.json();
+
+      if (!response.ok || data?.error) {
+        throw new Error(data?.error || "Request failed");
+      }
 
       const reply = data?.content || "Sorry, I couldn't generate a response.";
       setMessages(prev => [...prev, { role: "assistant", content: reply }]);
@@ -133,10 +137,6 @@ export function AiHelper({ topicSlug, topicTitle }: AiHelperProps) {
             className="w-full text-xs bg-background border border-border rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary/50"
           >
             <option value={settingsModel}>Settings Default ({settingsModel.split("/").pop()?.replace(":free", "")})</option>
-            <optgroup label="Lovable AI">
-              <option value="google/gemini-3-flash-preview">Gemini 3 Flash</option>
-              <option value="google/gemini-2.5-flash">Gemini 2.5 Flash</option>
-            </optgroup>
             <optgroup label="OpenRouter Free">
               <option value="meta-llama/llama-3.3-70b-instruct:free">Llama 3.3 70B</option>
               <option value="google/gemma-3-27b-it:free">Gemma 3 27B</option>

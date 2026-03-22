@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Bot, Send, Loader2, CheckCircle2, XCircle, AlertTriangle, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { supabase } from "@/integrations/supabase/client";
 
 interface AiExamValidatorProps {
   topicTitle: string;
@@ -25,7 +24,6 @@ export function AiExamValidator({ topicTitle, topicSlug }: AiExamValidatorProps)
   const [result, setResult] = useState<ValidationResult | null>(null);
   const [isValidating, setIsValidating] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  // No longer need useAiSettings - backend handles API key
 
   const validate = async () => {
     if (!code.trim()) return;
@@ -34,19 +32,29 @@ export function AiExamValidator({ topicTitle, topicSlug }: AiExamValidatorProps)
     setResult(null);
 
     try {
-      const { data, error } = await supabase.functions.invoke("ai-chat", {
-        body: {
+      const response = await fetch("/api/ai-chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
           mode: "validate",
           topicTitle,
           code,
           taskDescription,
-        },
+        }),
       });
 
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
+      const data = await response.json();
 
-      const parsed: ValidationResult = data;
+      if (!response.ok || data?.error) {
+        throw new Error(data?.error || "Failed to validate");
+      }
+
+      let parsed: ValidationResult;
+      if (typeof data.content === "string") {
+        parsed = JSON.parse(data.content);
+      } else {
+        parsed = data as ValidationResult;
+      }
       setResult(parsed);
     } catch (err: any) {
       setError(err.message || "Failed to validate. Please try again.");
@@ -114,7 +122,6 @@ export function AiExamValidator({ topicTitle, topicSlug }: AiExamValidatorProps)
 
         {result && (
           <div className="space-y-4 pt-2">
-            {/* Score Header */}
             <div className="flex items-center justify-between bg-muted/30 rounded-xl px-5 py-4 border border-border/50">
               <div>
                 <p className="text-xs text-muted-foreground font-medium mb-0.5">Your Score</p>
@@ -127,12 +134,10 @@ export function AiExamValidator({ topicTitle, topicSlug }: AiExamValidatorProps)
               </div>
             </div>
 
-            {/* Feedback */}
             <p className="text-sm text-foreground/80 leading-relaxed bg-muted/20 rounded-xl px-4 py-3 border border-border/30">
               {result.feedback}
             </p>
 
-            {/* Strengths */}
             {result.strengths.length > 0 && (
               <div>
                 <h4 className="text-xs font-semibold text-green-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
@@ -148,7 +153,6 @@ export function AiExamValidator({ topicTitle, topicSlug }: AiExamValidatorProps)
               </div>
             )}
 
-            {/* Improvements */}
             {result.improvements.length > 0 && (
               <div>
                 <h4 className="text-xs font-semibold text-yellow-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
@@ -164,7 +168,6 @@ export function AiExamValidator({ topicTitle, topicSlug }: AiExamValidatorProps)
               </div>
             )}
 
-            {/* Exam Tips */}
             {result.examTips.length > 0 && (
               <div>
                 <h4 className="text-xs font-semibold text-primary uppercase tracking-wider mb-2 flex items-center gap-1.5">

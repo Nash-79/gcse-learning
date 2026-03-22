@@ -12,7 +12,7 @@ interface Message {
   content: string;
 }
 
-const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/gcse-chat`;
+const CHAT_URL = `/api/gcse-chat`;
 
 const suggestedPrompts = [
   { icon: Code2, label: "Debug my code", prompt: "I have a Python error I need help with. Can you help me debug it?" },
@@ -82,7 +82,6 @@ async function streamChat({
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
     },
     body: JSON.stringify({ messages, model, provider }),
   });

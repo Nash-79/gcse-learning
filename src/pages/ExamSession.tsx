@@ -14,6 +14,7 @@ import { allPaperSets, getQuestionsForSet } from "@/data/questionBank/paperSets"
 import { ExamQuestion } from "@/data/questionBank/types";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+
 import { toast } from "sonner";
 
 interface AiMarking {
@@ -188,31 +189,29 @@ export default function ExamSession() {
     setMarking(prev => ({ ...prev, [currentQ.id]: true }));
 
     try {
-      const { data, error } = await supabase.functions.invoke("mark-answer", {
-        body: {
+      const response = await fetch("/api/mark-answer", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
           question: currentQ.question,
           studentAnswer: answer,
           markScheme: currentQ.markScheme,
           modelAnswer: currentQ.modelAnswer,
           marks: currentQ.marks,
           questionType: currentQ.type,
-        },
+        }),
       });
 
-      if (error) {
-        console.error("Marking error:", error);
-        toast.error("Could not get AI feedback. Check the mark scheme manually.");
-        setShowMarkScheme(prev => ({ ...prev, [currentQ.id]: true }));
-        return;
-      }
+      const data = await response.json();
 
-      if (data?.error) {
-        if (data.error.includes("Rate limit")) {
+      if (!response.ok || data?.error) {
+        const msg = data?.error || "Could not get AI feedback";
+        if (msg.includes("Rate limit")) {
           toast.error("Too many requests — please wait a moment and try again.");
-        } else if (data.error.includes("credits") || data.error.includes("Payment")) {
-          toast.error("AI credits exhausted. Please add funds in workspace settings.");
+        } else if (msg.includes("credits") || msg.includes("Payment")) {
+          toast.error("AI credits exhausted. Please check your settings.");
         } else {
-          toast.error(data.error);
+          toast.error("Could not get AI feedback. Check the mark scheme manually.");
         }
         setShowMarkScheme(prev => ({ ...prev, [currentQ.id]: true }));
         return;

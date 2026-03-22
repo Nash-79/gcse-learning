@@ -305,15 +305,17 @@ export default function Settings() {
     setTesting(true);
     setStatus("idle");
     try {
-      const { data, error } = await supabase.functions.invoke("ai-chat", {
-        body: {
+      const response = await fetch("/api/ai-chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
           mode: "chat",
           topicTitle: "Test",
           messages: [{ role: "user", content: "Say 'Hello from PyLearn!' in exactly those words." }],
-        },
+        }),
       });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
+      const data = await response.json();
+      if (!response.ok || data?.error) throw new Error(data?.error || "Request failed");
       const reply = data?.content || "No response";
       setStatus("success");
       setStatusMsg(`Connection successful! Model replied: "${reply.substring(0, 60)}"`);

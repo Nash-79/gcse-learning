@@ -5,7 +5,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import type { QuizQuestion } from "@/data/topicContent";
-import { supabase } from "@/integrations/supabase/client";
 
 interface ExamQuestionBankProps {
   topicSlug: string;
@@ -156,17 +155,19 @@ Return ONLY a JSON object with a "questions" array of objects with: question (st
 
 Make questions exam-realistic — reference OCR J277 specification topics. Include questions about tracing code, identifying errors, predicting output, and understanding concepts. Do not repeat these existing questions: ${questions.slice(0, 5).map(q => q.question).join("; ")}`;
 
-      const { data, error } = await supabase.functions.invoke("ai-chat", {
-        body: {
+      const response = await fetch("/api/ai-chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
           mode: "generate",
           topicTitle,
           systemPromptOverride: systemPrompt,
           userPromptOverride: `Generate 9 OCR GCSE exam-style questions about ${topicTitle} with pseudocode hints.`,
           maxTokens: 3000,
-        },
+        }),
       });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
+      const data = await response.json();
+      if (!response.ok || data?.error) throw new Error(data?.error || "Request failed");
       const text = data?.content || "";
       const parsed = JSON.parse(text);
       const newQuestions: QuizQuestion[] = Array.isArray(parsed) ? parsed : parsed.questions || [];

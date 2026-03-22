@@ -3,7 +3,6 @@ import { Sparkles, Loader2, Zap, Flame, Target, Code2, GraduationCap, CheckCircl
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { CodeRunner } from "@/components/code/CodeRunner";
-import { supabase } from "@/integrations/supabase/client";
 import type { CodingChallenge, ChallengeDifficulty } from "@/data/codingChallenges";
 import { getChallengesForTopic } from "@/data/codingChallenges";
 import { useChallengeProgress, type ChallengeStatus } from "@/hooks/useChallengeProgress";
@@ -69,16 +68,18 @@ export function CodingChallengePanel({ topicSlug, topicTitle }: CodingChallengeP
       ? 'Generate exactly 3 Python coding challenges — one beginner, one intermediate, one hard.'
       : `Generate exactly 3 Python coding challenges, ALL at the "${difficulty}" difficulty level.`;
     try {
-      const { data, error } = await supabase.functions.invoke("ai-chat", {
-        body: {
+      const response = await fetch("/api/ai-chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
           mode: "generate",
           topicTitle,
           systemPromptOverride: `You are a GCSE Computer Science exam challenge generator. ${diffPrompt} about "${topicTitle}". Return ONLY a JSON object with a "challenges" array. Each object must have: id (string), title (string), description (string, 2-3 sentences describing the task), difficulty ("beginner"|"intermediate"|"hard"), starterCode (string, Python starter code with comments), expectedOutput (string, what the output should be), hints (array of 2-3 strings), modelAnswer (string, simple GCSE-level Python solution using only basic syntax), markScheme (array of 2-3 strings describing what earns marks), examStyle (boolean, true if exam-style). IMPORTANT: Use only simple Python - no f-strings, no try/except, no classes, no comprehensions. Use print(), input(), string concatenation with +, basic if/elif/else, for loops, while loops.`,
           maxTokens: 2000,
-        },
+        }),
       });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
+      const data = await response.json();
+      if (!response.ok || data?.error) throw new Error(data?.error || "Request failed");
       const text = data?.content || "";
       const parsed = JSON.parse(text);
       const challenges: CodingChallenge[] = parsed.challenges || [];
