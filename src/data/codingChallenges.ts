@@ -10,6 +10,8 @@ export interface CodingChallenge {
   hints: string[];
   examStyle?: boolean;
   ocrRef?: string;
+  modelAnswer?: string;
+  markScheme?: string[];
 }
 
 // Challenges mapped to topic slugs — minimum 3 per difficulty level

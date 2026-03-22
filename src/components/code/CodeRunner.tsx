@@ -44,8 +44,26 @@ export function CodeRunner({ initialCode = 'print("Hello, World!")', height = "h
       Sk.importMainWithBody("<stdin>", false, code, true)
     );
 
-    myPromise.then(
-      () => setIsRunning(false),
+    let capturedOutput = "";
+    Sk.configure({
+      output: (text: string) => {
+        capturedOutput += text;
+        setOutput(prev => prev + text);
+      },
+      read: (x: string) => {
+        if (Sk.builtinFiles === undefined || Sk.builtinFiles.files[x] === undefined) {
+          throw new Error(`File not found: '${x}'`);
+        }
+        return Sk.builtinFiles.files[x];
+      },
+    });
+
+    const myPromise2 = Sk.misceval.asyncToPromise(() =>
+      Sk.importMainWithBody("<stdin>", false, code, true)
+    );
+
+    myPromise2.then(
+      () => { setIsRunning(false); onOutput?.(capturedOutput); },
       (err: unknown) => {
         setError(err instanceof Error ? err.message : String(err));
         setIsRunning(false);
