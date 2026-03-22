@@ -65,6 +65,20 @@ This starts:
 - `src/components/layout/Header.tsx` — Top bar with sidebar trigger and breadcrumbs
 - `src/components/layout/PageBreadcrumb.tsx` — Route-aware breadcrumb component
 
+## Deployment (Production)
+
+The app uses **autoscale** deployment on Replit. The build process:
+
+1. **`npm run build`** — Vite compiles the React frontend to `dist/`
+2. **`node build-server.mjs`** — esbuild bundles the Express server to `dist/index.cjs`, then copies frontend assets to `dist/public/`
+
+In production, the single Express server (port 5000):
+- Serves static frontend files from `dist/public/`
+- Handles all `/api/*` routes
+- Returns `dist/public/index.html` for all other routes (SPA fallback)
+
+`NODE_ENV=production` switches the server from dev mode (port 3001, API only) to prod mode (port 5000, full-stack).
+
 ## Migration Notes (Lovable → Replit)
 - Replaced all `supabase.functions.invoke()` calls with `fetch("/api/...")` calls
 - AI Edge Functions (ai-chat, gcse-chat, mark-answer) moved to Express routes

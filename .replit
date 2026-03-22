@@ -9,7 +9,7 @@ channel = "stable-25_05"
 [deployment]
 deploymentTarget = "autoscale"
 run = ["node", "./dist/index.cjs"]
-build = ["npm", "run", "build"]
+build = ["bash", "-c", "npm run build && node build-server.mjs"]
 
 [workflows]
 runButton = "Project"
@@ -42,6 +42,10 @@ externalPort = 3001
 [[ports]]
 localPort = 5000
 externalPort = 80
+
+[[ports]]
+localPort = 5001
+externalPort = 3000
 
 [postMerge]
 path = "scripts/post-merge.sh"
