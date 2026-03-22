@@ -1,6 +1,10 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { BookOpen, Code2, LayoutDashboard, CheckCircle2, Search, Settings, GraduationCap, ChevronDown, FileText, Bot, History, Brain, LogIn, LogOut, User, Library } from "lucide-react";
+import {
+  BookOpen, Code2, LayoutDashboard, CheckCircle2, Search, Settings,
+  GraduationCap, ChevronDown, FileText, Bot, History, Brain, LogIn,
+  LogOut, Library, ChevronRight,
+} from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -11,8 +15,10 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarHeader,
+  SidebarFooter,
 } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useListTopics, useGetProgress, useExamBoard, type Topic, type ExamBoard } from "@/hooks/useTopics";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -28,68 +34,116 @@ const boardColors: Record<ExamBoard, string> = {
   all: "text-muted-foreground",
 };
 
+function getStoredCollapsed(): Set<string> {
+  try {
+    const stored = localStorage.getItem("pylearn-collapsed-categories");
+    return stored ? new Set(JSON.parse(stored)) : new Set();
+  } catch {
+    return new Set();
+  }
+}
+
+function saveCollapsed(set: Set<string>) {
+  try {
+    localStorage.setItem("pylearn-collapsed-categories", JSON.stringify([...set]));
+  } catch {}
+}
+
 export function AppSidebar() {
   const location = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
   const [boardOpen, setBoardOpen] = useState(false);
+  const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(getStoredCollapsed);
   const { user, signOut } = useAuth();
 
   const { board, setBoard } = useExamBoard();
   const { data: topics, isLoading: topicsLoading } = useListTopics();
   const { data: progress } = useGetProgress();
 
-  const isCompleted = (slug: string) => {
-    return progress?.topicProgress.some(tp => tp.topicSlug === slug && tp.completed) ?? false;
-  };
+  const isCompleted = (slug: string) =>
+    progress?.topicProgress.some((tp) => tp.topicSlug === slug && tp.completed) ?? false;
 
   const completedCount = progress?.completedTopics || 0;
   const totalCount = topics?.length || 0;
+  const pct = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
 
-  const filteredTopics = topics?.filter(topic => {
-    const query = searchQuery.toLowerCase();
-    return topic.title.toLowerCase().includes(query) || topic.category.toLowerCase().includes(query);
+  const filteredTopics = topics?.filter((topic) => {
+    const q = searchQuery.toLowerCase();
+    return topic.title.toLowerCase().includes(q) || topic.category.toLowerCase().includes(q);
   });
 
   const categories = filteredTopics?.reduce((acc: Record<string, Topic[]>, topic: Topic) => {
-    if (!acc[topic.category]) {
-      acc[topic.category] = [];
-    }
+    if (!acc[topic.category]) acc[topic.category] = [];
     acc[topic.category].push(topic);
     return acc;
   }, {});
 
+  const toggleCategory = useCallback((category: string) => {
+    setCollapsedCategories((prev) => {
+      const next = new Set(prev);
+      if (next.has(category)) next.delete(category);
+      else next.add(category);
+      saveCollapsed(next);
+      return next;
+    });
+  }, []);
+
+  const navItems = [
+    { to: "/", label: "Dashboard", icon: LayoutDashboard, exact: true },
+    { to: "/playground", label: "Python Sandbox", icon: Code2, color: "text-secondary" },
+    { to: "/theory", label: "Theory Revision", icon: Library, matchPrefix: "/topic-theory/" },
+    { to: "/question-bank", label: "Question Bank", icon: FileText },
+    { to: "/ai-tutor", label: "AI Tutor", icon: Bot, color: "text-secondary" },
+    { to: "/exam-history", label: "Exam History", icon: History },
+    { to: "/spaced-repetition", label: "Spaced Repetition", icon: Brain, color: "text-secondary" },
+  ];
+
+  const isNavActive = (item: (typeof navItems)[0]) => {
+    if (item.exact) return location.pathname === item.to;
+    if (item.matchPrefix) return location.pathname === item.to || location.pathname.startsWith(item.matchPrefix);
+    return location.pathname === item.to;
+  };
+
   return (
-    <Sidebar variant="inset" className="border-r">
-      <SidebarHeader className="p-4 pt-6">
-        <div className="flex items-center gap-3 px-2 mb-1">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-secondary text-white shadow-lg shadow-primary/20">
-            <Code2 className="h-4.5 w-4.5" />
+    <Sidebar variant="inset" className="border-r border-sidebar-border">
+      <SidebarHeader className="p-3 pb-2 gap-2">
+        {/* Branding */}
+        <div className="flex items-center gap-3 px-1 py-1">
+          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-secondary text-white shadow-md shadow-primary/20 shrink-0">
+            <Code2 className="h-4 w-4" />
           </div>
-          <div className="flex flex-col">
-            <span className="font-display text-base font-bold leading-none">PyLearn</span>
-            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mt-0.5">GCSE CS</span>
+          <div className="flex flex-col leading-tight">
+            <span className="font-display text-sm font-bold">PyLearn</span>
+            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">GCSE CS</span>
           </div>
         </div>
 
         {/* Exam Board Selector */}
-        <div className="px-2 mt-3 relative">
+        <div className="relative px-1">
           <button
-            onClick={() => setBoardOpen(!boardOpen)}
-            className="w-full flex items-center justify-between gap-2 rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm font-medium hover:bg-muted/60 transition-colors"
+            onClick={() => setBoardOpen((v) => !v)}
+            className="w-full flex items-center justify-between gap-2 rounded-lg border border-border bg-muted/30 px-3 py-1.5 text-xs font-medium hover:bg-muted/50 transition-colors"
+            aria-expanded={boardOpen}
+            aria-haspopup="listbox"
           >
             <div className="flex items-center gap-2">
-              <GraduationCap className="w-3.5 h-3.5 text-primary" />
+              <GraduationCap className="w-3.5 h-3.5 text-primary shrink-0" />
               <span className={boardColors[board]}>{boardLabels[board]}</span>
             </div>
-            <ChevronDown className={`w-3.5 h-3.5 text-muted-foreground transition-transform ${boardOpen ? 'rotate-180' : ''}`} />
+            <ChevronDown className={`w-3.5 h-3.5 text-muted-foreground transition-transform duration-200 ${boardOpen ? "rotate-180" : ""}`} />
           </button>
           {boardOpen && (
-            <div className="absolute z-50 mt-1 w-full rounded-lg border border-border bg-popover shadow-xl overflow-hidden">
+            <div
+              role="listbox"
+              className="absolute z-50 mt-1 left-1 right-1 rounded-lg border border-border bg-popover shadow-xl overflow-hidden"
+            >
               {(["ocr", "aqa", "all"] as ExamBoard[]).map((b) => (
                 <button
                   key={b}
+                  role="option"
+                  aria-selected={board === b}
                   onClick={() => { setBoard(b); setBoardOpen(false); }}
-                  className={`w-full px-3 py-2 text-sm text-left hover:bg-muted/60 flex items-center justify-between transition-colors ${board === b ? 'bg-primary/10 text-primary font-medium' : 'text-foreground'}`}
+                  className={`w-full px-3 py-2 text-xs text-left hover:bg-muted/60 flex items-center justify-between transition-colors ${board === b ? "bg-primary/10 text-primary font-semibold" : "text-foreground"}`}
                 >
                   <span>{boardLabels[b]}</span>
                   {board === b && <CheckCircle2 className="w-3.5 h-3.5" />}
@@ -99,108 +153,74 @@ export function AppSidebar() {
           )}
         </div>
 
-        <div className="px-2 mt-2 mb-1">
-          <div className="flex items-center justify-between text-[10px] text-muted-foreground mb-1.5 px-1">
-            <span>{completedCount}/{totalCount} complete</span>
-            <span className="text-primary font-bold">{totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0}%</span>
+        {/* Progress */}
+        <div className="px-1">
+          <div className="flex items-center justify-between text-[10px] text-muted-foreground mb-1 px-0.5">
+            <span>{completedCount}/{totalCount} topics</span>
+            <span className="text-primary font-bold">{pct}%</span>
           </div>
-          <div className="h-1.5 rounded-full bg-muted overflow-hidden">
-            <div className="h-full bg-gradient-to-r from-primary via-secondary to-accent rounded-full transition-all duration-500" style={{ width: `${totalCount > 0 ? (completedCount / totalCount) * 100 : 0}%` }} />
+          <div className="h-1 rounded-full bg-muted overflow-hidden">
+            <div
+              className="h-full bg-gradient-to-r from-primary via-secondary to-accent rounded-full transition-all duration-700"
+              style={{ width: `${pct}%` }}
+            />
           </div>
         </div>
 
-        <div className="relative px-2 mt-3">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+        {/* Search */}
+        <div className="relative px-1">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
           <input
             type="text"
             placeholder="Search topics..."
             value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            className="w-full rounded-lg border border-border bg-muted/40 py-1.5 pl-8 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50 focus:border-primary/50 transition-colors"
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full rounded-lg border border-border bg-muted/30 py-1.5 pl-8 pr-3 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50 focus:border-primary/50 transition-colors"
+            aria-label="Search topics"
           />
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="px-2">
-        <SidebarGroup>
+      <SidebarContent className="px-2 py-1 gap-0">
+        {/* Primary nav */}
+        <SidebarGroup className="py-0">
           <SidebarGroupContent>
             <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={location.pathname === "/"}>
-                  <Link to="/">
-                    <LayoutDashboard className="h-4 w-4" />
-                    <span>Dashboard</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={location.pathname === "/playground"}>
-                  <Link to="/playground">
-                    <Code2 className="h-4 w-4 text-secondary" />
-                    <span className="font-medium text-secondary">Python Sandbox</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={location.pathname === "/theory" || location.pathname.startsWith("/topic-theory/")}>
-                  <Link to="/theory">
-                    <Library className="h-4 w-4 text-primary" />
-                    <span className="font-medium">Theory Revision</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={location.pathname === "/question-bank"}>
-                  <Link to="/question-bank">
-                    <FileText className="h-4 w-4 text-primary" />
-                    <span className="font-medium">Question Bank</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={location.pathname === "/ai-tutor"}>
-                  <Link to="/ai-tutor">
-                    <Bot className="h-4 w-4 text-secondary" />
-                    <span className="font-medium text-secondary">AI Tutor</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={location.pathname === "/exam-history"}>
-                  <Link to="/exam-history">
-                    <History className="h-4 w-4 text-primary" />
-                    <span className="font-medium">Exam History</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={location.pathname === "/spaced-repetition"}>
-                  <Link to="/spaced-repetition">
-                    <Brain className="h-4 w-4 text-secondary" />
-                    <span className="font-medium text-secondary">Spaced Repetition</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+              {navItems.map((item) => {
+                const Icon = item.icon;
+                const active = isNavActive(item);
+                return (
+                  <SidebarMenuItem key={item.to}>
+                    <SidebarMenuButton asChild isActive={active}>
+                      <Link to={item.to} className="flex items-center gap-2">
+                        <Icon className={`h-4 w-4 shrink-0 ${item.color || ""}`} />
+                        <span className={`text-sm ${item.color || ""}`}>{item.label}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
+
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={location.pathname === "/settings"}>
-                  <Link to="/settings">
-                    <Settings className="h-4 w-4 text-muted-foreground" />
-                    <span>Settings</span>
+                  <Link to="/settings" className="flex items-center gap-2">
+                    <Settings className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    <span className="text-sm text-muted-foreground">Settings</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
-              {/* Auth */}
+
               <SidebarMenuItem>
                 {user ? (
-                  <SidebarMenuButton onClick={() => signOut()}>
-                    <LogOut className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-muted-foreground">Sign Out</span>
+                  <SidebarMenuButton onClick={() => signOut()} className="flex items-center gap-2">
+                    <LogOut className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    <span className="text-sm text-muted-foreground">Sign Out</span>
                   </SidebarMenuButton>
                 ) : (
                   <SidebarMenuButton asChild isActive={location.pathname === "/auth"}>
-                    <Link to="/auth">
-                      <LogIn className="h-4 w-4 text-primary" />
-                      <span className="font-medium text-primary">Sign In</span>
+                    <Link to="/auth" className="flex items-center gap-2">
+                      <LogIn className="h-4 w-4 shrink-0 text-primary" />
+                      <span className="text-sm text-primary font-medium">Sign In</span>
                     </Link>
                   </SidebarMenuButton>
                 )}
@@ -209,55 +229,107 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
+        {/* Divider */}
+        <div className="mx-3 my-2 h-px bg-border/60" />
+
+        {/* Topic groups */}
         {topicsLoading ? (
-          <div className="p-4 space-y-4">
-            <Skeleton className="h-4 w-24" />
-            <Skeleton className="h-8 w-full" />
-            <Skeleton className="h-8 w-full" />
+          <div className="px-3 py-2 space-y-3">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="space-y-1.5">
+                <Skeleton className="h-3 w-20" />
+                <Skeleton className="h-7 w-full" />
+                <Skeleton className="h-7 w-full" />
+              </div>
+            ))}
           </div>
         ) : Object.entries(categories ?? {}).length === 0 && searchQuery ? (
-          <div className="px-4 py-6 text-center text-sm text-muted-foreground">
-            No topics match "{searchQuery}"
+          <div className="px-4 py-6 text-center text-xs text-muted-foreground">
+            No topics match "<span className="font-medium text-foreground">{searchQuery}</span>"
           </div>
         ) : (
-          Object.entries(categories ?? {}).map(([category, categoryTopics]) => (
-            <SidebarGroup key={category}>
-              <SidebarGroupLabel className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mt-4 mb-1">
-                {category}
-              </SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {categoryTopics.map((topic) => {
-                    const completed = isCompleted(topic.slug);
-                    const isActive = location.pathname === `/topic/${topic.slug}`;
+          Object.entries(categories ?? {}).map(([category, categoryTopics]) => {
+            const isCollapsed = collapsedCategories.has(category);
+            const hasActiveTopic = categoryTopics.some(
+              (t) => location.pathname === `/topic/${t.slug}`
+            );
 
-                    return (
-                      <SidebarMenuItem key={topic.id}>
-                        <SidebarMenuButton asChild isActive={isActive} tooltip={topic.title}>
-                          <Link to={`/topic/${topic.slug}`} className="flex w-full items-center justify-between">
-                            <div className="flex items-center gap-2 overflow-hidden">
-                              <BookOpen className="h-3.5 w-3.5 shrink-0 opacity-60" />
-                              <span className="truncate text-sm">{topic.title}</span>
-                            </div>
-                            <div className="flex items-center gap-1.5 shrink-0">
-                              {topic.ocrRef && (
-                                <span className="text-[9px] font-mono text-muted-foreground/50">{topic.ocrRef}</span>
-                              )}
-                              {completed && (
-                                <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
-                              )}
-                            </div>
-                          </Link>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    );
-                  })}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-          ))
+            return (
+              <Collapsible
+                key={category}
+                open={!isCollapsed}
+                onOpenChange={() => toggleCategory(category)}
+              >
+                <SidebarGroup className="py-0">
+                  <CollapsibleTrigger asChild>
+                    <SidebarGroupLabel
+                      className="flex items-center justify-between cursor-pointer select-none group/label hover:text-foreground transition-colors px-3 py-1.5 rounded-md hover:bg-muted/40 h-auto"
+                    >
+                      <span className={`text-[10px] font-bold uppercase tracking-widest ${hasActiveTopic && isCollapsed ? "text-primary" : ""}`}>
+                        {category}
+                      </span>
+                      <ChevronRight
+                        className={`w-3 h-3 shrink-0 transition-transform duration-200 ${!isCollapsed ? "rotate-90" : ""} ${hasActiveTopic && isCollapsed ? "text-primary" : "text-muted-foreground/50"}`}
+                      />
+                    </SidebarGroupLabel>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <SidebarGroupContent>
+                      <SidebarMenu className="gap-0">
+                        {categoryTopics.map((topic) => {
+                          const completed = isCompleted(topic.slug);
+                          const isActive = location.pathname === `/topic/${topic.slug}`;
+                          return (
+                            <SidebarMenuItem key={topic.id}>
+                              <SidebarMenuButton
+                                asChild
+                                isActive={isActive}
+                                tooltip={topic.title}
+                                className="h-8"
+                              >
+                                <Link
+                                  to={`/topic/${topic.slug}`}
+                                  className="flex w-full items-center gap-2"
+                                >
+                                  <BookOpen className="h-3.5 w-3.5 shrink-0 opacity-50" />
+                                  <span className="truncate text-xs flex-1">{topic.title}</span>
+                                  <div className="flex items-center gap-1 shrink-0">
+                                    {topic.ocrRef && (
+                                      <span className="text-[9px] font-mono text-muted-foreground/40 hidden lg:block">
+                                        {topic.ocrRef}
+                                      </span>
+                                    )}
+                                    {completed && (
+                                      <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
+                                    )}
+                                  </div>
+                                </Link>
+                              </SidebarMenuButton>
+                            </SidebarMenuItem>
+                          );
+                        })}
+                      </SidebarMenu>
+                    </SidebarGroupContent>
+                  </CollapsibleContent>
+                </SidebarGroup>
+              </Collapsible>
+            );
+          })
         )}
       </SidebarContent>
+
+      {user && (
+        <SidebarFooter className="p-3 pt-2 border-t border-border/50">
+          <div className="flex items-center gap-2 px-2 py-1.5 rounded-lg bg-muted/30">
+            <div className="h-6 w-6 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white text-[10px] font-bold shrink-0">
+              {user.email?.[0]?.toUpperCase() ?? "U"}
+            </div>
+            <span className="text-xs text-muted-foreground truncate flex-1">
+              {user.email}
+            </span>
+          </div>
+        </SidebarFooter>
+      )}
     </Sidebar>
   );
 }

@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { CheckCircle2, ChevronLeft, ChevronRight, BookOpen, Code2, Award, AlertTriangle, Lightbulb, Sparkles, Bot, Loader2, Swords, GraduationCap, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,6 @@ import { AiExamValidator } from "@/components/challenges/AiExamValidator";
 import { topicData } from "@/data/topicContent";
 import { topicLearningSteps } from "@/data/learningSteps";
 import { useListTopics, useGetTopicProgress, useUpdateTopicProgress } from "@/hooks/useTopics";
-import { supabase } from "@/integrations/supabase/client";
 
 // Correct YouTube videos per topic
 const topicVideos: Record<string, string> = {
@@ -50,6 +49,7 @@ const topicVideos: Record<string, string> = {
 
 export default function TopicPage() {
   const { slug = "" } = useParams<{ slug: string }>();
+  const navigate = useNavigate();
 
   const { data: topics, isLoading: topicsLoading } = useListTopics();
   const { data: progress } = useGetTopicProgress(slug);
@@ -85,17 +85,19 @@ export default function TopicPage() {
     setIsGenerating(true);
     setGenerationError(null);
     try {
-      const { data, error } = await supabase.functions.invoke("ai-chat", {
-        body: {
+      const response = await fetch("/api/ai-chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
           mode: "generate",
           topicTitle: topicMeta?.title || slug,
           systemPromptOverride: `You are a GCSE Computer Science quiz generator. Generate exactly 5 multiple-choice questions about "${topicMeta?.title || slug}" for Python programming. Return ONLY a JSON object with a "questions" array of objects with these fields: question (string), options (array of 4 strings), correctIndex (0-3), explanation (string), hint (string), difficulty ("easy"|"medium"|"hard"). Do not include any other text.`,
           userPromptOverride: `Generate 5 new quiz questions about ${topicMeta?.title || slug}. Existing questions to avoid repeating: ${content.quiz.map(q => q.question).join("; ")}`,
           maxTokens: 2000,
-        },
+        }),
       });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
+      const data = await response.json();
+      if (!response.ok || data?.error) throw new Error(data?.error || "Request failed");
       const text = data?.content || "";
       const parsed = JSON.parse(text);
       const questions: QuizQuestion[] = Array.isArray(parsed) ? parsed : parsed.questions || [];
@@ -146,6 +148,16 @@ export default function TopicPage() {
         initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
         className="mb-8"
       >
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate(-1)}
+          className="mb-3 -ml-2 gap-1.5 text-muted-foreground hover:text-foreground text-xs h-8 rounded-lg"
+        >
+          <ChevronLeft className="w-4 h-4" />
+          Back
+        </Button>
+
         <div className="flex items-center gap-2 text-sm font-medium text-primary mb-3">
           <BookOpen className="w-4 h-4" />
           <span>{topicMeta.category}</span>

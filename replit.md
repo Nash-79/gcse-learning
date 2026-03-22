@@ -50,6 +50,21 @@ This starts:
 - `VITE_SUPABASE_URL` — Supabase project URL (optional, fallback hardcoded)
 - `VITE_SUPABASE_PUBLISHABLE_KEY` — Supabase anon key (optional, fallback hardcoded)
 
+## UI Modernization
+- Collapsible left sidebar on desktop via SidebarTrigger (no more md:hidden)
+- Mobile slide-in drawer (shadcn Sidebar handles via Sheet component)
+- Collapsible topic category groups in sidebar with localStorage state persistence
+- Route-aware breadcrumb bar in Header (Home > Category > Topic)
+- Back button on TopicPage with browser history navigation (`navigate(-1)`)
+- Active topic highlighted in sidebar via SidebarMenuButton isActive
+- Signed-in user email shown in sidebar footer
+- Keyboard shortcut: Ctrl/Cmd+B to toggle sidebar
+
+## Key Layout Files
+- `src/components/layout/AppSidebar.tsx` — Sidebar with collapsible categories
+- `src/components/layout/Header.tsx` — Top bar with sidebar trigger and breadcrumbs
+- `src/components/layout/PageBreadcrumb.tsx` — Route-aware breadcrumb component
+
 ## Migration Notes (Lovable → Replit)
 - Replaced all `supabase.functions.invoke()` calls with `fetch("/api/...")` calls
 - AI Edge Functions (ai-chat, gcse-chat, mark-answer) moved to Express routes
