@@ -1,13 +1,16 @@
 import express from "express";
 import cors from "cors";
 import path from "path";
+import { existsSync } from "fs";
 import { aiChatRouter } from "./routes/aiChat.js";
 import { gcseChatRouter } from "./routes/gcseChat.js";
 import { markAnswerRouter } from "./routes/markAnswer.js";
 
 const app = express();
-const isProd = process.env.NODE_ENV === "production";
-const PORT = parseInt(process.env.PORT || (isProd ? "5000" : "3001"), 10);
+
+// In dev: Express runs on 3001 (Vite on 5000 proxies /api → 3001)
+// In prod (deployed): Replit sets PORT, or default to 5000
+const PORT = parseInt(process.env.PORT || "3001", 10);
 
 app.use(cors());
 app.use(express.json({ limit: "2mb" }));
@@ -20,14 +23,18 @@ app.get("/api/health", (_req, res) => {
   res.json({ ok: true });
 });
 
-if (isProd) {
-  const distPath = path.join(process.cwd(), "dist", "public");
-  app.use(express.static(distPath));
+// Serve the frontend if the built static files are present.
+// In dev: dist/public doesn't exist, so this block is skipped.
+// In production: build-server.mjs places files there before deploy.
+const distPublic = path.join(process.cwd(), "dist", "public");
+if (existsSync(path.join(distPublic, "index.html"))) {
+  console.log(`Serving static frontend from ${distPublic}`);
+  app.use(express.static(distPublic));
   app.get("*path", (_req, res) => {
-    res.sendFile(path.join(distPath, "index.html"));
+    res.sendFile(path.join(distPublic, "index.html"));
   });
 }
 
 app.listen(PORT, "0.0.0.0", () => {
-  console.log(`Server running on port ${PORT} [${isProd ? "production" : "development"}]`);
+  console.log(`Server running on port ${PORT}`);
 });
