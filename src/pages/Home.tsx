@@ -183,9 +183,9 @@ export default function Home() {
                     <Clock className="w-6 h-6" />
                   </div>
                   <div>
-                    <p className="text-xs font-medium text-muted-foreground mb-1">Time Learning</p>
+                    <p className="text-xs font-medium text-muted-foreground mb-1">Time This Week</p>
                     <h3 className="text-2xl font-bold font-display">
-                      {timeHours > 0 ? `${timeHours}h ` : ''}{timeMins}m
+                      {weekHours > 0 ? `${weekHours}h ` : ''}{weekMins}m
                     </h3>
                   </div>
                 </CardContent>
