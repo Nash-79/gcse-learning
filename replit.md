@@ -12,21 +12,30 @@ A full-stack GCSE Computer Science revision app for students studying OCR J277 a
 - **State**: React Query (@tanstack/react-query)
 - **Port**: 5000 (Vite dev server)
 
-### Backend (Express API Server)
-- **Framework**: Express.js (TypeScript via tsx)
-- **Port**: 3001
+### Backend (FastAPI Python Server)
+- **Framework**: FastAPI (Python) via uvicorn
+- **Port**: 8000 (dev) / PORT env var (production)
+- **Entry point**: `server/main.py`
 - **Routes**:
   - `POST /api/ai-chat` — General AI chat (topic explanations, challenge generation, exam questions)
-  - `POST /api/gcse-chat` — Streaming AI tutor chat (SSE stream)
+  - `POST /api/gcse-chat` — Streaming AI tutor chat (SSE stream via `StreamingResponse`)
   - `POST /api/mark-answer` — AI-powered exam answer marking
+  - `GET /api/health` — Health check
 - **AI Provider**: OpenRouter (free tier models, default: meta-llama/llama-3.3-70b-instruct:free)
+- **Rate limiting**: Exponential backoff (up to 4 retries, 2^attempt seconds wait) on HTTP 429
+- **Headers**: `HTTP-Referer: https://pylearn-gcse.replit.app`, `X-Title: PyLearn GCSE CS`
+- **User API key**: Reads `X-User-Api-Key` header first (from user's Settings page), falls back to `OPENROUTER_API_KEY` env var
+- **Static files**: In production, serves `dist/public/` as static files with SPA fallback
 
 ### Auth & Database
 - **Provider**: Supabase (kept from original Lovable project)
 - Supabase handles user auth, exam history, spaced repetition data, admin roles
 
 ### Vite Proxy
-Vite proxies `/api/*` requests to the Express server at `localhost:3001`, so the frontend uses relative URLs like `/api/ai-chat`.
+Vite proxies `/api/*` requests to the FastAPI server at `localhost:8000`, so the frontend uses relative URLs like `/api/ai-chat`.
+
+### API Client (`src/lib/apiFetch.ts`)
+All frontend API calls use `apiFetch()` which automatically injects the `X-User-Api-Key` header from localStorage when the user has configured a personal OpenRouter key in Settings.
 
 ## Key Files
 - `server/index.ts` — Express server entry point

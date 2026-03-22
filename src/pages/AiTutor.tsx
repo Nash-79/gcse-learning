@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { ChatMessage } from "@/components/chat/ChatMessage";
 import { FollowUpSuggestions } from "@/components/chat/FollowUpSuggestions";
 import { useAiSettings } from "@/lib/useAiSettings";
+import { apiFetch } from "@/lib/apiFetch";
 
 interface Message {
   role: "user" | "assistant";
@@ -78,7 +79,7 @@ async function streamChat({
   onDone: () => void;
   onError: (msg: string) => void;
 }) {
-  const resp = await fetch(CHAT_URL, {
+  const resp = await apiFetch(CHAT_URL, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

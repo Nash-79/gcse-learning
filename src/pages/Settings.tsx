@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { apiFetch } from "@/lib/apiFetch";
 import { motion, AnimatePresence } from "framer-motion";
 import { Settings as SettingsIcon, Key, Bot, Save, CheckCircle2, AlertCircle, Loader2, ExternalLink, Sparkles, Zap, Brain, Code2, Eye, Search, X, ChevronDown, Clock, AlertTriangle, Hash, Server, ShieldAlert, Lock, Users, Globe, Cloud } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -305,7 +306,7 @@ export default function Settings() {
     setTesting(true);
     setStatus("idle");
     try {
-      const response = await fetch("/api/ai-chat", {
+      const response = await apiFetch("/api/ai-chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

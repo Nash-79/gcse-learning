@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { apiFetch } from "@/lib/apiFetch";
 import { Sparkles, Loader2, Zap, Flame, Target, Code2, GraduationCap, CheckCircle2, Circle, PlayCircle, Eye, EyeOff, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -68,7 +69,7 @@ export function CodingChallengePanel({ topicSlug, topicTitle }: CodingChallengeP
       ? 'Generate exactly 3 Python coding challenges — one beginner, one intermediate, one hard.'
       : `Generate exactly 3 Python coding challenges, ALL at the "${difficulty}" difficulty level.`;
     try {
-      const response = await fetch("/api/ai-chat", {
+      const response = await apiFetch("/api/ai-chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { ChatMessage } from "@/components/chat/ChatMessage";
 import { FollowUpSuggestions } from "@/components/chat/FollowUpSuggestions";
 import { useAiSettings } from "@/lib/useAiSettings";
+import { apiFetch } from "@/lib/apiFetch";
 
 interface Message {
   role: "user" | "assistant";
@@ -77,7 +78,7 @@ export function AiHelper({ topicSlug, topicTitle }: AiHelperProps) {
     setIsLoading(true);
 
     try {
-      const response = await fetch("/api/ai-chat", {
+      const response = await apiFetch("/api/ai-chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

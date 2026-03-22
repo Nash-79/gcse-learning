@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { apiFetch } from "@/lib/apiFetch";
 import { Bot, Send, Loader2, CheckCircle2, XCircle, AlertTriangle, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -32,7 +33,7 @@ export function AiExamValidator({ topicTitle, topicSlug }: AiExamValidatorProps)
     setResult(null);
 
     try {
-      const response = await fetch("/api/ai-chat", {
+      const response = await apiFetch("/api/ai-chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

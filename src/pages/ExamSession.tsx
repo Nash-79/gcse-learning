@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
+import { apiFetch } from "@/lib/apiFetch";
 import { useParams, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -189,7 +190,7 @@ export default function ExamSession() {
     setMarking(prev => ({ ...prev, [currentQ.id]: true }));
 
     try {
-      const response = await fetch("/api/mark-answer", {
+      const response = await apiFetch("/api/mark-answer", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

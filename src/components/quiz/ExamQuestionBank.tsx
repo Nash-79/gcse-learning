@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback } from "react";
+import { apiFetch } from "@/lib/apiFetch";
 import { ChevronDown, Lightbulb, CheckCircle2, XCircle, Sparkles, Loader2, AlertTriangle, Code2, Zap, Flame, Target, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -155,7 +156,7 @@ Return ONLY a JSON object with a "questions" array of objects with: question (st
 
 Make questions exam-realistic — reference OCR J277 specification topics. Include questions about tracing code, identifying errors, predicting output, and understanding concepts. Do not repeat these existing questions: ${questions.slice(0, 5).map(q => q.question).join("; ")}`;
 
-      const response = await fetch("/api/ai-chat", {
+      const response = await apiFetch("/api/ai-chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

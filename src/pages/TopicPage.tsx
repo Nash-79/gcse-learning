@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
+import { apiFetch } from "@/lib/apiFetch";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { CheckCircle2, ChevronLeft, ChevronRight, BookOpen, Code2, Award, AlertTriangle, Lightbulb, Sparkles, Bot, Loader2, Swords, GraduationCap, FileText } from "lucide-react";
@@ -85,7 +86,7 @@ export default function TopicPage() {
     setIsGenerating(true);
     setGenerationError(null);
     try {
-      const response = await fetch("/api/ai-chat", {
+      const response = await apiFetch("/api/ai-chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
