@@ -379,24 +379,6 @@ export default function Settings() {
                 </div>
                 <p className="text-xs text-muted-foreground">Free tier models from Meta, Google, Qwen, NVIDIA &amp; more. Requires API key. Rate limits may apply.</p>
               </button>
-
-              <button
-                onClick={() => updateSettings({ provider: "lovable" })}
-                className={`p-4 rounded-xl border-2 text-left transition-all ${
-                  currentProvider === "lovable"
-                    ? "border-secondary/50 bg-secondary/5 shadow-lg shadow-secondary/5"
-                    : "border-border/40 hover:border-secondary/30"
-                }`}
-              >
-                <div className="flex items-center gap-2 mb-2">
-                  <Cloud className="w-5 h-5 text-secondary" />
-                  <span className="font-display font-bold">Lovable AI</span>
-                  {currentProvider === "lovable" && (
-                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-secondary/20 text-secondary font-semibold ml-auto">Active</span>
-                  )}
-                </div>
-                <p className="text-xs text-muted-foreground">Powered by Gemini 3 Flash. No API key needed. More reliable, automatic fallback.</p>
-              </button>
             </div>
           </CardContent>
         </Card>

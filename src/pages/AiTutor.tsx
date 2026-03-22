@@ -262,8 +262,6 @@ export default function AiTutor() {
               onChange={(e) => setChatModel(e.target.value)}
               className="text-[11px] bg-muted/50 border border-border rounded-lg px-2 py-1 text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50 max-w-[200px] truncate"
             >
-              <option value="google/gemini-3-flash-preview">Gemini 3 Flash (Lovable AI)</option>
-              <option value="google/gemini-2.5-flash">Gemini 2.5 Flash (Lovable AI)</option>
               <optgroup label="OpenRouter Free Tier">
                 <option value="meta-llama/llama-3.3-70b-instruct:free">Llama 3.3 70B</option>
                 <option value="google/gemma-3-27b-it:free">Gemma 3 27B</option>

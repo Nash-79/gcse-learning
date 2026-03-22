@@ -160,7 +160,8 @@ router.post("/", async (req: Request, res: Response) => {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${OPENROUTER_API_KEY}`,
-        "HTTP-Referer": "https://pylearn.app",
+        "HTTP-Referer": "https://replit.com/@Nash-21",
+        "X-Title": "PyLearn Replit App",
       },
       body: JSON.stringify({
         model: finalModel,

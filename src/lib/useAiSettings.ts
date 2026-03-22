@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 
-export type AiProvider = "openrouter" | "lovable";
+export type AiProvider = "openrouter";
 
 interface AiSettings {
   apiKey: string;
@@ -13,10 +13,11 @@ function loadSettings(): AiSettings {
     const stored = localStorage.getItem("pylearn-ai-settings");
     if (stored) {
       const parsed = JSON.parse(stored);
+      const provider = parsed.provider === "lovable" ? "openrouter" : (parsed.provider || "openrouter");
       return {
         apiKey: parsed.apiKey || "",
         model: parsed.model || "meta-llama/llama-3.3-70b-instruct:free",
-        provider: parsed.provider || "openrouter",
+        provider,
       };
     }
   } catch {}

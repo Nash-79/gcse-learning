@@ -86,7 +86,8 @@ async function callOpenRouter(apiKey: string, body: Record<string, unknown>): Pr
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${apiKey}`,
-      "HTTP-Referer": "https://pylearn.app",
+      "HTTP-Referer": "https://replit.com/@Nash-21",
+      "X-Title": "PyLearn Replit App",
     },
     body: JSON.stringify(body),
   }) as unknown as Response;
