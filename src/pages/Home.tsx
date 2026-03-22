@@ -47,8 +47,9 @@ export default function Home() {
   const totalCount = topics?.length || 0;
   const percentComplete = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
 
-  const timeHours = Math.floor((progress?.totalTimeSpentSeconds || 0) / 3600);
-  const timeMins = Math.floor(((progress?.totalTimeSpentSeconds || 0) % 3600) / 60);
+  const weeklySeconds = progress?.weeklyTimeSpentSeconds || 0;
+  const weekHours = Math.floor(weeklySeconds / 3600);
+  const weekMins = Math.floor((weeklySeconds % 3600) / 60);
 
   const container = {
     hidden: { opacity: 0 },
