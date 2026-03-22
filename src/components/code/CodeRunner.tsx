@@ -8,7 +8,7 @@ export interface CodeRunnerProps {
   onOutput?: (output: string) => void;
 }
 
-export function CodeRunner({ initialCode = 'print("Hello, World!")', height = "h-[300px]" }: CodeRunnerProps) {
+export function CodeRunner({ initialCode = 'print("Hello, World!")', height = "h-[300px]", onOutput }: CodeRunnerProps) {
   const [code, setCode] = useState(initialCode);
   const [output, setOutput] = useState("");
   const [error, setError] = useState("");
