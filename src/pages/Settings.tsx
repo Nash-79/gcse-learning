@@ -88,8 +88,11 @@ export default function Settings() {
   const [expandedModel, setExpandedModel] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
+  const [healthChecking, setHealthChecking] = useState(false);
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
   const [statusMsg, setStatusMsg] = useState("");
+  const [healthStatus, setHealthStatus] = useState<"idle" | "success" | "error">("idle");
+  const [healthMsg, setHealthMsg] = useState("");
   const [modelSearch, setModelSearch] = useState("");
   const [activeTagFilter, setActiveTagFilter] = useState<string | null>(null);
   const [activeProviderFilter, setActiveProviderFilter] = useState<string | null>(null);
@@ -180,6 +183,39 @@ export default function Settings() {
       setStatusMsg(err?.message ? `Connection test failed: ${err.message}` : "Connection test failed. Please try again in a moment.");
     } finally {
       setTesting(false);
+    }
+  };
+
+  const checkApiHealth = async () => {
+    setHealthChecking(true);
+    setHealthStatus("idle");
+    try {
+      const response = await apiFetch("/api/health", { method: "GET" });
+      const raw = await response.text();
+      let payload: any = {};
+      try {
+        payload = raw ? JSON.parse(raw) : {};
+      } catch {
+        // non-JSON health responses are acceptable if status is 2xx
+      }
+      if (!response.ok) {
+        throw new Error(payload?.error || `Health endpoint returned ${response.status}`);
+      }
+      setHealthStatus("success");
+      setHealthMsg("API is reachable.");
+    } catch (err: any) {
+      void appLog({
+        event_type: "api_error",
+        origin: "Settings.checkApiHealth",
+        message: err?.message || "API health check failed",
+        details: { provider: currentProvider },
+        error_stack: err?.stack,
+        severity: "error",
+      });
+      setHealthStatus("error");
+      setHealthMsg(err?.message || "API health check failed.");
+    } finally {
+      setHealthChecking(false);
     }
   };
 
@@ -294,11 +330,29 @@ export default function Settings() {
                   {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                   {hasAi ? "Update Key" : "Save Key"}
                 </Button>
+                <Button variant="outline" onClick={checkApiHealth} disabled={healthChecking} className="gap-2 rounded-xl">
+                  {healthChecking ? <Loader2 className="w-4 h-4 animate-spin" /> : <Server className="w-4 h-4" />}
+                  Check API Health
+                </Button>
                 <Button variant="outline" onClick={testConnection} disabled={testing} className="gap-2 rounded-xl">
                   {testing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Bot className="w-4 h-4" />}
                   Test Connection
                 </Button>
               </div>
+
+              <AnimatePresence>
+                {healthStatus !== "idle" && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
+                    className={`mt-3 flex items-center gap-2 text-sm px-4 py-2.5 rounded-xl border ${
+                      healthStatus === "success" ? "bg-green-500/10 text-green-500 border-green-500/20" : "bg-destructive/10 text-destructive border-destructive/20"
+                    }`}
+                  >
+                    {healthStatus === "success" ? <CheckCircle2 className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+                    {healthMsg}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </CardContent>
           </Card>
         )}
