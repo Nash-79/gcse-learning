@@ -104,7 +104,7 @@ for i in range(5):
 
 print(f"You scored {score}/5")`
   },
-  videoUrl: "https://www.youtube.com/embed/PqFKRqpHrjw",
+  videoUrl: "https://www.youtube.com/embed/KzqSDvzOFNA",
   quiz: [
     { question: "What must you write at the top of your program to use random numbers?", options: ["use random", "import random", "#include random", "from random"], correctIndex: 1, explanation: "You must import the random module: import random.", hint: "Python uses the 'import' keyword to load modules.", difficulty: "easy" },
     { question: "What does random.randint(1, 10) return?", options: ["A float between 1.0 and 10.0", "An integer between 1 and 9", "An integer between 1 and 10 inclusive", "Always 1 or 10"], correctIndex: 2, explanation: "randint(1, 10) returns a random integer from 1 to 10, inclusive of both ends.", hint: "The 'int' in randint tells you the type. Both ends are included.", difficulty: "easy" },

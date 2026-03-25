@@ -137,7 +137,7 @@ for p in pupils:
     if p["name"].startswith("J"):
         print(f"  {p['name']}")`
   },
-  videoUrl: "https://www.youtube.com/embed/PqFKRqpHrjw",
+  videoUrl: "https://www.youtube.com/embed/27axs9dO7AE",
   quiz: [
     { question: "What does SELECT * FROM students do?", options: ["Deletes all students", "Returns all columns from the students table", "Creates a new table", "Counts the students"], correctIndex: 1, explanation: "SELECT * returns all columns. FROM specifies which table to query.", hint: "The * means 'everything' in SQL.", difficulty: "easy" },
     { question: "Which SQL keyword filters rows based on a condition?", options: ["FILTER", "WHERE", "IF", "WHEN"], correctIndex: 1, explanation: "WHERE is used to filter rows that match a specific condition.", hint: "It's the SQL equivalent of Python's 'if' for filtering data.", difficulty: "easy" },

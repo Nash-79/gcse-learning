@@ -1,4 +1,10 @@
 import { Router, Request, Response } from "express";
+import {
+  callOpenRouterWithRetry,
+  extractOpenRouterError,
+  resolveApiKey,
+  resolveModel,
+} from "./openrouter.js";
 
 const router = Router();
 
@@ -103,45 +109,18 @@ Then list exactly 3 short follow-up questions as bullet points that naturally ex
 - Don't write full coursework solutions — guide the student instead
 - If asked something off-topic, gently redirect` + STRUCTURED_OUTPUT_INSTRUCTION;
 
-const OPENROUTER_MODELS = new Set([
-  "meta-llama/llama-3.3-70b-instruct:free",
-  "google/gemma-3-27b-it:free",
-  "qwen/qwen3-coder:free",
-  "nvidia/nemotron-3-super-120b-a12b:free",
-  "qwen/qwen3-next-80b-a3b-instruct:free",
-  "openai/gpt-oss-120b:free",
-  "stepfun/step-3.5-flash:free",
-  "mistralai/mistral-small-3.1-24b-instruct:free",
-  "arcee-ai/trinity-large-preview:free",
-  "openai/gpt-oss-20b:free",
-  "minimax/minimax-m2.5:free",
-  "nvidia/nemotron-3-nano-30b-a3b:free",
-  "nousresearch/hermes-3-llama-3.1-405b:free",
-  "nvidia/nemotron-nano-12b-v2-vl:free",
-  "nvidia/nemotron-nano-9b-v2:free",
-  "z-ai/glm-4.5-air:free",
-  "arcee-ai/trinity-mini:free",
-  "google/gemma-3-12b-it:free",
-  "google/gemma-3-4b-it:free",
-  "qwen/qwen3-4b:free",
-  "meta-llama/llama-3.2-3b-instruct:free",
-  "meta-llama/llama-3.1-8b-instruct:free",
-]);
-
 router.post("/", async (req: Request, res: Response) => {
   try {
     const { messages, model, provider } = req.body;
 
-    const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+    const apiKey = resolveApiKey(req);
 
-    if (!OPENROUTER_API_KEY) {
-      res.status(500).json({ error: "No AI API key configured. Please add OPENROUTER_API_KEY to your environment." });
+    if (!apiKey) {
+      res.status(500).json({ error: "No AI API key configured. Add your key in Settings or set OPENROUTER_API_KEY." });
       return;
     }
 
-    const requestedModel = model || "meta-llama/llama-3.3-70b-instruct:free";
-    const isOpenRouterModel = OPENROUTER_MODELS.has(requestedModel);
-    const finalModel = isOpenRouterModel ? requestedModel : "meta-llama/llama-3.3-70b-instruct:free";
+    const finalModel = resolveModel(model);
 
     const augmentedMessages = messages.map((m: { role: string; content: string }, i: number) => {
       if (i === messages.length - 1 && m.role === "user") {
@@ -155,33 +134,24 @@ router.post("/", async (req: Request, res: Response) => {
       ...augmentedMessages,
     ];
 
-    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${OPENROUTER_API_KEY}`,
-        "HTTP-Referer": "https://replit.com/@Nash-21",
-        "X-Title": "PyLearn Replit App",
-      },
-      body: JSON.stringify({
-        model: finalModel,
-        messages: chatMessages,
-        stream: true,
-      }),
+    const response = await callOpenRouterWithRetry(apiKey, {
+      model: finalModel,
+      messages: chatMessages,
+      stream: true,
     });
 
     if (!response.ok) {
       if (response.status === 429) {
-        res.status(429).json({ error: "Rate limit reached. Please wait a moment and try again." });
+        res.status(429).json({ error: "Rate limit reached on this model. Switch model or retry in 20-60 seconds." });
         return;
       }
       if (response.status === 402) {
-        res.status(402).json({ error: "AI credits exhausted. Please try again later." });
+        res.status(402).json({ error: "OpenRouter credits/quota unavailable for this request." });
         return;
       }
-      const t = await response.text();
+      const t = await extractOpenRouterError(response);
       console.error("AI gateway error:", response.status, t);
-      res.status(500).json({ error: "AI service unavailable" });
+      res.status(response.status).json({ error: t || "AI service unavailable" });
       return;
     }
 

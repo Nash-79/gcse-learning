@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { apiFetch } from "@/lib/apiFetch";
+import { appLog } from "@/lib/appLogger";
 import { Bot, Send, Loader2, CheckCircle2, XCircle, AlertTriangle, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -58,6 +59,14 @@ export function AiExamValidator({ topicTitle, topicSlug }: AiExamValidatorProps)
       }
       setResult(parsed);
     } catch (err: any) {
+      void appLog({
+        event_type: "api_error",
+        origin: "AiExamValidator.validate",
+        message: err?.message || "AI exam validation failed",
+        details: { topicSlug, topicTitle },
+        error_stack: err?.stack,
+        severity: "error",
+      });
       setError(err.message || "Failed to validate. Please try again.");
     } finally {
       setIsValidating(false);

@@ -24,6 +24,8 @@ export interface TopicTheoryData {
   title: string;
   paper: "1" | "2";
   ocrRef: string;
+  aqaRef: string[];
+  examBoards: Array<"ocr" | "aqa">;
   icon: string;
   color: string;
   description: string;

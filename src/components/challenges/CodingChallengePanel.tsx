@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import { apiFetch } from "@/lib/apiFetch";
+import { appLog } from "@/lib/appLogger";
 import { Sparkles, Loader2, Zap, Flame, Target, Code2, GraduationCap, CheckCircle2, Circle, PlayCircle, Eye, EyeOff, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -48,6 +49,8 @@ export function CodingChallengePanel({ topicSlug, topicTitle }: CodingChallengeP
   const [isGenerating, setIsGenerating] = useState(false);
   const [gradeResult, setGradeResult] = useState<{ result: string; feedback: string } | null>(null);
   const [copied, setCopied] = useState(false);
+  const [generatedModelAnswers, setGeneratedModelAnswers] = useState<Record<string, string>>({});
+  const [generatingModelAnswerId, setGeneratingModelAnswerId] = useState<string | null>(null);
   const { getStatus, setStatus } = useChallengeProgress();
 
   const staticChallenges = getChallengesForTopic(topicSlug);
@@ -87,7 +90,15 @@ export function CodingChallengePanel({ topicSlug, topicTitle }: CodingChallengeP
       if (challenges.length > 0) {
         setAiChallenges(prev => [...prev, ...challenges.map((c, i) => ({ ...c, id: `ai-${Date.now()}-${i}` }))]);
       }
-    } catch (err) {
+    } catch (err: any) {
+      void appLog({
+        event_type: "api_error",
+        origin: "CodingChallengePanel.generateAiChallenges",
+        message: err?.message || "Failed to generate AI challenges",
+        details: { topicSlug, topicTitle, difficulty },
+        error_stack: err?.stack,
+        severity: "error",
+      });
       console.error("Failed to generate challenges:", err);
     } finally {
       setIsGenerating(false);
@@ -129,8 +140,47 @@ export function CodingChallengePanel({ topicSlug, topicTitle }: CodingChallengeP
   };
 
   const getModelAnswer = (challenge: CodingChallenge): string | null => {
-    return challenge.modelAnswer || null;
+    return challenge.modelAnswer || generatedModelAnswers[challenge.id] || null;
   };
+
+  const generateModelAnswer = useCallback(async (challenge: CodingChallenge) => {
+    setGeneratingModelAnswerId(challenge.id);
+    try {
+      const response = await apiFetch("/api/ai-chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          mode: "generate",
+          topicTitle,
+          systemPromptOverride:
+            'You are a GCSE Computer Science model-answer generator. Return ONLY JSON with keys: "modelAnswer" (string Python solution) and "markScheme" (array of 3-5 concise points). Use simple Python only: print, input, variables, if/elif/else, for, while, basic lists/dicts, string concatenation with +. Avoid classes, decorators, generators.',
+          userPromptOverride: `Write a model answer for this challenge:\nTitle: ${challenge.title}\nDescription: ${challenge.description}\nStarter code:\n${challenge.starterCode}\nHints: ${challenge.hints.join(" | ")}`,
+          maxTokens: 2200,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok || data?.error) throw new Error(data?.error || "Request failed");
+      const parsed = JSON.parse(data?.content || "{}");
+      if (parsed?.modelAnswer) {
+        setGeneratedModelAnswers((prev) => ({
+          ...prev,
+          [challenge.id]: String(parsed.modelAnswer),
+        }));
+      }
+    } catch (error: any) {
+      void appLog({
+        event_type: "api_error",
+        origin: "CodingChallengePanel.generateModelAnswer",
+        message: error?.message || "Failed to generate AI model answer",
+        details: { topicSlug, topicTitle, challengeId: challenge.id },
+        error_stack: error?.stack,
+        severity: "error",
+      });
+      console.error("Failed to generate model answer:", error);
+    } finally {
+      setGeneratingModelAnswerId(null);
+    }
+  }, [topicTitle]);
 
   if (selectedChallenge) {
     const status = getStatus(selectedChallenge.id);
@@ -251,6 +301,25 @@ export function CodingChallengePanel({ topicSlug, topicTitle }: CodingChallengeP
                     </button>
                   </div>
                   <pre className="text-sm font-mono text-blue-300 bg-[#1e1e1e] rounded-lg px-3 py-2 overflow-x-auto whitespace-pre-wrap">{getModelAnswer(selectedChallenge)}</pre>
+                </div>
+              )}
+              {!getModelAnswer(selectedChallenge) && (
+                <div className="bg-muted/20 border border-border/40 rounded-xl px-4 py-3">
+                  <p className="text-xs text-muted-foreground mb-2">No static model answer is available for this challenge yet.</p>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => generateModelAnswer(selectedChallenge)}
+                    disabled={generatingModelAnswerId === selectedChallenge.id}
+                    className="gap-2"
+                  >
+                    {generatingModelAnswerId === selectedChallenge.id ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <Sparkles className="w-3.5 h-3.5" />
+                    )}
+                    Generate AI Model Answer
+                  </Button>
                 </div>
               )}
             </div>

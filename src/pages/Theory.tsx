@@ -8,6 +8,7 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useExamBoard } from "@/hooks/useTopics";
 import { paper1Theory } from "@/data/questionBank/paper1Theory";
 import { paper2Theory } from "@/data/questionBank/paper2Theory";
 import { TopicTheoryData } from "@/data/questionBank/theoryTypes";
@@ -50,7 +51,10 @@ function TheoryCard({ topic }: { topic: TopicTheoryData }) {
                   Paper {topic.paper}
                 </Badge>
                 <Badge variant="secondary" className="text-[10px] bg-background/60 border-none font-mono">
-                  {topic.ocrRef}
+                  OCR {topic.ocrRef}
+                </Badge>
+                <Badge variant="secondary" className="text-[10px] bg-background/60 border-none font-mono">
+                  AQA {topic.aqaRef.join(", ")}
                 </Badge>
               </div>
             </div>
@@ -82,10 +86,13 @@ function TheoryCard({ topic }: { topic: TopicTheoryData }) {
 
 export default function Theory() {
   const [search, setSearch] = useState("");
+  const { board, setBoard } = useExamBoard();
 
   const allTheory = [...paper1Theory, ...paper2Theory];
+  const boardFiltered =
+    board === "all" ? allTheory : allTheory.filter((t) => t.examBoards.includes(board));
 
-  const filtered = allTheory.filter((t) => {
+  const filtered = boardFiltered.filter((t) => {
     return (
       !search ||
       t.title.toLowerCase().includes(search.toLowerCase()) ||
@@ -118,15 +125,42 @@ export default function Theory() {
                   Theory Revision
                 </h1>
                 <p className="text-white/70 text-sm md:text-base mt-1">
-                  Complete OCR J277 specification coverage
+                  Complete OCR J277 and AQA 8525 coverage
                 </p>
               </div>
             </div>
 
+            <div className="mt-6 flex flex-wrap gap-2">
+              <Button
+                size="sm"
+                variant={board === "ocr" ? "secondary" : "outline"}
+                onClick={() => setBoard("ocr")}
+                className="h-8"
+              >
+                OCR J277
+              </Button>
+              <Button
+                size="sm"
+                variant={board === "aqa" ? "secondary" : "outline"}
+                onClick={() => setBoard("aqa")}
+                className="h-8"
+              >
+                AQA 8525
+              </Button>
+              <Button
+                size="sm"
+                variant={board === "all" ? "secondary" : "outline"}
+                onClick={() => setBoard("all")}
+                className="h-8"
+              >
+                All Topics
+              </Button>
+            </div>
+
             <div className="grid grid-cols-3 gap-3 mt-8 max-w-lg">
               {[
-                { value: `${allTheory.length}`, label: "Topics" },
-                { value: `${allTheory.reduce((s, t) => s + t.sections.length, 0)}`, label: "Sections" },
+                { value: `${boardFiltered.length}`, label: "Topics" },
+                { value: `${boardFiltered.reduce((s, t) => s + t.sections.length, 0)}`, label: "Sections" },
                 { value: "100%", label: "Spec Coverage" },
               ].map((s, i) => (
                 <motion.div

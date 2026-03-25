@@ -133,7 +133,7 @@ if average >= 50:
 else:
     print("Result: FAIL")`
   },
-  videoUrl: "https://www.youtube.com/embed/PqFKRqpHrjw",
+  videoUrl: "https://www.youtube.com/embed/NIWwJbo-9_8",
   quiz: [
     { question: "What is the purpose of input validation?", options: ["To make programs run faster", "To ensure user input is sensible before using it", "To encrypt the data", "To format the output"], correctIndex: 1, explanation: "Input validation checks that data entered by the user is reasonable and within expected bounds.", hint: "What could go wrong if you trust all user input?", difficulty: "easy" },
     { question: "Which type of check ensures a value is between 1 and 100?", options: ["Length check", "Presence check", "Range check", "Format check"], correctIndex: 2, explanation: "A range check verifies that a value falls within minimum and maximum limits.", hint: "The check name describes its purpose — checking a range of values.", difficulty: "easy" },

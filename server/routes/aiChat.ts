@@ -1,4 +1,10 @@
 import { Router, Request, Response } from "express";
+import {
+  callOpenRouterWithRetry,
+  extractOpenRouterError,
+  resolveApiKey,
+  resolveModel,
+} from "./openrouter.js";
 
 const router = Router();
 
@@ -55,57 +61,18 @@ DECISION: Prefer JSON. Use Markdown fallback only if JSON reliability is uncerta
 
 const STRUCTURED_USER_SUFFIX = "\n\nReturn JSON if possible. If not, use the Markdown fallback exactly.";
 
-const OPENROUTER_MODELS = new Set([
-  "meta-llama/llama-3.3-70b-instruct:free",
-  "google/gemma-3-27b-it:free",
-  "qwen/qwen3-coder:free",
-  "nvidia/nemotron-3-super-120b-a12b:free",
-  "qwen/qwen3-next-80b-a3b-instruct:free",
-  "openai/gpt-oss-120b:free",
-  "stepfun/step-3.5-flash:free",
-  "mistralai/mistral-small-3.1-24b-instruct:free",
-  "arcee-ai/trinity-large-preview:free",
-  "openai/gpt-oss-20b:free",
-  "minimax/minimax-m2.5:free",
-  "nvidia/nemotron-3-nano-30b-a3b:free",
-  "nousresearch/hermes-3-llama-3.1-405b:free",
-  "nvidia/nemotron-nano-12b-v2-vl:free",
-  "nvidia/nemotron-nano-9b-v2:free",
-  "z-ai/glm-4.5-air:free",
-  "arcee-ai/trinity-mini:free",
-  "google/gemma-3-12b-it:free",
-  "google/gemma-3-4b-it:free",
-  "qwen/qwen3-4b:free",
-  "meta-llama/llama-3.2-3b-instruct:free",
-  "meta-llama/llama-3.1-8b-instruct:free",
-]);
-
-async function callOpenRouter(apiKey: string, body: Record<string, unknown>): Promise<Response> {
-  return fetch("https://openrouter.ai/api/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-      "HTTP-Referer": "https://replit.com/@Nash-21",
-      "X-Title": "PyLearn Replit App",
-    },
-    body: JSON.stringify(body),
-  }) as unknown as Response;
-}
-
 router.post("/", async (req: Request, res: Response) => {
   try {
     const { messages, mode, topicTitle, code, taskDescription, systemPromptOverride, userPromptOverride, maxTokens, model, provider } = req.body;
 
-    const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+    const apiKey = resolveApiKey(req);
 
-    if (!OPENROUTER_API_KEY) {
-      res.status(500).json({ error: "No AI API key configured. Please add OPENROUTER_API_KEY to your environment." });
+    if (!apiKey) {
+      res.status(500).json({ error: "No AI API key configured. Add your key in Settings or set OPENROUTER_API_KEY." });
       return;
     }
 
-    const requestedModel = model || "meta-llama/llama-3.3-70b-instruct:free";
-    const isOpenRouterModel = OPENROUTER_MODELS.has(requestedModel);
+    const finalModel = resolveModel(model);
 
     let systemPrompt: string;
     let userMessages: Array<{ role: string; content: string }>;
@@ -160,7 +127,7 @@ Be encouraging but honest. Reference OCR J277 exam expectations where relevant.`
     }
 
     const requestBody: Record<string, unknown> = {
-      model: isOpenRouterModel ? requestedModel : "meta-llama/llama-3.3-70b-instruct:free",
+      model: finalModel,
       messages: [
         { role: "system", content: systemPrompt },
         ...userMessages,
@@ -172,13 +139,21 @@ Be encouraging but honest. Reference OCR J277 exam expectations where relevant.`
       requestBody.response_format = { type: "json_object" };
     }
 
-    const response = await callOpenRouter(OPENROUTER_API_KEY, requestBody);
+    const response = await callOpenRouterWithRetry(apiKey, requestBody);
 
     if (!(response as any).ok) {
       const status = (response as any).status || 500;
-      const errorText = await (response as any).text();
+      const errorText = await extractOpenRouterError(response as unknown as Response);
       console.error("AI error:", status, errorText);
-      res.status(status).json({ error: `AI API error: ${status}` });
+      if (status === 429) {
+        res.status(429).json({ error: "Rate limit reached on this model. Switch model or retry in 20-60 seconds." });
+        return;
+      }
+      if (status === 402) {
+        res.status(402).json({ error: "OpenRouter credits/quota unavailable for this request." });
+        return;
+      }
+      res.status(status).json({ error: errorText || `AI API error: ${status}` });
       return;
     }
 

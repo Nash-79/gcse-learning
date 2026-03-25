@@ -5,6 +5,7 @@ import { existsSync } from "fs";
 import { aiChatRouter } from "./routes/aiChat.js";
 import { gcseChatRouter } from "./routes/gcseChat.js";
 import { markAnswerRouter } from "./routes/markAnswer.js";
+import { openrouterModelsRouter } from "./routes/openrouterModels.js";
 
 const app = express();
 
@@ -18,6 +19,7 @@ app.use(express.json({ limit: "2mb" }));
 app.use("/api/ai-chat", aiChatRouter);
 app.use("/api/gcse-chat", gcseChatRouter);
 app.use("/api/mark-answer", markAnswerRouter);
+app.use("/api/openrouter/models", openrouterModelsRouter);
 
 app.get("/api/health", (_req, res) => {
   res.json({ ok: true });

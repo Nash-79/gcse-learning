@@ -1,4 +1,9 @@
 import { Router, Request, Response } from "express";
+import {
+  callOpenRouterWithRetry,
+  extractOpenRouterError,
+  resolveApiKey,
+} from "./openrouter.js";
 
 const router = Router();
 
@@ -6,10 +11,10 @@ router.post("/", async (req: Request, res: Response) => {
   try {
     const { question, studentAnswer, markScheme, modelAnswer, marks, questionType } = req.body;
 
-    const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+    const apiKey = resolveApiKey(req);
 
-    if (!OPENROUTER_API_KEY) {
-      res.status(500).json({ error: "No AI API key configured. Please add OPENROUTER_API_KEY to your environment." });
+    if (!apiKey) {
+      res.status(500).json({ error: "No AI API key configured. Add your key in Settings or set OPENROUTER_API_KEY." });
       return;
     }
 
@@ -50,23 +55,14 @@ Please respond using this exact JSON structure:
   "improvementTip": "<one specific tip to improve their answer>"
 }`;
 
-    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${OPENROUTER_API_KEY}`,
-        "HTTP-Referer": "https://replit.com/@Nash-21",
-        "X-Title": "PyLearn Replit App",
-      },
-      body: JSON.stringify({
-        model: "meta-llama/llama-3.3-70b-instruct:free",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
-        response_format: { type: "json_object" },
-        max_tokens: 1000,
-      }),
+    const response = await callOpenRouterWithRetry(apiKey, {
+      model: "meta-llama/llama-3.3-70b-instruct:free",
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
+      ],
+      response_format: { type: "json_object" },
+      max_tokens: 1000,
     });
 
     if (!response.ok) {
@@ -78,9 +74,9 @@ Please respond using this exact JSON structure:
         res.status(402).json({ error: "AI credits exhausted. Please add funds in Settings." });
         return;
       }
-      const errorText = await response.text();
+      const errorText = await extractOpenRouterError(response);
       console.error("AI gateway error:", response.status, errorText);
-      res.status(500).json({ error: `AI gateway error: ${response.status}` });
+      res.status(response.status).json({ error: errorText || `AI gateway error: ${response.status}` });
       return;
     }
 

@@ -128,7 +128,7 @@ for a in [True, False]:
             result = (a and b) or c
             print(f"{str(a):5} | {str(b):5} | {str(c):5} | {result}")`
   },
-  videoUrl: "https://www.youtube.com/embed/PqFKRqpHrjw",
+  videoUrl: "https://www.youtube.com/embed/UvI-AMAtrvE",
   quiz: [
     { question: "What does True AND False evaluate to?", options: ["True", "False", "Error", "None"], correctIndex: 1, explanation: "AND requires BOTH inputs to be True. Since one is False, the result is False.", hint: "AND is strict — both must be True.", difficulty: "easy" },
     { question: "What does False OR True evaluate to?", options: ["True", "False", "Error", "None"], correctIndex: 0, explanation: "OR only needs ONE input to be True. Since one is True, the result is True.", hint: "OR is lenient — only one needs to be True.", difficulty: "easy" },

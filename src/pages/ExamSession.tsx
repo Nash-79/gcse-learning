@@ -1,5 +1,6 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { apiFetch } from "@/lib/apiFetch";
+import { appLog } from "@/lib/appLogger";
 import { useParams, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -85,7 +86,17 @@ export default function ExamSession() {
         duration_seconds: duration,
       }).select().single();
 
-      if (error) { console.error("Save attempt error:", error); return; }
+      if (error) {
+        console.error("Save attempt error:", error);
+        void appLog({
+          event_type: "api_error",
+          origin: "ExamSession.saveAttempt",
+          message: error.message || "Failed to save exam attempt",
+          details: { paperSetId: paperSet.id },
+          severity: "error",
+        });
+        return;
+      }
 
       // Save individual answers + add wrong ones to spaced repetition
       const answerRows = questions.filter(q => submitted[q.id]).map(q => {
@@ -207,6 +218,13 @@ export default function ExamSession() {
 
       if (!response.ok || data?.error) {
         const msg = data?.error || "Could not get AI feedback";
+        void appLog({
+          event_type: "api_error",
+          origin: "ExamSession.handleSubmitAnswer.response",
+          message: msg,
+          details: { questionId: currentQ.id, status: response.status },
+          severity: "error",
+        });
         if (msg.includes("Rate limit")) {
           toast.error("Too many requests — please wait a moment and try again.");
         } else if (msg.includes("credits") || msg.includes("Payment")) {
@@ -219,8 +237,16 @@ export default function ExamSession() {
       }
 
       setAiMarkings(prev => ({ ...prev, [currentQ.id]: data as AiMarking }));
-    } catch (err) {
+    } catch (err: any) {
       console.error("AI marking failed:", err);
+      void appLog({
+        event_type: "api_error",
+        origin: "ExamSession.handleSubmitAnswer.catch",
+        message: err?.message || "AI marking request failed",
+        details: { questionId: currentQ.id },
+        error_stack: err?.stack,
+        severity: "error",
+      });
       toast.error("AI marking unavailable. Showing mark scheme instead.");
       setShowMarkScheme(prev => ({ ...prev, [currentQ.id]: true }));
     } finally {

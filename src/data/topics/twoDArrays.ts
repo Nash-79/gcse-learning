@@ -119,7 +119,7 @@ if seats[row][col] == "":
 else:
     print(f"Seat taken by {seats[row][col]}")`
   },
-  videoUrl: "https://www.youtube.com/embed/PqFKRqpHrjw",
+  videoUrl: "https://www.youtube.com/embed/RHjtBv4dmas",
   quiz: [
     { question: "How do you access the element in row 2, column 3 of a 2D array called grid?", options: ["grid[3][2]", "grid[2][3]", "grid(2,3)", "grid{2}{3}"], correctIndex: 1, explanation: "Use grid[row][column] — so grid[2][3] accesses row 2, column 3.", hint: "Row comes first, then column.", difficulty: "easy" },
     { question: "What is a 2D array in Python?", options: ["A list with two elements", "A list of lists", "A dictionary with two keys", "A tuple of tuples"], correctIndex: 1, explanation: "A 2D array in Python is implemented as a list of lists — each inner list is a row.", hint: "Think of rows and columns — how are they stored?", difficulty: "easy" },

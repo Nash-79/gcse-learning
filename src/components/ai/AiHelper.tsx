@@ -6,6 +6,8 @@ import { ChatMessage } from "@/components/chat/ChatMessage";
 import { FollowUpSuggestions } from "@/components/chat/FollowUpSuggestions";
 import { useAiSettings } from "@/lib/useAiSettings";
 import { apiFetch } from "@/lib/apiFetch";
+import { useOpenRouterModels } from "@/lib/useOpenRouterModels";
+import { appLog } from "@/lib/appLogger";
 
 interface Message {
   role: "user" | "assistant";
@@ -53,6 +55,7 @@ export function AiHelper({ topicSlug, topicTitle }: AiHelperProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
   const { model: settingsModel, provider: settingsProvider } = useAiSettings();
+  const { freeModels } = useOpenRouterModels();
   const [chatModel, setChatModel] = useState(settingsModel);
   const [showModelPicker, setShowModelPicker] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -98,11 +101,19 @@ export function AiHelper({ topicSlug, topicTitle }: AiHelperProps) {
 
       const reply = data?.content || "Sorry, I couldn't generate a response.";
       setMessages(prev => [...prev, { role: "assistant", content: reply }]);
-    } catch (err) {
+    } catch (err: any) {
+      void appLog({
+        event_type: "api_error",
+        origin: "AiHelper.sendMessage",
+        message: err?.message || "AI helper request failed",
+        details: { topicSlug, topicTitle, model: chatModel, provider: settingsProvider },
+        error_stack: err?.stack,
+        severity: "error",
+      });
       setHasError(true);
       setMessages(prev => [...prev, {
         role: "assistant",
-        content: "Sorry, something went wrong. Please try again in a moment."
+        content: `Sorry, something went wrong: ${err?.message || "Unknown error"}`
       }]);
     } finally {
       setIsLoading(false);
@@ -139,17 +150,11 @@ export function AiHelper({ topicSlug, topicTitle }: AiHelperProps) {
           >
             <option value={settingsModel}>Settings Default ({settingsModel.split("/").pop()?.replace(":free", "")})</option>
             <optgroup label="OpenRouter Free">
-              <option value="meta-llama/llama-3.3-70b-instruct:free">Llama 3.3 70B</option>
-              <option value="google/gemma-3-27b-it:free">Gemma 3 27B</option>
-              <option value="qwen/qwen3-coder:free">Qwen3 Coder 480B</option>
-              <option value="nvidia/nemotron-3-super-120b-a12b:free">Nemotron 3 Super 120B</option>
-              <option value="openai/gpt-oss-120b:free">GPT-OSS 120B</option>
-              <option value="qwen/qwen3-next-80b-a3b-instruct:free">Qwen3 Next 80B</option>
-              <option value="stepfun/step-3.5-flash:free">Step 3.5 Flash</option>
-              <option value="mistralai/mistral-small-3.1-24b-instruct:free">Mistral Small 3.1</option>
-              <option value="arcee-ai/trinity-large-preview:free">Trinity Large</option>
-              <option value="nousresearch/hermes-3-llama-3.1-405b:free">Hermes 3 405B</option>
-              <option value="minimax/minimax-m2.5:free">MiniMax M2.5</option>
+              {freeModels.map((model) => (
+                <option key={model.id} value={model.id}>
+                  {model.name}
+                </option>
+              ))}
             </optgroup>
           </select>
         </div>

@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find /c/repos/gcse-learning/src/data/topics -name \"*.ts\" -exec wc -l {})",
+      "Read(//c/repos/gcse-learning/**)",
+      "Bash(wc -l /c/repos/gcse-learning/src/data/*.ts)",
+      "Bash(wc -l /c/repos/gcse-learning/src/data/questionBank/*.ts)",
+      "Bash(sed 's/\"\"\"\".*//')",
+      "Bash(node -c /c/repos/gcse-learning/src/data/questionBank/paper1Theory.ts)",
+      "Bash(python3 -m py_compile /c/repos/gcse-learning/src/data/codingChallenges.ts)"
+    ]
+  }
+}

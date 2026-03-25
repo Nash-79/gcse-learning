@@ -110,7 +110,7 @@ for i in range(1, len(scores)):
 
 print(f"Sorted: {scores}")`
   },
-  videoUrl: "https://www.youtube.com/embed/PqFKRqpHrjw",
+  videoUrl: "https://www.youtube.com/embed/JU767SDMDvA",
   quiz: [
     { question: "Where does Insertion Sort start processing from?", options: ["Index 0", "Index 1", "The last element", "The middle element"], correctIndex: 1, explanation: "Insertion Sort starts from index 1 because the single element at index 0 is already 'sorted'.", hint: "The first element doesn't need inserting — it's already in the right place.", difficulty: "easy" },
     { question: "What is the best-case time complexity of Insertion Sort?", options: ["O(n²)", "O(n log n)", "O(n)", "O(1)"], correctIndex: 2, explanation: "When the list is already sorted, Insertion Sort only makes n-1 comparisons with no shifts — O(n).", hint: "What happens if every element is already in the right place?", difficulty: "medium" },

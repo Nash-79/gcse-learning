@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { apiFetch } from "@/lib/apiFetch";
+import { appLog } from "@/lib/appLogger";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { CheckCircle2, ChevronLeft, ChevronRight, BookOpen, Code2, Award, AlertTriangle, Lightbulb, Sparkles, Bot, Loader2, Swords, GraduationCap, FileText } from "lucide-react";
@@ -33,7 +34,7 @@ const topicVideos: Record<string, string> = {
   "string-handling": "https://www.youtube.com/embed/lSItwlnF0eU",
   "string-manipulation": "https://www.youtube.com/embed/lSItwlnF0eU",
   "lists-tuples-dicts": "https://www.youtube.com/embed/W8KRzm-HUcc",
-  "2d-arrays": "https://www.youtube.com/embed/PqFKRqpHrjw",
+  "2d-arrays": "https://www.youtube.com/embed/RHjtBv4dmas",
   "functions-scope": "https://www.youtube.com/embed/9Os0o3wzS_I",
   "file-handling": "https://www.youtube.com/embed/Uh2ebFW8OYM",
   "random-numbers": "https://www.youtube.com/embed/KzqSDvzOFNA",
@@ -52,7 +53,7 @@ export default function TopicPage() {
   const { slug = "" } = useParams<{ slug: string }>();
   const navigate = useNavigate();
 
-  const { data: topics, isLoading: topicsLoading } = useListTopics();
+  const { data: topics, isLoading: topicsLoading } = useListTopics("all");
   const { data: progress } = useGetTopicProgress(slug);
   const updateProgress = useUpdateTopicProgress();
   
@@ -105,6 +106,14 @@ export default function TopicPage() {
       if (questions.length === 0) throw new Error("No questions generated");
       setAiQuestions(prev => [...prev, ...questions]);
     } catch (err: any) {
+      void appLog({
+        event_type: "api_error",
+        origin: "TopicPage.generateMoreQuestions",
+        message: err?.message || "Failed to generate topic questions",
+        details: { slug, topicTitle: topicMeta?.title || slug },
+        error_stack: err?.stack,
+        severity: "error",
+      });
       setGenerationError(err.message || "Failed to generate questions");
     } finally {
       setIsGenerating(false);

@@ -1,10 +1,12 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { apiFetch } from "@/lib/apiFetch";
+import { appLog } from "@/lib/appLogger";
 import { motion, AnimatePresence } from "framer-motion";
 import { Settings as SettingsIcon, Key, Bot, Save, CheckCircle2, AlertCircle, Loader2, ExternalLink, Sparkles, Zap, Brain, Code2, Eye, Search, X, ChevronDown, Clock, AlertTriangle, Hash, Server, ShieldAlert, Lock, Users, Globe, Cloud } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAiSettings } from "@/lib/useAiSettings";
+import { useOpenRouterModels } from "@/lib/useOpenRouterModels";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useAdminRole } from "@/hooks/useAdminRole";
@@ -32,200 +34,15 @@ const freeModels: FreeModel[] = [
     id: "meta-llama/llama-3.3-70b-instruct:free",
     name: "Llama 3.3 70B Instruct",
     provider: "Meta",
-    description: "Meta's most capable free model. A 70 billion parameter multilingual LLM, pretrained and instruction-tuned for excellent code generation, reasoning, and instruction following. Best all-round choice for education and tutoring.",
-    contextWindow: 65536, maxOutput: null,
-    inputPrice: "$0.00", outputPrice: "$0.00",
-    tags: ["Tools", "Best Quality"], architecture: "text → text", tokenizer: "Llama3", recommended: true,
-  },
-  {
-    id: "google/gemma-3-27b-it:free",
-    name: "Gemma 3 27B",
-    provider: "Google",
-    description: "Google's open-weight multimodal model supporting vision-language input and text output. Handles context windows up to 128K tokens. Strong at instruction following, text generation, and image understanding.",
-    contextWindow: 131072, maxOutput: 8192,
-    inputPrice: "$0.00", outputPrice: "$0.00",
-    tags: ["Vision", "Tools"], architecture: "text+image → text", tokenizer: "Gemini", recommended: true,
-  },
-  {
-    id: "qwen/qwen3-coder:free",
-    name: "Qwen3 Coder 480B",
-    provider: "Qwen",
-    description: "Qwen's Mixture-of-Experts code generation model with 480B total parameters (35B active). Optimised for coding tasks — generation, review, debugging, and explanation.",
-    contextWindow: 262000, maxOutput: 262000,
-    inputPrice: "$0.00", outputPrice: "$0.00",
-    tags: ["Tools", "Code"], architecture: "text → text", tokenizer: "Qwen3",
-  },
-  {
-    id: "nvidia/nemotron-3-super-120b-a12b:free",
-    name: "Nemotron 3 Super 120B",
-    provider: "NVIDIA",
-    description: "NVIDIA's 120B-parameter open hybrid MoE model, activating just 12B parameters per inference for maximum efficiency. Strong reasoning capabilities.",
-    contextWindow: 262144, maxOutput: 262144,
-    inputPrice: "$0.00", outputPrice: "$0.00",
-    tags: ["Tools", "Reasoning"], architecture: "text → text", tokenizer: "Other",
-  },
-  {
-    id: "qwen/qwen3-next-80b-a3b-instruct:free",
-    name: "Qwen3 Next 80B",
-    provider: "Qwen",
-    description: "Instruction-tuned chat model in the Qwen3-Next series. 80B total parameters with 3B active. Strong at quiz generation and educational content creation.",
-    contextWindow: 262144, maxOutput: null,
-    inputPrice: "$0.00", outputPrice: "$0.00",
-    tags: ["Tools"], architecture: "text → text", tokenizer: "Qwen3",
-  },
-  {
-    id: "openai/gpt-oss-120b:free",
-    name: "GPT-OSS 120B",
-    provider: "OpenAI",
-    description: "OpenAI's open-weight 117B-parameter Mixture-of-Experts language model designed for high-reasoning tasks. Released under the Apache 2.0 licence.",
-    contextWindow: 131072, maxOutput: 131072,
-    inputPrice: "$0.00", outputPrice: "$0.00",
-    tags: ["Tools"], architecture: "text → text", tokenizer: "GPT",
-  },
-  {
-    id: "stepfun/step-3.5-flash:free",
-    name: "Step 3.5 Flash",
-    provider: "StepFun",
-    description: "StepFun's most capable open-source foundation model. Built on a sparse Mixture of Experts architecture, optimised for speed and efficiency.",
-    contextWindow: 256000, maxOutput: 256000,
-    inputPrice: "$0.00", outputPrice: "$0.00",
-    tags: ["Tools"], architecture: "text → text", tokenizer: "Other",
-  },
-  {
-    id: "mistralai/mistral-small-3.1-24b-instruct:free",
-    name: "Mistral Small 3.1 24B",
-    provider: "Mistral",
-    description: "Mistral's 24 billion parameter model with vision support. Fast responses with good instruction following. Suitable for chat, code review, and quick explanations.",
-    contextWindow: 128000, maxOutput: null,
-    inputPrice: "$0.00", outputPrice: "$0.00",
-    tags: ["Vision", "Tools"], architecture: "text+image → text", tokenizer: "Mistral",
-  },
-  {
-    id: "arcee-ai/trinity-large-preview:free",
-    name: "Trinity Large Preview",
-    provider: "Arcee AI",
-    description: "Frontier-scale 400B-parameter sparse MoE model from Arcee. Reasoning-focused with strong structured output for quiz JSON generation and code analysis.",
-    contextWindow: 131000, maxOutput: null,
-    inputPrice: "$0.00", outputPrice: "$0.00",
-    tags: ["Tools", "Reasoning"], architecture: "text → text", tokenizer: "Other",
-  },
-  {
-    id: "openai/gpt-oss-20b:free",
-    name: "GPT-OSS 20B",
-    provider: "OpenAI",
-    description: "OpenAI's smaller 21B parameter open-weight MoE model. Faster responses than the 120B variant, suitable for quick chat interactions.",
-    contextWindow: 131072, maxOutput: 131072,
-    inputPrice: "$0.00", outputPrice: "$0.00",
-    tags: ["Tools"], architecture: "text → text", tokenizer: "GPT",
-  },
-  {
-    id: "minimax/minimax-m2.5:free",
-    name: "MiniMax M2.5",
-    provider: "MiniMax",
-    description: "State-of-the-art LLM designed for real-world productivity. Very large 197K context window for processing long code examples and conversations.",
-    contextWindow: 196608, maxOutput: 196608,
-    inputPrice: "$0.00", outputPrice: "$0.00",
-    tags: ["Tools"], architecture: "text → text", tokenizer: "Other",
-  },
-  {
-    id: "nvidia/nemotron-3-nano-30b-a3b:free",
-    name: "Nemotron 3 Nano 30B",
-    provider: "NVIDIA",
-    description: "NVIDIA's efficient 30B MoE model with 3B active parameters. Compact but capable, with a massive 256K context window.",
-    contextWindow: 256000, maxOutput: null,
-    inputPrice: "$0.00", outputPrice: "$0.00",
-    tags: ["Tools"], architecture: "text → text", tokenizer: "Other",
-  },
-  {
-    id: "nousresearch/hermes-3-llama-3.1-405b:free",
-    name: "Hermes 3 405B",
-    provider: "Nous Research",
-    description: "Massive 405B parameter generalist model with advanced agentic capabilities. The largest free model available — highest quality but may be slower.",
-    contextWindow: 131072, maxOutput: null,
-    inputPrice: "$0.00", outputPrice: "$0.00",
-    tags: [], architecture: "text → text", tokenizer: "Llama3",
-  },
-  {
-    id: "nvidia/nemotron-nano-12b-v2-vl:free",
-    name: "Nemotron Nano 12B VL",
-    provider: "NVIDIA",
-    description: "NVIDIA's multimodal vision-language model. Can understand images and video alongside text. 12B parameters with 128K context.",
-    contextWindow: 128000, maxOutput: 128000,
-    inputPrice: "$0.00", outputPrice: "$0.00",
-    tags: ["Vision", "Tools"], architecture: "text+image+video → text", tokenizer: "Other",
-  },
-  {
-    id: "nvidia/nemotron-nano-9b-v2:free",
-    name: "Nemotron Nano 9B",
-    provider: "NVIDIA",
-    description: "NVIDIA's 9B parameter LLM trained from scratch for reasoning, coding, and chat. Fast and efficient for everyday interactions.",
-    contextWindow: 128000, maxOutput: null,
-    inputPrice: "$0.00", outputPrice: "$0.00",
-    tags: ["Tools"], architecture: "text → text", tokenizer: "Other",
-  },
-  {
-    id: "z-ai/glm-4.5-air:free",
-    name: "GLM 4.5 Air",
-    provider: "Z.ai",
-    description: "Z.ai's efficient language model with 131K context and up to 96K output tokens. Good for generating longer responses.",
-    contextWindow: 131072, maxOutput: 96000,
-    inputPrice: "$0.00", outputPrice: "$0.00",
-    tags: ["Tools"], architecture: "text → text", tokenizer: "Other",
-  },
-  {
-    id: "arcee-ai/trinity-mini:free",
-    name: "Trinity Mini",
-    provider: "Arcee AI",
-    description: "Arcee's compact model — smaller and faster sibling of Trinity Large. Good for quick responses and lightweight tasks.",
-    contextWindow: 131072, maxOutput: null,
-    inputPrice: "$0.00", outputPrice: "$0.00",
-    tags: ["Tools"], architecture: "text → text", tokenizer: "Other",
-  },
-  {
-    id: "google/gemma-3-12b-it:free",
-    name: "Gemma 3 12B",
-    provider: "Google",
-    description: "Mid-size Google model with vision capabilities. Good balance of quality and speed for tutoring.",
-    contextWindow: 32768, maxOutput: 8192,
-    inputPrice: "$0.00", outputPrice: "$0.00",
-    tags: ["Vision"], architecture: "text+image → text", tokenizer: "Gemini",
-  },
-  {
-    id: "google/gemma-3-4b-it:free",
-    name: "Gemma 3 4B",
-    provider: "Google",
-    description: "Google's smallest Gemma 3 model with vision support. Ultra-fast responses for simple questions.",
-    contextWindow: 32768, maxOutput: 8192,
-    inputPrice: "$0.00", outputPrice: "$0.00",
-    tags: ["Vision"], architecture: "text+image → text", tokenizer: "Gemini",
-  },
-  {
-    id: "qwen/qwen3-4b:free",
-    name: "Qwen3 4B",
-    provider: "Qwen",
-    description: "4 billion parameter dense model from the Qwen3 series. Fast responses for quick chat and simple code explanations.",
-    contextWindow: 40960, maxOutput: null,
-    inputPrice: "$0.00", outputPrice: "$0.00",
-    tags: ["Tools"], architecture: "text → text", tokenizer: "Qwen3",
-  },
-  {
-    id: "meta-llama/llama-3.2-3b-instruct:free",
-    name: "Llama 3.2 3B",
-    provider: "Meta",
-    description: "Meta's 3-billion-parameter multilingual LLM. Ultra-lightweight for the fastest possible responses. Best for simple Q&A.",
-    contextWindow: 131072, maxOutput: null,
-    inputPrice: "$0.00", outputPrice: "$0.00",
-    tags: [], architecture: "text → text", tokenizer: "Llama3",
-  },
-  {
-    id: "meta-llama/llama-3.1-8b-instruct:free",
-    name: "Llama 3.1 8B",
-    provider: "Meta",
-    description: "Older 8B parameter model from Meta. Superseded by Llama 3.2 and 3.3 series. Still works for basic tasks.",
-    contextWindow: 131072, maxOutput: null,
-    inputPrice: "$0.00", outputPrice: "$0.00",
-    tags: ["Tools"], architecture: "text → text", tokenizer: "Llama3",
-    deprecated: "Superseded by Llama 3.3 70B",
+    description: "Fallback model list used only if live OpenRouter catalog is unavailable.",
+    contextWindow: 65536,
+    maxOutput: null,
+    inputPrice: "$0.00",
+    outputPrice: "$0.00",
+    tags: ["Tools", "Best Quality"],
+    architecture: "text -> text",
+    tokenizer: "Llama3",
+    recommended: true,
   },
 ];
 
@@ -253,10 +70,10 @@ function TagBadge({ tag, size = "sm" }: { tag: string; size?: "sm" | "md" }) {
 }
 
 const allTags = ["Tools", "Reasoning", "Vision", "Code", "Best Quality"] as const;
-const allProviders = [...new Set(freeModels.map(m => m.provider))];
 
 export default function Settings() {
   const { hasAi, maskedKey, model: currentModel, provider: currentProvider, updateSettings } = useAiSettings();
+  const { freeModels: dynamicModels, loading: modelsLoading, error: modelsError } = useOpenRouterModels();
   const { user } = useAuth();
   const { isAdmin, loading: adminLoading } = useAdminRole();
   const [apiKey, setApiKey] = useState("");
@@ -271,9 +88,16 @@ export default function Settings() {
   const [activeProviderFilter, setActiveProviderFilter] = useState<string | null>(null);
   const [showAdminPanel, setShowAdminPanel] = useState(false);
   const [showUserRoles, setShowUserRoles] = useState(false);
+  const availableModels = dynamicModels.length > 0 ? dynamicModels : freeModels;
+
+  useEffect(() => {
+    if (!availableModels.some((m) => m.id === selectedModel) && availableModels.length > 0) {
+      setSelectedModel(availableModels[0].id);
+    }
+  }, [availableModels, selectedModel]);
 
   const filteredModels = useMemo(() => {
-    return freeModels.filter(m => {
+    return availableModels.filter(m => {
       const q = modelSearch.toLowerCase();
       const matchesSearch = !q ||
         m.name.toLowerCase().includes(q) ||
@@ -285,7 +109,12 @@ export default function Settings() {
       const matchesProvider = !activeProviderFilter || m.provider === activeProviderFilter;
       return matchesSearch && matchesTag && matchesProvider;
     });
-  }, [modelSearch, activeTagFilter, activeProviderFilter]);
+  }, [availableModels, modelSearch, activeTagFilter, activeProviderFilter]);
+
+  const allProviders = useMemo(
+    () => [...new Set(availableModels.map((m) => m.provider))],
+    [availableModels]
+  );
 
   const hasActiveFilter = !!modelSearch || !!activeTagFilter || !!activeProviderFilter;
 
@@ -320,9 +149,17 @@ export default function Settings() {
       const reply = data?.content || "No response";
       setStatus("success");
       setStatusMsg(`Connection successful! Model replied: "${reply.substring(0, 60)}"`);
-    } catch {
+    } catch (err: any) {
+      void appLog({
+        event_type: "api_error",
+        origin: "Settings.testConnection",
+        message: err?.message || "AI connection test failed",
+        details: { provider: currentProvider, model: selectedModel },
+        error_stack: err?.stack,
+        severity: "error",
+      });
       setStatus("error");
-      setStatusMsg("Connection test failed. Please try again in a moment.");
+      setStatusMsg(err?.message ? `Connection test failed: ${err.message}` : "Connection test failed. Please try again in a moment.");
     } finally {
       setTesting(false);
     }
@@ -456,8 +293,14 @@ export default function Settings() {
               AI Model
             </h3>
             <p className="text-sm text-muted-foreground mb-4">
-              All models below are free tier — $0.00 input and $0.00 output per token
+              OpenRouter model catalog is loaded dynamically and cached. {availableModels.length} models available.
             </p>
+            {modelsLoading && (
+              <p className="text-xs text-muted-foreground mb-3">Refreshing model catalog...</p>
+            )}
+            {modelsError && (
+              <p className="text-xs text-amber-500 mb-3">Using cached/fallback model list: {modelsError}</p>
+            )}
 
             {/* Search */}
             <div className="relative mb-4">

@@ -14,6 +14,7 @@ import { paper1Theory } from "@/data/questionBank/paper1Theory";
 import { paper2Theory } from "@/data/questionBank/paper2Theory";
 import { TheorySection, DiagramData } from "@/data/questionBank/theoryTypes";
 import { topicMasterySets } from "@/data/questionBank/paperSets";
+import { useExamBoard } from "@/hooks/useTopics";
 
 const allTheory = [...paper1Theory, ...paper2Theory];
 
@@ -241,6 +242,7 @@ function SectionCard({ section, index }: { section: TheorySection; index: number
 export default function TopicTheory() {
   const { slug } = useParams<{ slug: string }>();
   const topic = useMemo(() => allTheory.find(t => t.slug === slug), [slug]);
+  const { board } = useExamBoard();
 
   // Find matching practice set for this topic
   const practiceSet = useMemo(() => {
@@ -301,7 +303,12 @@ export default function TopicTheory() {
             <div>
               <div className="flex items-center gap-2 mb-1">
                 <Badge variant="secondary" className="text-[10px] bg-white/15 text-white border-none">Paper {topic.paper}</Badge>
-                <Badge variant="secondary" className="text-[10px] bg-white/15 text-white border-none">OCR {topic.ocrRef}</Badge>
+                {(board === "ocr" || board === "all") && (
+                  <Badge variant="secondary" className="text-[10px] bg-white/15 text-white border-none">OCR {topic.ocrRef}</Badge>
+                )}
+                {(board === "aqa" || board === "all") && (
+                  <Badge variant="secondary" className="text-[10px] bg-white/15 text-white border-none">AQA {topic.aqaRef.join(", ")}</Badge>
+                )}
               </div>
               <h1 className="text-2xl md:text-3xl font-display font-extrabold text-white">{topic.title}</h1>
               <p className="text-white/70 text-sm mt-1">{topic.description}</p>

@@ -1,5 +1,6 @@
 import { useState, useMemo, useCallback } from "react";
 import { apiFetch } from "@/lib/apiFetch";
+import { appLog } from "@/lib/appLogger";
 import { ChevronDown, Lightbulb, CheckCircle2, XCircle, Sparkles, Loader2, AlertTriangle, Code2, Zap, Flame, Target, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -176,6 +177,14 @@ Make questions exam-realistic — reference OCR J277 specification topics. Inclu
       setGenCount(prev => prev + newQuestions.length);
       onQuestionsGenerated?.(newQuestions);
     } catch (err: any) {
+      void appLog({
+        event_type: "api_error",
+        origin: "ExamQuestionBank.generateExamQuestions",
+        message: err?.message || "Failed to generate exam questions",
+        details: { topicSlug, topicTitle },
+        error_stack: err?.stack,
+        severity: "error",
+      });
       setGenError(err.message || "Failed to generate exam questions");
     } finally {
       setIsGenerating(false);

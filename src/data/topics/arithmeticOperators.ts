@@ -112,7 +112,7 @@ seconds = total_seconds % 60
 
 print(f"{total_seconds} seconds = {minutes} minutes and {seconds} seconds")`
   },
-  videoUrl: "https://www.youtube.com/embed/PqFKRqpHrjw",
+  videoUrl: "https://www.youtube.com/embed/Aj8FQRIHJSc",
   quiz: [
     { question: "What does 17 % 5 evaluate to?", options: ["3", "2", "3.4", "85"], correctIndex: 1, explanation: "% gives the remainder. 17 ÷ 5 = 3 remainder 2. So 17 % 5 = 2.", hint: "% gives the remainder after division. How many are left over?", difficulty: "easy" },
     { question: "What is the result of 10 / 2 in Python 3?", options: ["5", "5.0", "5.00", "Error"], correctIndex: 1, explanation: "The / operator ALWAYS returns a float in Python 3. 10 / 2 = 5.0.", hint: "Division (/) always returns a specific type, even for whole number results.", difficulty: "easy" },
