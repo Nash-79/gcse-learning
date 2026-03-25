@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from "react";
 import { apiFetch } from "@/lib/apiFetch";
 import { appLog } from "@/lib/appLogger";
 import { motion, AnimatePresence } from "framer-motion";
-import { Settings as SettingsIcon, Key, Bot, Save, CheckCircle2, AlertCircle, Loader2, ExternalLink, Sparkles, Zap, Brain, Code2, Eye, Search, X, ChevronDown, Clock, AlertTriangle, Hash, Server, ShieldAlert, Lock, Users, Globe, Cloud } from "lucide-react";
+import { Settings as SettingsIcon, Key, Bot, Save, CheckCircle2, AlertCircle, Loader2, ExternalLink, Sparkles, Zap, Brain, Code2, Eye, Search, X, ChevronDown, Clock, AlertTriangle, Hash, Server, ShieldAlert, Lock, Users, Globe, Cloud, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAiSettings } from "@/lib/useAiSettings";
@@ -73,7 +73,14 @@ const allTags = ["Tools", "Reasoning", "Vision", "Code", "Best Quality"] as cons
 
 export default function Settings() {
   const { hasAi, maskedKey, model: currentModel, provider: currentProvider, updateSettings } = useAiSettings();
-  const { freeModels: dynamicModels, loading: modelsLoading, error: modelsError } = useOpenRouterModels();
+  const {
+    freeModels: dynamicModels,
+    loading: modelsLoading,
+    refreshing: modelsRefreshing,
+    error: modelsError,
+    lastUpdatedAt,
+    refreshModels,
+  } = useOpenRouterModels();
   const { user } = useAuth();
   const { isAdmin, loading: adminLoading } = useAdminRole();
   const [apiKey, setApiKey] = useState("");
@@ -117,6 +124,7 @@ export default function Settings() {
   );
 
   const hasActiveFilter = !!modelSearch || !!activeTagFilter || !!activeProviderFilter;
+  const lastUpdatedLabel = lastUpdatedAt ? new Date(lastUpdatedAt).toLocaleString() : "Not yet loaded";
 
   const saveKey = () => {
     if (!apiKey.trim()) return;
@@ -144,7 +152,17 @@ export default function Settings() {
           messages: [{ role: "user", content: "Say 'Hello from PyLearn!' in exactly those words." }],
         }),
       });
-      const data = await response.json();
+      const raw = await response.text();
+      let data: any = {};
+      try {
+        data = raw ? JSON.parse(raw) : {};
+      } catch {
+        const looksLikeHtml = raw.trimStart().startsWith("<") || raw.includes("The page could not be found");
+        if (looksLikeHtml) {
+          throw new Error("API route not reachable. Check VITE_API_BASE_URL and backend deployment.");
+        }
+        throw new Error("AI gateway returned a non-JSON response.");
+      }
       if (!response.ok || data?.error) throw new Error(data?.error || "Request failed");
       const reply = data?.content || "No response";
       setStatus("success");
@@ -288,15 +306,33 @@ export default function Settings() {
         {/* Model Selection */}
         <Card className="rounded-2xl overflow-hidden">
           <CardContent className="p-6">
-            <h3 className="text-lg font-display font-bold mb-1 flex items-center gap-2">
-              <Bot className="w-5 h-5 text-secondary" />
-              AI Model
-            </h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              OpenRouter model catalog is loaded dynamically and cached. {availableModels.length} models available.
-            </p>
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
+              <div>
+                <h3 className="text-lg font-display font-bold mb-1 flex items-center gap-2">
+                  <Bot className="w-5 h-5 text-secondary" />
+                  AI Model
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  OpenRouter model catalog is loaded dynamically and cached. {availableModels.length} models available.
+                </p>
+                <p className="text-[11px] text-muted-foreground mt-1">Last updated: {lastUpdatedLabel}</p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => void refreshModels()}
+                disabled={modelsLoading || modelsRefreshing}
+                className="gap-2 rounded-xl self-start"
+              >
+                {modelsRefreshing ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+                Refresh Models
+              </Button>
+            </div>
             {modelsLoading && (
               <p className="text-xs text-muted-foreground mb-3">Refreshing model catalog...</p>
+            )}
+            {modelsRefreshing && (
+              <p className="text-xs text-muted-foreground mb-3">Fetching latest catalog from OpenRouter...</p>
             )}
             {modelsError && (
               <p className="text-xs text-amber-500 mb-3">Using cached/fallback model list: {modelsError}</p>
