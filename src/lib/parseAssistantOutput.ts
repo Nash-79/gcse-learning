@@ -5,7 +5,7 @@ export interface StructuredSection {
 }
 
 export interface StructuredJson {
-  mode: "json";
+  mode?: "json";
   summary: string;
   sections: StructuredSection[];
   next_step: string;
@@ -17,23 +17,33 @@ export type ParsedOutput =
   | { type: "raw"; data: string };
 
 export function parseAssistantOutput(text: string): ParsedOutput {
+  const isStructured = (data: unknown): data is StructuredJson => {
+    if (!data || typeof data !== "object") return false;
+    const candidate = data as Partial<StructuredJson>;
+    return (
+      Array.isArray(candidate.sections) &&
+      typeof candidate.summary === "string" &&
+      typeof candidate.next_step === "string"
+    );
+  };
+
   // Try JSON first
   try {
     const data = JSON.parse(text);
-    if (data && data.mode === "json" && Array.isArray(data.sections)) {
-      return { type: "json", data };
+    if (isStructured(data)) {
+      return { type: "json", data: { ...data, mode: "json" } };
     }
   } catch {
     // Not valid JSON, continue
   }
 
   // Try extracting JSON from within text (model may wrap it)
-  const jsonMatch = text.match(/\{[\s\S]*"mode"\s*:\s*"json"[\s\S]*\}/);
+  const jsonMatch = text.match(/\{[\s\S]*\}/);
   if (jsonMatch) {
     try {
       const data = JSON.parse(jsonMatch[0]);
-      if (data && data.mode === "json" && Array.isArray(data.sections)) {
-        return { type: "json", data };
+      if (isStructured(data)) {
+        return { type: "json", data: { ...data, mode: "json" } };
       }
     } catch {
       // Continue

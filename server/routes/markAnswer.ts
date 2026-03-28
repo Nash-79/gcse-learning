@@ -4,6 +4,7 @@ import {
   extractOpenRouterError,
   resolveApiKey,
 } from "./openrouter.js";
+import { buildMarkAnswerUserPrompt, MARK_ANSWER_SYSTEM_PROMPT } from "../prompts/markAnswerContract.js";
 
 const router = Router();
 
@@ -18,47 +19,19 @@ router.post("/", async (req: Request, res: Response) => {
       return;
     }
 
-    const systemPrompt = `You are an expert OCR GCSE Computer Science examiner marking student answers against official mark schemes. You must be fair, encouraging, and educational.
-
-Rules:
-- Award marks ONLY for points that match the mark scheme criteria
-- Be generous with alternative correct phrasing but strict on accuracy
-- For code questions, check logic correctness even if syntax varies slightly
-- For multiple-choice, simply check if the answer matches
-- Always provide specific, constructive feedback
-- Reference the mark scheme points the student hit or missed
-- Use a supportive, educational tone suitable for GCSE students (age 14-16)`;
-
-    const userPrompt = `Mark this student's answer:
-
-**Question (${marks} marks, type: ${questionType}):**
-${question}
-
-**Student's Answer:**
-${studentAnswer}
-
-**Mark Scheme:**
-${markScheme.map((m: string, i: number) => `${i + 1}. ${m}`).join("\n")}
-
-**Model Answer:**
-${modelAnswer}
-
-Please respond using this exact JSON structure:
-{
-  "marksAwarded": <number 0-${marks}>,
-  "totalMarks": ${marks},
-  "feedback": "<2-3 sentences of specific feedback>",
-  "markBreakdown": [
-    {"point": "<mark scheme point>", "awarded": true/false, "comment": "<brief explanation>"}
-  ],
-  "grade": "<one of: Excellent, Good, Satisfactory, Needs Improvement>",
-  "improvementTip": "<one specific tip to improve their answer>"
-}`;
+    const userPrompt = buildMarkAnswerUserPrompt({
+      question,
+      studentAnswer,
+      markScheme,
+      modelAnswer,
+      marks,
+      questionType,
+    });
 
     const response = await callOpenRouterWithRetry(apiKey, {
       model: "meta-llama/llama-3.3-70b-instruct:free",
       messages: [
-        { role: "system", content: systemPrompt },
+        { role: "system", content: MARK_ANSWER_SYSTEM_PROMPT },
         { role: "user", content: userPrompt },
       ],
       response_format: { type: "json_object" },
@@ -102,9 +75,9 @@ Please respond using this exact JSON structure:
     }
 
     res.json(parsed);
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.error("mark-answer error:", e);
-    res.status(500).json({ error: e?.message || "Unknown error" });
+    res.status(500).json({ error: e instanceof Error ? e.message : "Unknown error" });
   }
 });
 

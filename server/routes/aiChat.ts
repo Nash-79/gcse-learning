@@ -1,67 +1,24 @@
-import { Router, Request, Response } from "express";
+import { Router, type Request, type Response as ExpressResponse } from "express";
 import {
   callOpenRouterWithRetry,
   extractOpenRouterError,
   resolveApiKey,
   resolveModel,
 } from "./openrouter.js";
+import { GCSE_AI_OUTPUT_CONTRACT, GCSE_AI_USER_SUFFIX } from "../prompts/gcseAiOutputContract.js";
+import { buildGcseTutorSystemPrompt } from "../prompts/gcseTutorPrompt.js";
 
 const router = Router();
 
-const STRUCTURED_OUTPUT_INSTRUCTION = `
-
-====================
-OUTPUT FORMAT RULES
-====================
-
-Your first priority is to return a valid JSON object.
-If you cannot reliably produce valid JSON, then return clean Markdown using the fallback format below.
-Do not return anything except:
-1. valid JSON matching the schema below, OR
-2. the exact Markdown fallback structure below.
-
-PRIMARY MODE: JSON
-Return this exact JSON shape:
-{
-  "mode": "json",
-  "summary": "string",
-  "sections": [
-    {
-      "heading": "string",
-      "content": "string",
-      "bullets": ["string"]
-    }
-  ],
-  "next_step": "string"
+interface OpenRouterChatCompletion {
+  choices?: Array<{
+    message?: {
+      content?: string;
+    };
+  }>;
 }
-JSON rules:
-- Output valid JSON only, no markdown, no backticks, no comments, no extra keys
-- Always include: mode, summary, sections, next_step
-- Set "mode" to "json"
-- summary must be 1 to 2 sentences
-- sections must contain 1 to 4 items
-- each section must include "heading" and optionally "content" and/or "bullets"
-- use short content and bullets for lists, steps, comparisons
-- For code examples, put code in content as a plain string
-- next_step may be an empty string
 
-FALLBACK MODE: MARKDOWN
-If you cannot produce valid JSON, output this exact structure:
-MODE: markdown
-SUMMARY:
-<1 to 2 sentence direct answer>
-## <Section Heading>
-<short paragraph>
-- <bullet>
-NEXT STEP:
-<one short practical next step, or leave blank>
-
-STYLE: Be concise, use simple language, avoid filler and repetition, keep output easy to scan.
-DECISION: Prefer JSON. Use Markdown fallback only if JSON reliability is uncertain. Never mix formats.`;
-
-const STRUCTURED_USER_SUFFIX = "\n\nReturn JSON if possible. If not, use the Markdown fallback exactly.";
-
-router.post("/", async (req: Request, res: Response) => {
+router.post("/", async (req: Request, res: ExpressResponse) => {
   try {
     const { messages, mode, topicTitle, code, taskDescription, systemPromptOverride, userPromptOverride, maxTokens, model, provider } = req.body;
 
@@ -79,21 +36,11 @@ router.post("/", async (req: Request, res: Response) => {
     let wantJson = false;
 
     if (mode === "chat") {
-      systemPrompt = `You are a GCSE Computer Science tutor helping a student learn Python. The current topic is "${topicTitle}". 
-
-IMPORTANT CODING STYLE RULES:
-- Use ONLY simple Python suitable for 14-16 year old GCSE students
-- Use: print(), input(), variables, if/elif/else, for loops, while loops, simple string concatenation with +
-- NEVER use: f-strings, try/except, classes, list comprehensions, lambda, decorators, generators, walrus operator
-- For string joining, use: print("Hello " + name) NOT print(f"Hello {name}")
-- Keep explanations short (2-3 sentences max per point)
-- Use simple vocabulary appropriate for 14-16 year olds
-- Comment every significant line of code
-- Format code blocks with triple backticks` + STRUCTURED_OUTPUT_INSTRUCTION;
+      systemPrompt = buildGcseTutorSystemPrompt(topicTitle);
 
       userMessages = messages.map((m: { role: string; content: string }, i: number) => {
         if (i === messages.length - 1 && m.role === "user") {
-          return { ...m, content: m.content + STRUCTURED_USER_SUFFIX };
+          return { ...m, content: m.content + GCSE_AI_USER_SUFFIX };
         }
         return m;
       });
@@ -116,9 +63,9 @@ Be encouraging but honest. Reference OCR J277 exam expectations where relevant.`
       }];
       wantJson = true;
     } else if (mode === "generate") {
-      systemPrompt = (systemPromptOverride || "") + STRUCTURED_OUTPUT_INSTRUCTION;
+      systemPrompt = (systemPromptOverride || "") + GCSE_AI_OUTPUT_CONTRACT;
       userMessages = userPromptOverride
-        ? [{ role: "user", content: userPromptOverride + STRUCTURED_USER_SUFFIX }]
+        ? [{ role: "user", content: userPromptOverride + GCSE_AI_USER_SUFFIX }]
         : (messages || []);
       wantJson = true;
     } else {
@@ -141,9 +88,9 @@ Be encouraging but honest. Reference OCR J277 exam expectations where relevant.`
 
     const response = await callOpenRouterWithRetry(apiKey, requestBody);
 
-    if (!(response as any).ok) {
-      const status = (response as any).status || 500;
-      const errorText = await extractOpenRouterError(response as unknown as Response);
+    if (!response.ok) {
+      const status = response.status || 500;
+      const errorText = await extractOpenRouterError(response);
       console.error("AI error:", status, errorText);
       if (status === 429) {
         res.status(429).json({ error: "Rate limit reached on this model. Switch model or retry in 20-60 seconds." });
@@ -157,11 +104,11 @@ Be encouraging but honest. Reference OCR J277 exam expectations where relevant.`
       return;
     }
 
-    const data = await (response as any).json();
+    const data = (await response.json()) as OpenRouterChatCompletion;
     const content = data.choices?.[0]?.message?.content || "";
 
     if (wantJson) {
-      const jsonMatch = content.match(/[\[{][\s\S]*[\]}]/);
+      const jsonMatch = content.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         res.json({ content: jsonMatch[0] });
         return;
@@ -171,9 +118,9 @@ Be encouraging but honest. Reference OCR J277 exam expectations where relevant.`
     }
 
     res.json({ content });
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.error("ai-chat error:", e);
-    res.status(500).json({ error: e?.message || "Unknown error" });
+    res.status(500).json({ error: e instanceof Error ? e.message : "Unknown error" });
   }
 });
 
