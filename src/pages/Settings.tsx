@@ -152,6 +152,8 @@ export default function Settings() {
         body: JSON.stringify({
           mode: "chat",
           topicTitle: "Test",
+          model: selectedModel,
+          maxTokens: 120,
           messages: [{ role: "user", content: "Say 'Hello from PyLearn!' in exactly those words." }],
         }),
       });
