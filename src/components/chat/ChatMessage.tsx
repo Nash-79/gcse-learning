@@ -135,65 +135,6 @@ function MarkdownRenderer({ content }: { content: string }) {
   );
 }
 
-/** Render structured JSON output as clean UI cards */
-function StructuredJsonRenderer({ data }: { data: import("@/lib/parseAssistantOutput").StructuredJson }) {
-  return (
-    <div className="space-y-4">
-      {/* Summary */}
-      {data.summary && (
-        <p className="text-[13.5px] leading-[1.8] text-foreground/85 font-medium">{data.summary}</p>
-      )}
-
-      {/* Sections */}
-      {data.sections.map((section, i) => (
-        <div key={i} className="space-y-2">
-          <h3 className="text-[14px] font-display font-bold tracking-tight text-foreground">{section.heading}</h3>
-          {section.content && (
-            section.content.includes("\n") && (section.content.includes("def ") || section.content.includes("print(") || section.content.includes("for ") || section.content.includes("import "))
-              ? (
-                <div className="relative group my-2 rounded-xl overflow-hidden border border-border/40 bg-[hsl(var(--card))]/80 shadow-sm">
-                  <div className="flex items-center justify-between px-4 py-2 border-b border-border/30 bg-muted/40">
-                    <div className="flex items-center gap-2">
-                      <div className="flex gap-1">
-                        <span className="w-2.5 h-2.5 rounded-full bg-red-500/70" />
-                        <span className="w-2.5 h-2.5 rounded-full bg-yellow-500/70" />
-                        <span className="w-2.5 h-2.5 rounded-full bg-green-500/70" />
-                      </div>
-                      <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-muted-foreground/70">python</span>
-                    </div>
-                  </div>
-                  <pre className="p-4 overflow-x-auto text-[13px] leading-[1.7] font-mono">
-                    <code className="text-foreground/90">{section.content}</code>
-                  </pre>
-                </div>
-              )
-              : <p className="text-[13.5px] leading-[1.8] text-foreground/85">{section.content}</p>
-          )}
-          {section.bullets && section.bullets.length > 0 && (
-            <ul className="space-y-1 ml-1">
-              {section.bullets.map((bullet, j) => (
-                <li key={j} className="text-[13.5px] leading-[1.75] text-foreground/85 flex items-start gap-2">
-                  <span className="text-secondary mt-1.5 shrink-0">•</span>
-                  <span>{bullet}</span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      ))}
-
-      {/* Next step */}
-      {data.next_step && (
-        <div className="mt-4 pt-3 border-t border-border/30">
-          <p className="text-[13px] text-muted-foreground">
-            <span className="font-semibold text-foreground">Next Step:</span> {data.next_step}
-          </p>
-        </div>
-      )}
-    </div>
-  );
-}
-
 export function ChatMessage({ role, content, onRegenerate }: ChatMessageProps) {
   if (role === "user") {
     return (
@@ -211,7 +152,7 @@ export function ChatMessage({ role, content, onRegenerate }: ChatMessageProps) {
   const renderContent = () => {
     switch (parsed.type) {
       case "json":
-        return <StructuredJsonRenderer data={parsed.data} />;
+        return <MarkdownRenderer content={structuredJsonToMarkdown(parsed.data)} />;
       case "markdown":
         return <MarkdownRenderer content={structuredMarkdownToClean(parsed.data)} />;
       case "raw":

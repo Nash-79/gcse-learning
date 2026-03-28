@@ -12,6 +12,49 @@ export interface StructuredJson {
   suggestions?: string[];
 }
 
+function unescapeIfNeeded(input: string): string {
+  const hasEscapedNewline = input.includes("\\n");
+  const hasEscapedQuote = input.includes('\\"');
+  const hasEscapedTab = input.includes("\\t");
+  if (!hasEscapedNewline && !hasEscapedQuote && !hasEscapedTab) {
+    return input;
+  }
+
+  return input
+    .replace(/\\n/g, "\n")
+    .replace(/\\t/g, "\t")
+    .replace(/\\"/g, '"')
+    .replace(/\\\\/g, "\\");
+}
+
+function looksLikePythonCode(input: string): boolean {
+  const text = input.trim();
+  if (!text) return false;
+  const signals = [
+    "print(",
+    "input(",
+    "for ",
+    "while ",
+    "if ",
+    "elif ",
+    "else:",
+    "def ",
+    "import ",
+    " = ",
+    "# ",
+  ];
+  return signals.some((s) => text.includes(s));
+}
+
+function toMarkdownContent(content: string): string {
+  const normalized = unescapeIfNeeded(content).trim();
+  if (!normalized) return "";
+  if (looksLikePythonCode(normalized) && normalized.includes("\n")) {
+    return `\`\`\`python\n${normalized}\n\`\`\``;
+  }
+  return normalized;
+}
+
 export type ParsedOutput =
   | { type: "json"; data: StructuredJson }
   | { type: "markdown"; data: string }
@@ -73,7 +116,7 @@ export function structuredJsonToMarkdown(data: StructuredJson): string {
     parts.push(`## ${section.heading}`);
     parts.push("");
     if (section.content) {
-      parts.push(section.content);
+      parts.push(toMarkdownContent(section.content));
       parts.push("");
     }
     if (section.bullets && section.bullets.length > 0) {
