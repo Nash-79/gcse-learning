@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Play, RotateCcw, AlertTriangle, Terminal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -6,14 +6,25 @@ export interface CodeRunnerProps {
   initialCode?: string;
   height?: string;
   onOutput?: (output: string) => void;
+  onCodeChange?: (code: string) => void;
 }
 
-export function CodeRunner({ initialCode = 'print("Hello, World!")', height = "h-[300px]", onOutput }: CodeRunnerProps) {
+export function CodeRunner({
+  initialCode = 'print("Hello, World!")',
+  height = "h-[300px]",
+  onOutput,
+  onCodeChange,
+}: CodeRunnerProps) {
   const [code, setCode] = useState(initialCode);
   const [output, setOutput] = useState("");
   const [error, setError] = useState("");
   const [isRunning, setIsRunning] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    setCode(initialCode);
+    onCodeChange?.(initialCode);
+  }, [initialCode, onCodeChange]);
 
   const runCode = () => {
     setIsRunning(true);
@@ -57,6 +68,7 @@ export function CodeRunner({ initialCode = 'print("Hello, World!")', height = "h
 
   const resetCode = () => {
     setCode(initialCode);
+    onCodeChange?.(initialCode);
     setOutput("");
     setError("");
   };
@@ -103,7 +115,10 @@ export function CodeRunner({ initialCode = 'print("Hello, World!")', height = "h
           <textarea
             ref={textareaRef}
             value={code}
-            onChange={(e) => setCode(e.target.value)}
+            onChange={(e) => {
+              setCode(e.target.value);
+              onCodeChange?.(e.target.value);
+            }}
             onKeyDown={handleKeyDown}
             spellCheck="false"
             className={`w-full ${height} p-4 font-mono text-sm text-blue-100 bg-transparent border-none resize-none focus:outline-none focus:ring-1 focus:ring-primary/50 placeholder:text-muted-foreground/30`}

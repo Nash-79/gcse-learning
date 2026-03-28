@@ -8,6 +8,8 @@ import { Card, CardContent } from "@/components/ui/card";
 interface AiExamValidatorProps {
   topicTitle: string;
   topicSlug: string;
+  prefilledCode?: string;
+  prefilledTaskDescription?: string;
 }
 
 interface ValidationResult {
@@ -20,7 +22,12 @@ interface ValidationResult {
   examTips: string[];
 }
 
-export function AiExamValidator({ topicTitle, topicSlug }: AiExamValidatorProps) {
+export function AiExamValidator({
+  topicTitle,
+  topicSlug,
+  prefilledCode,
+  prefilledTaskDescription,
+}: AiExamValidatorProps) {
   const [code, setCode] = useState("");
   const [taskDescription, setTaskDescription] = useState("");
   const [result, setResult] = useState<ValidationResult | null>(null);
@@ -28,7 +35,9 @@ export function AiExamValidator({ topicTitle, topicSlug }: AiExamValidatorProps)
   const [error, setError] = useState<string | null>(null);
 
   const validate = async () => {
-    if (!code.trim()) return;
+    const codeToValidate = (prefilledCode ?? code).trim();
+    const taskToValidate = (prefilledTaskDescription ?? taskDescription).trim();
+    if (!codeToValidate) return;
     setIsValidating(true);
     setError(null);
     setResult(null);
@@ -40,8 +49,8 @@ export function AiExamValidator({ topicTitle, topicSlug }: AiExamValidatorProps)
         body: JSON.stringify({
           mode: "validate",
           topicTitle,
-          code,
-          taskDescription,
+          code: codeToValidate,
+          taskDescription: taskToValidate,
         }),
       });
 
@@ -58,16 +67,17 @@ export function AiExamValidator({ topicTitle, topicSlug }: AiExamValidatorProps)
         parsed = data as ValidationResult;
       }
       setResult(parsed);
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "AI exam validation failed";
       void appLog({
         event_type: "api_error",
         origin: "AiExamValidator.validate",
-        message: err?.message || "AI exam validation failed",
+        message: errorMessage,
         details: { topicSlug, topicTitle },
-        error_stack: err?.stack,
+        error_stack: err instanceof Error ? err.stack : undefined,
         severity: "error",
       });
-      setError(err.message || "Failed to validate. Please try again.");
+      setError(err instanceof Error ? err.message : "Failed to validate. Please try again.");
     } finally {
       setIsValidating(false);
     }
@@ -89,34 +99,47 @@ export function AiExamValidator({ topicTitle, topicSlug }: AiExamValidatorProps)
       </div>
 
       <CardContent className="p-5 space-y-4">
-        <div>
-          <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 block">
-            Task Description (optional)
-          </label>
-          <input
-            value={taskDescription}
-            onChange={(e) => setTaskDescription(e.target.value)}
-            placeholder="e.g. Write a program that validates a password..."
-            className="w-full bg-background border border-border rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-secondary/50"
-          />
-        </div>
+        {prefilledCode !== undefined ? (
+          <div className="text-xs rounded-xl border border-secondary/20 bg-secondary/5 px-4 py-3 text-muted-foreground">
+            Using code from the <span className="font-semibold text-foreground">main.py editor</span>.
+            {prefilledTaskDescription && (
+              <span className="block mt-1">
+                Challenge context detected and included automatically.
+              </span>
+            )}
+          </div>
+        ) : (
+          <>
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 block">
+                Task Description (optional)
+              </label>
+              <input
+                value={taskDescription}
+                onChange={(e) => setTaskDescription(e.target.value)}
+                placeholder="e.g. Write a program that validates a password..."
+                className="w-full bg-background border border-border rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-secondary/50"
+              />
+            </div>
 
-        <div>
-          <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 block">
-            Your Python Code
-          </label>
-          <textarea
-            value={code}
-            onChange={(e) => setCode(e.target.value)}
-            placeholder="Paste your Python code here for grading..."
-            className="w-full h-[200px] bg-[#1e1e1e] text-blue-100 font-mono text-sm border border-border rounded-xl px-4 py-3 resize-none focus:outline-none focus:ring-1 focus:ring-secondary/50"
-            spellCheck={false}
-          />
-        </div>
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 block">
+                Your Python Code
+              </label>
+              <textarea
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+                placeholder="Paste your Python code here for grading..."
+                className="w-full h-[200px] bg-[#1e1e1e] text-blue-100 font-mono text-sm border border-border rounded-xl px-4 py-3 resize-none focus:outline-none focus:ring-1 focus:ring-secondary/50"
+                spellCheck={false}
+              />
+            </div>
+          </>
+        )}
 
         <Button
           onClick={validate}
-          disabled={isValidating || !code.trim()}
+          disabled={isValidating || !(prefilledCode ?? code).trim()}
           className="w-full gap-2 bg-gradient-to-r from-secondary to-secondary/80 text-secondary-foreground rounded-xl h-11 font-semibold"
         >
           {isValidating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}

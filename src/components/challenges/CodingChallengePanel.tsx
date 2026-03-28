@@ -5,6 +5,7 @@ import { Sparkles, Loader2, Zap, Flame, Target, Code2, GraduationCap, CheckCircl
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { CodeRunner } from "@/components/code/CodeRunner";
+import { AiExamValidator } from "@/components/challenges/AiExamValidator";
 import type { CodingChallenge, ChallengeDifficulty } from "@/data/codingChallenges";
 import { getChallengesForTopic } from "@/data/codingChallenges";
 import { useChallengeProgress, type ChallengeStatus } from "@/hooks/useChallengeProgress";
@@ -51,6 +52,7 @@ export function CodingChallengePanel({ topicSlug, topicTitle }: CodingChallengeP
   const [copied, setCopied] = useState(false);
   const [generatedModelAnswers, setGeneratedModelAnswers] = useState<Record<string, string>>({});
   const [generatingModelAnswerId, setGeneratingModelAnswerId] = useState<string | null>(null);
+  const [editorCode, setEditorCode] = useState("");
   const { getStatus, setStatus } = useChallengeProgress();
 
   const staticChallenges = getChallengesForTopic(topicSlug);
@@ -225,7 +227,12 @@ export function CodingChallengePanel({ topicSlug, topicTitle }: CodingChallengeP
           </div>
         )}
 
-        <CodeRunner initialCode={selectedChallenge.starterCode} height="h-[350px]" onOutput={handleCodeRun} />
+        <CodeRunner
+          initialCode={selectedChallenge.starterCode}
+          height="h-[350px]"
+          onOutput={handleCodeRun}
+          onCodeChange={setEditorCode}
+        />
 
         {/* Grading Result */}
         {gradeResult && (
@@ -325,6 +332,13 @@ export function CodingChallengePanel({ topicSlug, topicTitle }: CodingChallengeP
             </div>
           )}
         </div>
+
+        <AiExamValidator
+          topicTitle={topicTitle}
+          topicSlug={topicSlug}
+          prefilledTaskDescription={selectedChallenge.description}
+          prefilledCode={editorCode}
+        />
       </div>
     );
   }
@@ -402,7 +416,11 @@ export function CodingChallengePanel({ topicSlug, topicTitle }: CodingChallengeP
               <Card
                 key={challenge.id}
                 className="rounded-xl border-border/50 hover:border-primary/30 transition-all cursor-pointer group"
-                onClick={() => { setSelectedChallenge(challenge); setGradeResult(null); }}
+                onClick={() => {
+                  setSelectedChallenge(challenge);
+                  setEditorCode(challenge.starterCode);
+                  setGradeResult(null);
+                }}
               >
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between mb-2">

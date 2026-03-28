@@ -16,7 +16,6 @@ import type { QuizQuestion } from "@/data/topicContent";
 import { AiHelper } from "@/components/ai/AiHelper";
 import { CodingChallengePanel } from "@/components/challenges/CodingChallengePanel";
 import { ExamQuestionBank } from "@/components/quiz/ExamQuestionBank";
-import { AiExamValidator } from "@/components/challenges/AiExamValidator";
 import { topicData } from "@/data/topicContent";
 import { topicLearningSteps } from "@/data/learningSteps";
 import { useListTopics, useGetTopicProgress, useUpdateTopicProgress } from "@/hooks/useTopics";
@@ -349,9 +348,6 @@ export default function TopicPage() {
               </p>
             </div>
             <CodingChallengePanel topicSlug={slug} topicTitle={topicMeta.title} />
-            <div className="pt-4">
-              <AiExamValidator topicTitle={topicMeta.title} topicSlug={slug} />
-            </div>
           </motion.div>
         </TabsContent>
 

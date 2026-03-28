@@ -9,6 +9,7 @@ export interface StructuredJson {
   summary: string;
   sections: StructuredSection[];
   next_step: string;
+  suggestions?: string[];
 }
 
 export type ParsedOutput =
@@ -87,6 +88,15 @@ export function structuredJsonToMarkdown(data: StructuredJson): string {
     parts.push("---");
     parts.push("");
     parts.push(`**Next Step:** ${data.next_step}`);
+    parts.push("");
+  }
+
+  if (Array.isArray(data.suggestions) && data.suggestions.length > 0) {
+    parts.push("## Want to keep going?");
+    parts.push("");
+    for (const suggestion of data.suggestions) {
+      parts.push(`- ${suggestion}`);
+    }
   }
 
   return parts.join("\n").trim();
@@ -99,5 +109,6 @@ export function structuredMarkdownToClean(text: string): string {
     .replace(/^MODE:\s*markdown\s*\n/, "")
     .replace(/^SUMMARY:\s*\n/m, "")
     .replace(/^NEXT STEP:\s*$/m, "**Next Step:**")
+    .replace(/^SUGGESTIONS:\s*$/m, "## Want to keep going?")
     .trim();
 }
