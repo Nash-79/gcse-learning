@@ -166,7 +166,10 @@ export default function Settings() {
         }
         throw new Error("AI gateway returned a non-JSON response.");
       }
-      if (!response.ok || data?.error) throw new Error(data?.error || "Request failed");
+      if (!response.ok || data?.error || data?.detail) {
+        const msg = data?.error || data?.detail || `Request failed (${response.status})`;
+        throw new Error(msg);
+      }
       const reply = data?.content || "No response";
       setStatus("success");
       setStatusMsg(`Connection successful! Model replied: "${reply.substring(0, 60)}"`);
