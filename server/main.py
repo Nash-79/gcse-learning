@@ -2,7 +2,7 @@ import os
 import time
 import json
 import re
-from typing import Optional
+from typing import Optional, Any
 
 import requests
 from fastapi import FastAPI, Header, Body, HTTPException
@@ -13,9 +13,11 @@ from fastapi.staticfiles import StaticFiles
 # ── Constants ─────────────────────────────────────────────────────────────────
 
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
+OPENROUTER_MODELS_URL = "https://openrouter.ai/api/v1/models"
 REFERER = "https://pylearn-gcse.replit.app"
 APP_TITLE = "PyLearn GCSE CS"
 DEFAULT_MODEL = "meta-llama/llama-3.3-70b-instruct:free"
+MODELS_CACHE_TTL_SECONDS = 6 * 60 * 60
 
 ALLOWED_MODELS = {
     "meta-llama/llama-3.3-70b-instruct:free",
@@ -40,6 +42,11 @@ ALLOWED_MODELS = {
     "qwen/qwen3-4b:free",
     "meta-llama/llama-3.2-3b-instruct:free",
     "meta-llama/llama-3.1-8b-instruct:free",
+}
+
+_models_cache: dict[str, Any] = {
+    "updated_at": 0.0,
+    "free_models": [],
 }
 
 STRUCTURED_OUTPUT_INSTRUCTION = """
@@ -143,6 +150,14 @@ def make_headers(api_key: str) -> dict:
     }
 
 
+def make_base_headers() -> dict:
+    return {
+        "HTTP-Referer": os.environ.get("OPENROUTER_HTTP_REFERER", REFERER),
+        "X-Title": os.environ.get("OPENROUTER_X_TITLE", APP_TITLE),
+        "Content-Type": "application/json",
+    }
+
+
 def safe_model(model: Optional[str]) -> str:
     return model if model in ALLOWED_MODELS else DEFAULT_MODEL
 
@@ -198,6 +213,73 @@ def extract_json(text: str):
     return None
 
 
+def _as_dollar(value: Any) -> str:
+    try:
+        n = float(value)
+        return f"${n:.6f}"
+    except Exception:
+        return "$0.00"
+
+
+def _is_free_model(raw: dict) -> bool:
+    model_id = str(raw.get("id", ""))
+    if model_id.endswith(":free"):
+        return True
+    pricing = raw.get("pricing", {}) or {}
+    try:
+        return float(pricing.get("prompt", 1)) == 0 and float(pricing.get("completion", 1)) == 0
+    except Exception:
+        return False
+
+
+def _map_model(raw: dict) -> dict:
+    arch = raw.get("architecture", {}) or {}
+    top_provider = raw.get("top_provider", {}) or {}
+    provider = raw.get("provider", {}) or {}
+    input_modalities = arch.get("input_modalities") or ["text"]
+    modality = arch.get("modality") or []
+    return {
+        "id": str(raw.get("id", "")),
+        "name": str(raw.get("name") or raw.get("id") or "Unknown"),
+        "provider": str(top_provider.get("name") or provider.get("name") or "OpenRouter"),
+        "description": str(raw.get("description") or ""),
+        "contextWindow": int(raw.get("context_length") or 0),
+        "maxOutput": top_provider.get("max_completion_tokens"),
+        "inputPrice": _as_dollar((raw.get("pricing") or {}).get("prompt")),
+        "outputPrice": _as_dollar((raw.get("pricing") or {}).get("completion")),
+        "tags": modality if isinstance(modality, list) else [],
+        "architecture": "+".join(input_modalities) + " -> text",
+        "tokenizer": str(arch.get("tokenizer") or "Unknown"),
+    }
+
+
+def fetch_openrouter_models(user_key: Optional[str], refresh: bool = False) -> list[dict]:
+    now = time.time()
+    if not refresh and (now - _models_cache["updated_at"]) < MODELS_CACHE_TTL_SECONDS and _models_cache["free_models"]:
+        return _models_cache["free_models"]
+
+    headers = make_base_headers()
+    key = (user_key or "").strip() or os.environ.get("OPENROUTER_API_KEY", "").strip()
+    if key:
+        headers["Authorization"] = f"Bearer {key}"
+
+    resp = requests.get(OPENROUTER_MODELS_URL, headers=headers, timeout=30)
+    if not resp.ok:
+        if _models_cache["free_models"]:
+            return _models_cache["free_models"]
+        raise HTTPException(status_code=resp.status_code, detail=f"OpenRouter models API failed: {resp.status_code}")
+
+    data = resp.json()
+    raw_models = data.get("data") if isinstance(data, dict) else []
+    raw_models = raw_models if isinstance(raw_models, list) else []
+    free_models = [_map_model(m) for m in raw_models if isinstance(m, dict) and _is_free_model(m)]
+    free_models = [m for m in free_models if m.get("id")]
+
+    _models_cache["updated_at"] = now
+    _models_cache["free_models"] = free_models
+    return free_models
+
+
 # ── App ───────────────────────────────────────────────────────────────────────
 
 app = FastAPI(title="PyLearn API")
@@ -215,6 +297,15 @@ app.add_middleware(
 @app.get("/api/health")
 def health():
     return {"ok": True}
+
+
+@app.get("/api/openrouter/models")
+def openrouter_models(
+    refresh: int = 0,
+    x_user_api_key: Optional[str] = Header(None),
+):
+    models = fetch_openrouter_models(x_user_api_key, refresh=bool(refresh))
+    return {"models": models, "count": len(models), "cached": not bool(refresh)}
 
 
 # ── AI Chat ───────────────────────────────────────────────────────────────────
