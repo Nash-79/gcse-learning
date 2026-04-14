@@ -6,6 +6,7 @@ import { Settings as SettingsIcon, Key, Bot, Save, CheckCircle2, AlertCircle, Lo
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAiSettings, type RouteKey, type RoutePolicy } from "@/lib/useAiSettings";
+import { LOVABLE_AI_MODELS } from "@/lib/lovableModels";
 import { useOpenRouterModels } from "@/lib/useOpenRouterModels";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
