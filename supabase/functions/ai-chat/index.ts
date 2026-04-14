@@ -192,15 +192,24 @@ Be encouraging but honest. Reference OCR J277 exam expectations where relevant.`
     }
 
     let response: Response | null = null;
+    let usedFallback = false;
+    let finalModelId = requestedModel;
+    let finalModelLabel = requestedModel.split("/").pop()?.replace(":free", "") || requestedModel;
+    const startTime = Date.now();
 
     if (!preferLovable && isOpenRouterModel && OPENROUTER_API_KEY) {
       response = await callAI(OPENROUTER_API_KEY, requestBody, true);
       if (response.status === 429 && LOVABLE_API_KEY) {
         console.log("OpenRouter rate limited, falling back to Lovable AI");
         response = await callAI(LOVABLE_API_KEY, requestBody, false);
+        usedFallback = true;
+        finalModelId = "google/gemini-2.5-flash";
+        finalModelLabel = "Gemini 2.5 Flash (Lovable AI)";
       }
     } else if (LOVABLE_API_KEY) {
       response = await callAI(LOVABLE_API_KEY, requestBody, false);
+      finalModelId = "google/gemini-2.5-flash";
+      finalModelLabel = "Gemini 2.5 Flash (Lovable AI)";
     } else if (OPENROUTER_API_KEY) {
       response = await callAI(OPENROUTER_API_KEY, requestBody, true);
     }
@@ -214,18 +223,27 @@ Be encouraging but honest. Reference OCR J277 exam expectations where relevant.`
 
     const data = await response.json();
     const content = data.choices?.[0]?.message?.content || "";
+    const elapsedMs = Date.now() - startTime;
+
+    const meta = {
+      routeKey: "ai-chat",
+      finalModelId,
+      finalModelLabel,
+      usedFallback,
+      elapsedMs,
+    };
 
     if (wantJson) {
       const jsonMatch = content.match(/[\[{][\s\S]*[\]}]/);
       if (jsonMatch) {
-        return new Response(JSON.stringify({ content: jsonMatch[0] }), {
+        return new Response(JSON.stringify({ content: jsonMatch[0], meta }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       throw new Error("Could not parse AI JSON response");
     }
 
-    return new Response(JSON.stringify({ content }), {
+    return new Response(JSON.stringify({ content, meta }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
