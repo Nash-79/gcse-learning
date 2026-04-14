@@ -155,6 +155,7 @@ export default function Settings() {
           mode: "chat",
           topicTitle: "Test",
           model: selectedModel,
+          provider: currentProvider,
           maxTokens: 120,
           messages: [{ role: "user", content: "Say 'Hello from PyLearn!' in exactly those words." }],
         }),

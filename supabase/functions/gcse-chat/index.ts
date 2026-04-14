@@ -183,7 +183,7 @@ serve(async (req) => {
         }),
       });
 
-      if (response.status === 429 && LOVABLE_API_KEY) {
+      if (!response.ok && LOVABLE_API_KEY) {
         console.log("OpenRouter rate limited, falling back to Lovable AI");
         usedFallback = true;
         finalModelId = "google/gemini-3-flash-preview";
