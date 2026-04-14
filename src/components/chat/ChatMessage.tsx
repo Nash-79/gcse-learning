@@ -1,13 +1,15 @@
-import { Bot, Copy, Check, RotateCcw } from "lucide-react";
+import { Bot, Copy, Check, RotateCcw, Info } from "lucide-react";
 import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { parseAssistantOutput, structuredJsonToMarkdown, structuredMarkdownToClean } from "@/lib/parseAssistantOutput";
+import type { AiResponseMeta } from "@/lib/aiResponseMeta";
 
 interface ChatMessageProps {
   role: "user" | "assistant";
   content: string;
   onRegenerate?: () => void;
   onCopyAll?: () => void;
+  meta?: AiResponseMeta;
 }
 
 function CodeBlock({ className, children, ...props }: any) {
@@ -135,7 +137,36 @@ function MarkdownRenderer({ content }: { content: string }) {
   );
 }
 
-export function ChatMessage({ role, content, onRegenerate }: ChatMessageProps) {
+function ProvenanceLine({ meta }: { meta?: AiResponseMeta }) {
+  if (!meta) return null;
+  const label = meta.finalModelLabel || meta.finalModelId?.split("/").pop()?.replace(":free", "");
+  if (!label) return null;
+
+  return (
+    <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+      <span className="text-[10px] text-muted-foreground/60">
+        Answered by {label}
+      </span>
+      {meta.usedFallback && (
+        <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-500/80 border border-amber-500/15 inline-flex items-center gap-0.5">
+          <Info className="w-2.5 h-2.5" /> Fallback
+        </span>
+      )}
+      {meta.degraded && (
+        <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-500/80 border border-amber-500/15">
+          Degraded
+        </span>
+      )}
+      {meta.attemptCount && meta.attemptCount > 1 && (
+        <span className="text-[10px] text-muted-foreground/50">
+          ({meta.attemptCount} attempts)
+        </span>
+      )}
+    </div>
+  );
+}
+
+export function ChatMessage({ role, content, onRegenerate, meta }: ChatMessageProps) {
   if (role === "user") {
     return (
       <div className="flex justify-end">
@@ -169,6 +200,7 @@ export function ChatMessage({ role, content, onRegenerate }: ChatMessageProps) {
       <div className="flex-1 min-w-0 max-w-[90%]">
         {renderContent()}
         <MessageActions content={content} onRegenerate={onRegenerate} />
+        <ProvenanceLine meta={meta} />
       </div>
     </div>
   );
