@@ -8,10 +8,13 @@ import { useAiSettings } from "@/lib/useAiSettings";
 import { apiFetch } from "@/lib/apiFetch";
 import { useOpenRouterModels } from "@/lib/useOpenRouterModels";
 import { appLog } from "@/lib/appLogger";
+import type { AiResponseMeta } from "@/lib/aiResponseMeta";
+import { extractMeta } from "@/lib/aiResponseMeta";
 
 interface Message {
   role: "user" | "assistant";
   content: string;
+  meta?: AiResponseMeta;
 }
 
 interface AiHelperProps {
@@ -100,7 +103,8 @@ export function AiHelper({ topicSlug, topicTitle }: AiHelperProps) {
       }
 
       const reply = data?.content || "Sorry, I couldn't generate a response.";
-      setMessages(prev => [...prev, { role: "assistant", content: reply }]);
+      const meta = extractMeta(data);
+      setMessages(prev => [...prev, { role: "assistant", content: reply, meta }]);
     } catch (err: any) {
       void appLog({
         event_type: "api_error",
@@ -197,7 +201,7 @@ export function AiHelper({ topicSlug, topicTitle }: AiHelperProps) {
 
           return (
             <div key={i}>
-              <ChatMessage role={msg.role} content={cleanContent} onRegenerate={handleRegenerate} />
+              <ChatMessage role={msg.role} content={cleanContent} onRegenerate={handleRegenerate} meta={msg.meta} />
               {isLastAssistant && suggestions.length > 0 && (
                 <FollowUpSuggestions
                   suggestions={suggestions}

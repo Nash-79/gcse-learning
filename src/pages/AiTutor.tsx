@@ -9,10 +9,13 @@ import { useAiSettings } from "@/lib/useAiSettings";
 import { apiFetch } from "@/lib/apiFetch";
 import { useOpenRouterModels } from "@/lib/useOpenRouterModels";
 import { appLog } from "@/lib/appLogger";
+import type { AiResponseMeta } from "@/lib/aiResponseMeta";
+import { extractMeta } from "@/lib/aiResponseMeta";
 
 interface Message {
   role: "user" | "assistant";
   content: string;
+  meta?: AiResponseMeta;
 }
 
 const CHAT_URL = `/api/gcse-chat`;
@@ -73,6 +76,7 @@ async function streamChat({
   onDelta,
   onDone,
   onError,
+  onMeta,
 }: {
   messages: Message[];
   model?: string;
@@ -80,6 +84,7 @@ async function streamChat({
   onDelta: (text: string) => void;
   onDone: () => void;
   onError: (msg: string) => void;
+  onMeta?: (meta: AiResponseMeta) => void;
 }) {
   const resp = await apiFetch(CHAT_URL, {
     method: "POST",
@@ -134,6 +139,11 @@ async function streamChat({
         if (parsed?.error) {
           onError(String(parsed.error));
           return;
+        }
+        // Check for meta event from reliability layer
+        if (parsed?.meta && !parsed?.choices && onMeta) {
+          onMeta(parsed.meta as AiResponseMeta);
+          continue;
         }
         const content = parsed.choices?.[0]?.delta?.content as string | undefined;
         if (content) onDelta(content);
@@ -202,15 +212,17 @@ export default function AiTutor() {
     setIsLoading(true);
 
     let assistantSoFar = "";
+    let streamMeta: AiResponseMeta | undefined;
 
-    const upsertAssistant = (nextChunk: string) => {
+    const upsertAssistant = (nextChunk: string, meta?: AiResponseMeta) => {
       assistantSoFar += nextChunk;
+      const m = meta || streamMeta;
       setMessages(prev => {
         const last = prev[prev.length - 1];
         if (last?.role === "assistant") {
-          return prev.map((m, i) => (i === prev.length - 1 ? { ...m, content: assistantSoFar } : m));
+          return prev.map((msg, i) => (i === prev.length - 1 ? { ...msg, content: assistantSoFar, meta: m } : msg));
         }
-        return [...prev, { role: "assistant", content: assistantSoFar }];
+        return [...prev, { role: "assistant", content: assistantSoFar, meta: m }];
       });
     };
 
@@ -220,7 +232,16 @@ export default function AiTutor() {
         model: chatModel,
         provider: settingsProvider,
         onDelta: (chunk) => upsertAssistant(chunk),
-        onDone: () => setIsLoading(false),
+        onDone: () => {
+          // Apply final meta to last message
+          if (streamMeta) {
+            setMessages(prev => prev.map((msg, i) =>
+              i === prev.length - 1 && msg.role === "assistant" ? { ...msg, meta: streamMeta } : msg
+            ));
+          }
+          setIsLoading(false);
+        },
+        onMeta: (meta) => { streamMeta = meta; },
         onError: (msg) => {
           void appLog({
             event_type: "api_error",
@@ -356,7 +377,7 @@ export default function AiTutor() {
 
             return (
               <div key={i}>
-                <ChatMessage role={msg.role} content={cleanContent} onRegenerate={handleRegenerate} />
+                <ChatMessage role={msg.role} content={cleanContent} onRegenerate={handleRegenerate} meta={msg.meta} />
                 {isLastAssistant && suggestions.length > 0 && (
                   <FollowUpSuggestions
                     suggestions={suggestions}
