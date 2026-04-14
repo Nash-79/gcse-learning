@@ -212,15 +212,17 @@ export default function AiTutor() {
     setIsLoading(true);
 
     let assistantSoFar = "";
+    let streamMeta: AiResponseMeta | undefined;
 
-    const upsertAssistant = (nextChunk: string) => {
+    const upsertAssistant = (nextChunk: string, meta?: AiResponseMeta) => {
       assistantSoFar += nextChunk;
+      const m = meta || streamMeta;
       setMessages(prev => {
         const last = prev[prev.length - 1];
         if (last?.role === "assistant") {
-          return prev.map((m, i) => (i === prev.length - 1 ? { ...m, content: assistantSoFar } : m));
+          return prev.map((msg, i) => (i === prev.length - 1 ? { ...msg, content: assistantSoFar, meta: m } : msg));
         }
-        return [...prev, { role: "assistant", content: assistantSoFar }];
+        return [...prev, { role: "assistant", content: assistantSoFar, meta: m }];
       });
     };
 
@@ -230,7 +232,16 @@ export default function AiTutor() {
         model: chatModel,
         provider: settingsProvider,
         onDelta: (chunk) => upsertAssistant(chunk),
-        onDone: () => setIsLoading(false),
+        onDone: () => {
+          // Apply final meta to last message
+          if (streamMeta) {
+            setMessages(prev => prev.map((msg, i) =>
+              i === prev.length - 1 && msg.role === "assistant" ? { ...msg, meta: streamMeta } : msg
+            ));
+          }
+          setIsLoading(false);
+        },
+        onMeta: (meta) => { streamMeta = meta; },
         onError: (msg) => {
           void appLog({
             event_type: "api_error",
