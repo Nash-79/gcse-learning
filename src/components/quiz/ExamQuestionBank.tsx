@@ -1,5 +1,6 @@
 import { useState, useMemo, useCallback } from "react";
 import { apiFetch } from "@/lib/apiFetch";
+import { useAiSettings } from "@/lib/useAiSettings";
 import { appLog } from "@/lib/appLogger";
 import { ChevronDown, Lightbulb, CheckCircle2, XCircle, Sparkles, Loader2, AlertTriangle, Code2, Zap, Flame, Target, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -163,6 +164,7 @@ Make questions exam-realistic — reference OCR J277 specification topics. Inclu
         body: JSON.stringify({
           mode: "generate",
           topicTitle,
+          provider: settingsProvider,
           systemPromptOverride: systemPrompt,
           userPromptOverride: `Generate 9 OCR GCSE exam-style questions about ${topicTitle} with pseudocode hints.`,
           maxTokens: 3000,

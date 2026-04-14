@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { apiFetch } from "@/lib/apiFetch";
+import { useAiSettings } from "@/lib/useAiSettings";
 import { appLog } from "@/lib/appLogger";
 import { Bot, Send, Loader2, CheckCircle2, XCircle, AlertTriangle, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -49,6 +50,7 @@ export function AiExamValidator({
         body: JSON.stringify({
           mode: "validate",
           topicTitle,
+          provider: settingsProvider,
           code: codeToValidate,
           taskDescription: taskToValidate,
         }),

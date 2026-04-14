@@ -82,6 +82,7 @@ export function CodingChallengePanel({ topicSlug, topicTitle }: CodingChallengeP
         body: JSON.stringify({
           mode: "generate",
           topicTitle,
+          provider: settingsProvider,
           systemPromptOverride: `You are a GCSE Computer Science exam challenge generator. ${diffPrompt} about "${topicTitle}". Return ONLY a JSON object with a "challenges" array. Each object must have: id (string), title (string), description (string, 2-3 sentences describing the task), difficulty ("beginner"|"intermediate"|"hard"), starterCode (string, Python starter code with comments), expectedOutput (string, what the output should be), hints (array of 2-3 strings), modelAnswer (string, simple GCSE-level Python solution using only basic syntax), markScheme (array of 2-3 strings describing what earns marks), examStyle (boolean, true if exam-style). IMPORTANT: Use only simple Python - no f-strings, no try/except, no classes, no comprehensions. Use print(), input(), string concatenation with +, basic if/elif/else, for loops, while loops.`,
           maxTokens: 2000,
         }),
@@ -156,6 +157,7 @@ export function CodingChallengePanel({ topicSlug, topicTitle }: CodingChallengeP
         body: JSON.stringify({
           mode: "generate",
           topicTitle,
+          provider: settingsProvider,
           systemPromptOverride:
             'You are a GCSE Computer Science model-answer generator. Return ONLY JSON with keys: "modelAnswer" (string Python solution) and "markScheme" (array of 3-5 concise points). Use simple Python only: print, input, variables, if/elif/else, for, while, basic lists/dicts, string concatenation with +. Avoid classes, decorators, generators.',
           userPromptOverride: `Write a model answer for this challenge:\nTitle: ${challenge.title}\nDescription: ${challenge.description}\nStarter code:\n${challenge.starterCode}\nHints: ${challenge.hints.join(" | ")}`,
