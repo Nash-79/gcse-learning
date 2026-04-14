@@ -199,8 +199,8 @@ Be encouraging but honest. Reference OCR J277 exam expectations where relevant.`
 
     if (!preferLovable && isOpenRouterModel && OPENROUTER_API_KEY) {
       response = await callAI(OPENROUTER_API_KEY, requestBody, true);
-      if (response.status === 429 && LOVABLE_API_KEY) {
-        console.log("OpenRouter rate limited, falling back to Lovable AI");
+      if (!response.ok && LOVABLE_API_KEY) {
+        console.log(`OpenRouter failed (${response.status}), falling back to Lovable AI`);
         response = await callAI(LOVABLE_API_KEY, requestBody, false);
         usedFallback = true;
         finalModelId = "google/gemini-2.5-flash";
