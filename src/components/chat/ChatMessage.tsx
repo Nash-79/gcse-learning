@@ -142,14 +142,22 @@ function ProvenanceLine({ meta }: { meta?: AiResponseMeta }) {
   const label = meta.finalModelLabel || meta.finalModelId?.split("/").pop()?.replace(":free", "");
   if (!label) return null;
 
+  const isLovable = label.includes("Lovable AI") || meta.finalModelId?.startsWith("google/gemini");
+
   return (
     <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-      <span className="text-[10px] text-muted-foreground/60">
-        Answered by {label}
-      </span>
+      {isLovable ? (
+        <span className="text-[10px] px-2 py-0.5 rounded-full bg-secondary/10 text-secondary border border-secondary/20 inline-flex items-center gap-1 font-medium">
+          ✦ {label}
+        </span>
+      ) : (
+        <span className="text-[10px] text-muted-foreground/60">
+          Answered by {label}
+        </span>
+      )}
       {meta.usedFallback && (
         <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-500/80 border border-amber-500/15 inline-flex items-center gap-0.5">
-          <Info className="w-2.5 h-2.5" /> Fallback
+          <Info className="w-2.5 h-2.5" /> Fallback used
         </span>
       )}
       {meta.degraded && (
