@@ -26,7 +26,7 @@ function loadSettings(): AiSettings {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
       const parsed = JSON.parse(stored);
-      const provider = parsed.provider === "lovable" ? "openrouter" : (parsed.provider || "openrouter");
+      const provider = parsed.provider === "lovable" ? "lovable" : (parsed.provider || "openrouter");
       return {
         apiKey: parsed.apiKey || "",
         model: parsed.model || DEFAULT_MODEL,

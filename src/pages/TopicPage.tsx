@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { apiFetch } from "@/lib/apiFetch";
+import { useAiSettings } from "@/lib/useAiSettings";
 import { appLog } from "@/lib/appLogger";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -52,6 +53,7 @@ export default function TopicPage() {
   const { slug = "" } = useParams<{ slug: string }>();
   const navigate = useNavigate();
 
+  const { provider: settingsProvider } = useAiSettings();
   const { data: topics, isLoading: topicsLoading } = useListTopics("all");
   const { data: progress } = useGetTopicProgress(slug);
   const updateProgress = useUpdateTopicProgress();
@@ -92,6 +94,7 @@ export default function TopicPage() {
         body: JSON.stringify({
           mode: "generate",
           topicTitle: topicMeta?.title || slug,
+          provider: settingsProvider,
           systemPromptOverride: `You are a GCSE Computer Science quiz generator. Generate exactly 5 multiple-choice questions about "${topicMeta?.title || slug}" for Python programming. Return ONLY a JSON object with a "questions" array of objects with these fields: question (string), options (array of 4 strings), correctIndex (0-3), explanation (string), hint (string), difficulty ("easy"|"medium"|"hard"). Do not include any other text.`,
           userPromptOverride: `Generate 5 new quiz questions about ${topicMeta?.title || slug}. Existing questions to avoid repeating: ${content.quiz.map(q => q.question).join("; ")}`,
           maxTokens: 2000,

@@ -6,6 +6,7 @@ import { Settings as SettingsIcon, Key, Bot, Save, CheckCircle2, AlertCircle, Lo
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAiSettings, type RouteKey, type RoutePolicy } from "@/lib/useAiSettings";
+import { LOVABLE_AI_MODELS } from "@/lib/lovableModels";
 import { useOpenRouterModels } from "@/lib/useOpenRouterModels";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -301,6 +302,40 @@ export default function Settings() {
           </CardContent>
         </Card>
 
+        {/* Test Connection for Lovable AI */}
+        {currentProvider === "lovable" && (
+          <Card className="rounded-2xl overflow-hidden">
+            <CardContent className="p-6">
+              <h3 className="text-lg font-display font-bold mb-1 flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-secondary" />
+                Lovable AI Connection
+              </h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Built-in AI powered by Gemini. No API key needed — always available.
+              </p>
+              <div className="flex gap-3">
+                <Button variant="outline" onClick={testConnection} disabled={testing} className="gap-2 rounded-xl">
+                  {testing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Bot className="w-4 h-4" />}
+                  Test Connection
+                </Button>
+              </div>
+              <AnimatePresence>
+                {status !== "idle" && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
+                    className={`mt-3 flex items-center gap-2 text-sm px-4 py-2.5 rounded-xl border ${
+                      status === "success" ? "bg-green-500/10 text-green-500 border-green-500/20" : "bg-destructive/10 text-destructive border-destructive/20"
+                    }`}
+                  >
+                    {status === "success" ? <CheckCircle2 className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+                    {statusMsg}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </CardContent>
+          </Card>
+        )}
+
         {/* API Key Section — only show for OpenRouter */}
         {currentProvider === "openrouter" && (
           <Card className="rounded-2xl overflow-hidden">
@@ -481,6 +516,41 @@ export default function Settings() {
                 <X className="w-3 h-3" /> Clear all filters
               </button>
             )}
+
+            {/* Lovable AI Models */}
+            <div className="mb-4">
+              <h4 className="text-sm font-display font-bold text-secondary flex items-center gap-2 mb-3">
+                <Sparkles className="w-4 h-4" /> Lovable AI Models
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-secondary/15 text-secondary font-medium">No API key needed</span>
+              </h4>
+              <div className="space-y-2">
+                {LOVABLE_AI_MODELS.map(m => {
+                  const isSelected = m.id === selectedModel;
+                  return (
+                    <div
+                      key={m.id}
+                      onClick={() => { setSelectedModel(m.id); if (hasAi || currentProvider === "lovable") updateSettings({ model: m.id }); }}
+                      className={`rounded-xl border-2 p-3 transition-all cursor-pointer ${
+                        isSelected
+                          ? "border-secondary/50 bg-secondary/5 shadow-lg shadow-secondary/5"
+                          : "border-border/40 hover:border-secondary/30"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <div className={`w-2 h-2 rounded-full shrink-0 ${isSelected ? "bg-secondary animate-pulse" : "bg-muted-foreground/30"}`} />
+                        <span className="font-display font-bold text-sm">✦ {m.name}</span>
+                        {isSelected && <CheckCircle2 className="w-4 h-4 text-secondary ml-auto" />}
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1 ml-4">{m.description}</p>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <h4 className="text-sm font-display font-bold text-primary flex items-center gap-2 mb-3">
+              <Globe className="w-4 h-4" /> OpenRouter Models
+            </h4>
 
             {/* Model List */}
             <div className="space-y-3 max-h-[700px] overflow-y-auto pr-1">

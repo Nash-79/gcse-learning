@@ -11,6 +11,7 @@ import { useOpenRouterModels } from "@/lib/useOpenRouterModels";
 import { appLog } from "@/lib/appLogger";
 import type { AiResponseMeta } from "@/lib/aiResponseMeta";
 import { extractMeta } from "@/lib/aiResponseMeta";
+import { LOVABLE_AI_MODELS } from "@/lib/lovableModels";
 
 interface Message {
   role: "user" | "assistant";
@@ -310,6 +311,13 @@ export default function AiTutor() {
               onChange={(e) => setChatModel(e.target.value)}
               className="text-[11px] bg-muted/50 border border-border rounded-lg px-2 py-1 text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50 max-w-[200px] truncate"
             >
+              <optgroup label="Lovable AI">
+                {LOVABLE_AI_MODELS.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    ✦ {m.name}
+                  </option>
+                ))}
+              </optgroup>
               <optgroup label="OpenRouter Free Tier">
                 {freeModels.map((model) => (
                   <option key={model.id} value={model.id}>
@@ -317,7 +325,7 @@ export default function AiTutor() {
                   </option>
                 ))}
               </optgroup>
-              {settingsModel && !["google/gemini-3-flash-preview", "google/gemini-2.5-flash"].includes(settingsModel) && (
+              {settingsModel && !LOVABLE_AI_MODELS.some(m => m.id === settingsModel) && !freeModels.some(m => m.id === settingsModel) && (
                 <option value={settingsModel}>Settings: {settingsModel.split("/").pop()}</option>
               )}
             </select>
