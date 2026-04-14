@@ -164,6 +164,9 @@ serve(async (req) => {
     ];
 
     let response: Response;
+    let usedFallback = false;
+    let finalModelId = requestedModel;
+    let finalModelLabel = requestedModel.split("/").pop()?.replace(":free", "") || requestedModel;
 
     if (!preferLovable && isOpenRouterModel && OPENROUTER_API_KEY) {
       response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
@@ -182,6 +185,9 @@ serve(async (req) => {
 
       if (response.status === 429 && LOVABLE_API_KEY) {
         console.log("OpenRouter rate limited, falling back to Lovable AI");
+        usedFallback = true;
+        finalModelId = "google/gemini-3-flash-preview";
+        finalModelLabel = "Gemini 3 Flash (Lovable AI)";
         response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
           method: "POST",
           headers: {
@@ -196,6 +202,8 @@ serve(async (req) => {
         });
       }
     } else if (LOVABLE_API_KEY) {
+      finalModelId = "google/gemini-3-flash-preview";
+      finalModelLabel = "Gemini 3 Flash (Lovable AI)";
       response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
         headers: {
@@ -233,7 +241,31 @@ serve(async (req) => {
       });
     }
 
-    return new Response(response.body, {
+    // Create a TransformStream to append meta event after the AI stream completes
+    const metaEvent = `\ndata: ${JSON.stringify({ meta: { routeKey: "gcse-chat", finalModelId, finalModelLabel, usedFallback } })}\n\n`;
+    const encoder = new TextEncoder();
+
+    const { readable, writable } = new TransformStream();
+    const writer = writable.getWriter();
+
+    (async () => {
+      const reader = response.body!.getReader();
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          await writer.write(value);
+        }
+        // Append meta event at the end of the stream
+        await writer.write(encoder.encode(metaEvent));
+      } catch (e) {
+        console.error("Stream relay error:", e);
+      } finally {
+        await writer.close();
+      }
+    })();
+
+    return new Response(readable, {
       headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
     });
   } catch (e) {
