@@ -1,7 +1,16 @@
 export type Difficulty = "foundation" | "mixed" | "challenge";
 export type Paper = "1" | "2";
+export type ExamBoard = "ocr" | "aqa" | "edexcel" | "eduqas";
 
-export interface ExamQuestion {
+export interface CurriculumMetadata {
+  board?: ExamBoard;
+  spec_code?: string;
+  spec_version?: string;
+  source_url?: string;
+  last_reviewed_at?: string; // YYYY-MM-DD
+}
+
+export interface ExamQuestion extends CurriculumMetadata {
   id: string;
   question: string;
   marks: number;

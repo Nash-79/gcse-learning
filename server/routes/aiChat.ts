@@ -1,6 +1,6 @@
 import { Router, type Request, type Response as ExpressResponse } from "express";
 import {
-  callOpenRouterWithRetry,
+  executeOpenRouterPolicy,
   extractOpenRouterError,
   resolveApiKey,
   resolveModel,
@@ -20,7 +20,7 @@ interface OpenRouterChatCompletion {
 
 router.post("/", async (req: Request, res: ExpressResponse) => {
   try {
-    const { messages, mode, topicTitle, code, taskDescription, systemPromptOverride, userPromptOverride, maxTokens, model, provider } = req.body;
+    const { messages, mode, topicTitle, code, taskDescription, systemPromptOverride, userPromptOverride, maxTokens, model, provider, policy } = req.body;
 
     const apiKey = resolveApiKey(req);
 
@@ -86,21 +86,24 @@ Be encouraging but honest. Reference OCR J277 exam expectations where relevant.`
       requestBody.response_format = { type: "json_object" };
     }
 
-    const response = await callOpenRouterWithRetry(apiKey, requestBody);
+    const { response, meta } = await executeOpenRouterPolicy(apiKey, requestBody, policy);
 
     if (!response.ok) {
       const status = response.status || 500;
       const errorText = await extractOpenRouterError(response);
       console.error("AI error:", status, errorText);
       if (status === 429) {
-        res.status(429).json({ error: "Rate limit reached on this model. Switch model or retry in 20-60 seconds." });
+        res.status(429).json({
+          error: "Rate limit reached on this model. Switch model or retry in 20-60 seconds.",
+          meta,
+        });
         return;
       }
       if (status === 402) {
-        res.status(402).json({ error: "OpenRouter credits/quota unavailable for this request." });
+        res.status(402).json({ error: "OpenRouter credits/quota unavailable for this request.", meta });
         return;
       }
-      res.status(status).json({ error: errorText || `AI API error: ${status}` });
+      res.status(status).json({ error: errorText || `AI API error: ${status}`, meta });
       return;
     }
 
@@ -110,14 +113,14 @@ Be encouraging but honest. Reference OCR J277 exam expectations where relevant.`
     if (wantJson) {
       const jsonMatch = content.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
-        res.json({ content: jsonMatch[0] });
+        res.json({ content: jsonMatch[0], meta });
         return;
       }
-      res.status(500).json({ error: "Could not parse AI JSON response" });
+      res.status(500).json({ error: "Could not parse AI JSON response", meta });
       return;
     }
 
-    res.json({ content });
+    res.json({ content, meta });
   } catch (e: unknown) {
     console.error("ai-chat error:", e);
     res.status(500).json({ error: e instanceof Error ? e.message : "Unknown error" });

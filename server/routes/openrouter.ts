@@ -1,11 +1,28 @@
 import type { Request } from "express";
 import { loadModelCatalogFromDb, saveModelCatalogToDb } from "./openrouterStore.js";
+import {
+  getOrderedPolicyCandidates,
+  normalizePolicyInput,
+  type RouteFallbackPolicyInput,
+  type RouteKey,
+  type SelectionIntent,
+} from "./openrouterPolicy.js";
 
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 const OPENROUTER_MODELS_URL = "https://openrouter.ai/api/v1/models";
-const DEFAULT_MODEL = "meta-llama/llama-3.3-70b-instruct:free";
+const LOVABLE_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
+const DEFAULT_MODEL = "google/gemma-3-4b-it:free";
+const LOVABLE_FALLBACK_MODEL = "google/gemini-2.5-flash";
+const LOVABLE_FALLBACK_MODEL_ID = "lovable/google/gemini-2.5-flash";
 const MAX_RETRIES = 4;
 const MODELS_CACHE_TTL_MS = 6 * 60 * 60 * 1000;
+const REQUEST_TIMEOUT_MS = 8000;
+
+export type RetryReason =
+  | "rate_limit"
+  | "timeout"
+  | "empty_response"
+  | "provider_error";
 
 export interface OpenRouterModel {
   id: string;
@@ -19,6 +36,33 @@ export interface OpenRouterModel {
   tags: string[];
   architecture: string;
   tokenizer: string;
+}
+
+export interface AttemptMetadata {
+  attemptIndex: number;
+  modelId: string;
+  elapsedMs: number;
+  outcome: "success" | "rate_limit" | "timeout" | "provider_error" | "empty_response";
+  statusCode?: number;
+}
+
+export interface OpenRouterExecutionMeta {
+  routeKey: RouteKey;
+  selectionIntent: SelectionIntent;
+  attemptCount: number;
+  usedFallback: boolean;
+  degraded: boolean;
+  elapsedMs: number;
+  finalModelId: string;
+  finalModelLabel: string;
+  selectedPolicyModelIds: string[];
+  policySource: "settings_saved" | "request_override" | "settings_generated";
+  attempts: AttemptMetadata[];
+}
+
+export interface OpenRouterExecutionResult {
+  response: Response;
+  meta: OpenRouterExecutionMeta;
 }
 
 let modelsCache: { updatedAt: number; models: OpenRouterModel[] } = {
@@ -38,6 +82,31 @@ export function resolveModel(requestedModel?: string): string {
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function resolvePolicySource(policy?: RouteFallbackPolicyInput): OpenRouterExecutionMeta["policySource"] {
+  if (!policy) return "settings_generated";
+  if (policy.primaryModel || (policy.fallbackModelIds?.length || 0) > 0) {
+    return "settings_saved";
+  }
+  return "settings_generated";
+}
+
+function logOpenRouterOutcome(meta: OpenRouterExecutionMeta, statusCode?: number) {
+  console.info("[openrouter.policy]", JSON.stringify({
+    routeKey: meta.routeKey,
+    selectionIntent: meta.selectionIntent,
+    policySource: meta.policySource,
+    selectedPolicyModelIds: meta.selectedPolicyModelIds,
+    attemptCount: meta.attemptCount,
+    usedFallback: meta.usedFallback,
+    degraded: meta.degraded,
+    elapsedMs: meta.elapsedMs,
+    finalModelId: meta.finalModelId,
+    finalModelLabel: meta.finalModelLabel,
+    statusCode,
+    attempts: meta.attempts,
+  }));
 }
 
 function buildHeaders(apiKey: string): Record<string, string> {
@@ -105,6 +174,48 @@ function isFreeModel(raw: any): boolean {
   return false;
 }
 
+function getModelLabel(modelId: string, models: OpenRouterModel[]): string {
+  return models.find((model) => model.id === modelId)?.name || modelId.split("/").pop()?.replace(":free", "") || modelId;
+}
+
+async function fetchWithTimeout(
+  apiKey: string,
+  body: Record<string, unknown>
+): Promise<Response> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  try {
+    return await fetch(OPENROUTER_URL, {
+      method: "POST",
+      headers: buildHeaders(apiKey),
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+async function fetchLovableFallback(
+  apiKey: string,
+  body: Record<string, unknown>
+): Promise<Response> {
+  const lovableBody: Record<string, unknown> = {
+    ...body,
+    model: LOVABLE_FALLBACK_MODEL,
+  };
+  delete lovableBody.response_format;
+
+  return fetch(LOVABLE_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify(lovableBody),
+  });
+}
+
 export async function fetchOpenRouterModels(options?: {
   apiKey?: string;
   refresh?: boolean;
@@ -157,59 +268,170 @@ export async function fetchOpenRouterModels(options?: {
   return mapped;
 }
 
-export async function callOpenRouterWithRetry(
+export async function executeOpenRouterPolicy(
   apiKey: string,
-  body: Record<string, unknown>
-): Promise<Response> {
+  body: Record<string, unknown>,
+  policy?: RouteFallbackPolicyInput
+): Promise<OpenRouterExecutionResult> {
   const requestedModel = typeof body.model === "string" ? body.model : DEFAULT_MODEL;
-  let fallbackModels: string[] = [];
-  try {
-    fallbackModels = (await fetchOpenRouterModels({ apiKey, freeOnly: true }))
-      .map((m) => m.id)
-      .filter((id) => id !== requestedModel)
-      .slice(0, 3);
-  } catch {
-    fallbackModels = [
-      "google/gemma-3-4b-it:free",
-      "qwen/qwen3-4b:free",
-      "meta-llama/llama-3.2-3b-instruct:free",
-    ];
-  }
-  const modelCandidates = [requestedModel, ...fallbackModels].filter((model, index, arr) => arr.indexOf(model) === index);
-  let lastResponse: Response | null = null;
-  let lastError: unknown = null;
+  const normalized = normalizePolicyInput(requestedModel, policy, MAX_RETRIES);
+  let catalog: OpenRouterModel[] = [];
 
-  for (let attempt = 0; attempt < MAX_RETRIES; attempt += 1) {
-    const model = modelCandidates[Math.min(attempt, modelCandidates.length - 1)];
-    const requestBody: Record<string, unknown> = { ...body, model };
+  try {
+    catalog = await fetchOpenRouterModels({ apiKey, freeOnly: true });
+  } catch {
+    catalog = [];
+  }
+
+  const candidates = getOrderedPolicyCandidates(requestedModel, normalized).slice(0, normalized.maxAttempts);
+
+  const attempts: AttemptMetadata[] = [];
+  const startedAt = Date.now();
+  let lastResponse: Response | null = null;
+  let finalModelId = requestedModel;
+  const policySource = resolvePolicySource(policy);
+
+  for (let attemptIndex = 0; attemptIndex < candidates.length; attemptIndex += 1) {
+    const modelId = candidates[attemptIndex];
+    finalModelId = modelId;
+    const attemptStartedAt = Date.now();
+    const requestBody = { ...body, model: modelId };
 
     try {
-      const response = await fetch(OPENROUTER_URL, {
-        method: "POST",
-        headers: buildHeaders(apiKey),
-        body: JSON.stringify(requestBody),
-      });
+      const response = await fetchWithTimeout(apiKey, requestBody);
+      const elapsedMs = Date.now() - attemptStartedAt;
 
-      if (response.status !== 429) {
-        return response;
+      if (response.ok) {
+        attempts.push({
+          attemptIndex,
+          modelId,
+          elapsedMs,
+          outcome: "success",
+          statusCode: response.status,
+        });
+
+        const meta = {
+          routeKey: normalized.routeKey,
+          selectionIntent: normalized.selectionIntent,
+          attemptCount: attempts.length,
+          usedFallback: attemptIndex > 0,
+          degraded: Date.now() - startedAt > normalized.slowThresholdMs,
+          elapsedMs: Date.now() - startedAt,
+          finalModelId: modelId,
+          finalModelLabel: getModelLabel(modelId, catalog),
+          selectedPolicyModelIds: candidates,
+          policySource,
+          attempts,
+        } satisfies OpenRouterExecutionMeta;
+        logOpenRouterOutcome(meta, response.status);
+        return {
+          response,
+          meta,
+        };
       }
 
       lastResponse = response;
-      await sleep(2 ** attempt * 250);
+      const outcome: AttemptMetadata["outcome"] = response.status === 429 ? "rate_limit" : "provider_error";
+      attempts.push({
+        attemptIndex,
+        modelId,
+        elapsedMs,
+        outcome,
+        statusCode: response.status,
+      });
+
+      const shouldRetry = response.status === 429
+        ? normalized.retryOn.includes("rate_limit")
+        : normalized.retryOn.includes("provider_error");
+      if (!shouldRetry) {
+        break;
+      }
+      await sleep(2 ** attemptIndex * 200);
     } catch (error) {
-      lastError = error;
-      await sleep(2 ** attempt * 250);
+      const elapsedMs = Date.now() - attemptStartedAt;
+      const outcome: AttemptMetadata["outcome"] = error instanceof Error && error.name === "AbortError"
+        ? "timeout"
+        : "provider_error";
+      attempts.push({
+        attemptIndex,
+        modelId,
+        elapsedMs,
+        outcome,
+      });
+
+      const shouldRetry = outcome === "timeout"
+        ? normalized.retryOn.includes("timeout")
+        : normalized.retryOn.includes("provider_error");
+      if (!shouldRetry) {
+        throw error;
+      }
+      await sleep(2 ** attemptIndex * 200);
     }
   }
 
   if (lastResponse) {
-    return lastResponse;
+    const lovableApiKey = (process.env.LOVABLE_API_KEY || "").trim();
+    if (lovableApiKey) {
+      const lovableResponse = await fetchLovableFallback(lovableApiKey, body);
+      if (lovableResponse.ok) {
+        attempts.push({
+          attemptIndex: attempts.length,
+          modelId: LOVABLE_FALLBACK_MODEL_ID,
+          elapsedMs: 0,
+          outcome: "success",
+          statusCode: lovableResponse.status,
+        });
+        const meta = {
+          routeKey: normalized.routeKey,
+          selectionIntent: normalized.selectionIntent,
+          attemptCount: attempts.length,
+          usedFallback: true,
+          degraded: Date.now() - startedAt > normalized.slowThresholdMs,
+          elapsedMs: Date.now() - startedAt,
+          finalModelId: LOVABLE_FALLBACK_MODEL_ID,
+          finalModelLabel: "Lovable Gemini 2.5 Flash",
+          selectedPolicyModelIds: [...candidates, LOVABLE_FALLBACK_MODEL_ID],
+          policySource,
+          attempts,
+        } satisfies OpenRouterExecutionMeta;
+        logOpenRouterOutcome(meta, lovableResponse.status);
+        return {
+          response: lovableResponse,
+          meta,
+        };
+      }
+    }
+
+    const meta = {
+      routeKey: normalized.routeKey,
+      selectionIntent: normalized.selectionIntent,
+      attemptCount: attempts.length,
+      usedFallback: attempts.length > 1,
+      degraded: Date.now() - startedAt > normalized.slowThresholdMs,
+      elapsedMs: Date.now() - startedAt,
+      finalModelId,
+      finalModelLabel: getModelLabel(finalModelId, catalog),
+      selectedPolicyModelIds: candidates,
+      policySource,
+      attempts,
+    } satisfies OpenRouterExecutionMeta;
+    logOpenRouterOutcome(meta, lastResponse.status);
+    return {
+      response: lastResponse,
+      meta,
+    };
   }
 
-  throw new Error(
-    `OpenRouter unavailable after ${MAX_RETRIES} attempts` +
-      (lastError ? `: ${String(lastError)}` : "")
-  );
+  throw new Error(`OpenRouter unavailable after ${attempts.length || 0} attempts`);
+}
+
+export async function callOpenRouterWithRetry(
+  apiKey: string,
+  body: Record<string, unknown>,
+  policy?: RouteFallbackPolicyInput
+): Promise<Response> {
+  const result = await executeOpenRouterPolicy(apiKey, body, policy);
+  return result.response;
 }
 
 export async function extractOpenRouterError(response: Response): Promise<string> {
