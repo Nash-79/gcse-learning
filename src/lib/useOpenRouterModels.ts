@@ -14,6 +14,8 @@ export interface OpenRouterModel {
   tags: string[];
   architecture: string;
   tokenizer: string;
+  recommended?: boolean;
+  deprecated?: string;
 }
 
 const CACHE_KEY = "pylearn-openrouter-models-cache";
