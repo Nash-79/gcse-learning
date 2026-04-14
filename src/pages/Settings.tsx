@@ -482,6 +482,41 @@ export default function Settings() {
               </button>
             )}
 
+            {/* Lovable AI Models */}
+            <div className="mb-4">
+              <h4 className="text-sm font-display font-bold text-secondary flex items-center gap-2 mb-3">
+                <Sparkles className="w-4 h-4" /> Lovable AI Models
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-secondary/15 text-secondary font-medium">No API key needed</span>
+              </h4>
+              <div className="space-y-2">
+                {LOVABLE_AI_MODELS.map(m => {
+                  const isSelected = m.id === selectedModel;
+                  return (
+                    <div
+                      key={m.id}
+                      onClick={() => { setSelectedModel(m.id); if (hasAi || currentProvider === "lovable") updateSettings({ model: m.id }); }}
+                      className={`rounded-xl border-2 p-3 transition-all cursor-pointer ${
+                        isSelected
+                          ? "border-secondary/50 bg-secondary/5 shadow-lg shadow-secondary/5"
+                          : "border-border/40 hover:border-secondary/30"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <div className={`w-2 h-2 rounded-full shrink-0 ${isSelected ? "bg-secondary animate-pulse" : "bg-muted-foreground/30"}`} />
+                        <span className="font-display font-bold text-sm">✦ {m.name}</span>
+                        {isSelected && <CheckCircle2 className="w-4 h-4 text-secondary ml-auto" />}
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1 ml-4">{m.description}</p>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <h4 className="text-sm font-display font-bold text-primary flex items-center gap-2 mb-3">
+              <Globe className="w-4 h-4" /> OpenRouter Models
+            </h4>
+
             {/* Model List */}
             <div className="space-y-3 max-h-[700px] overflow-y-auto pr-1">
               {filteredModels.length === 0 ? (
