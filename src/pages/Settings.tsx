@@ -73,7 +73,7 @@ function TagBadge({ tag, size = "sm" }: { tag: string; size?: "sm" | "md" }) {
 const allTags = ["Tools", "Reasoning", "Vision", "Code", "Best Quality"] as const;
 
 export default function Settings() {
-  const { hasAi, maskedKey, model: currentModel, provider: currentProvider, updateSettings } = useAiSettings();
+  const { hasAi, maskedKey, model: currentModel, provider: currentProvider, routePolicies, updateSettings } = useAiSettings();
   const {
     freeModels: dynamicModels,
     loading: modelsLoading,
