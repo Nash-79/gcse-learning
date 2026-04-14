@@ -96,8 +96,7 @@ async function callAI(apiKey: string, body: Record<string, unknown>, isOpenRoute
       body: JSON.stringify(body),
     });
   }
-  const lovableBody = { ...body, model: "google/gemini-2.5-flash" };
-  delete lovableBody.response_format;
+  const { response_format: _rf, ...lovableBody } = { ...body, model: "google/gemini-2.5-flash" } as Record<string, unknown>;
   return fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
     method: "POST",
     headers: {

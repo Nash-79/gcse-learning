@@ -1,32 +1,51 @@
 import { useState, useEffect, useCallback } from "react";
 
 export type AiProvider = "openrouter";
+export type RouteKey = "ai-chat" | "gcse-chat" | "mark-answer";
+
+export interface RoutePolicy {
+  primaryModel: string;
+  fallbackModelIds: string[];
+  maxAttempts: number;
+  retryOn: string[];
+}
 
 interface AiSettings {
   apiKey: string;
   model: string;
   provider: AiProvider;
+  routePolicies?: Partial<Record<RouteKey, RoutePolicy>>;
 }
+
+const STORAGE_KEY = "pylearn-ai-settings";
+
+const DEFAULT_MODEL = "meta-llama/llama-3.3-70b-instruct:free";
 
 function loadSettings(): AiSettings {
   try {
-    const stored = localStorage.getItem("pylearn-ai-settings");
+    const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
       const parsed = JSON.parse(stored);
       const provider = parsed.provider === "lovable" ? "openrouter" : (parsed.provider || "openrouter");
       return {
         apiKey: parsed.apiKey || "",
-        model: parsed.model || "meta-llama/llama-3.3-70b-instruct:free",
+        model: parsed.model || DEFAULT_MODEL,
         provider,
+        routePolicies: parsed.routePolicies || undefined,
       };
     }
   } catch {}
-  return { apiKey: "", model: "meta-llama/llama-3.3-70b-instruct:free", provider: "openrouter" };
+  return { apiKey: "", model: DEFAULT_MODEL, provider: "openrouter" };
 }
 
 function saveSettings(s: AiSettings) {
-  localStorage.setItem("pylearn-ai-settings", JSON.stringify(s));
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
   window.dispatchEvent(new Event("pylearn-ai-settings-update"));
+}
+
+export function getRoutePolicy(routeKey: RouteKey): RoutePolicy | undefined {
+  const settings = loadSettings();
+  return settings.routePolicies?.[routeKey];
 }
 
 export function useAiSettings() {
@@ -55,6 +74,8 @@ export function useAiSettings() {
     maskedKey,
     model: settings.model,
     provider: settings.provider,
+    routePolicies: settings.routePolicies,
     updateSettings,
   };
 }
+
