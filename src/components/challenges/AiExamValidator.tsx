@@ -29,6 +29,7 @@ export function AiExamValidator({
   prefilledCode,
   prefilledTaskDescription,
 }: AiExamValidatorProps) {
+  const { provider: settingsProvider } = useAiSettings();
   const [code, setCode] = useState("");
   const [taskDescription, setTaskDescription] = useState("");
   const [result, setResult] = useState<ValidationResult | null>(null);

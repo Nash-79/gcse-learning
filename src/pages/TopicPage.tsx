@@ -53,6 +53,7 @@ export default function TopicPage() {
   const { slug = "" } = useParams<{ slug: string }>();
   const navigate = useNavigate();
 
+  const { provider: settingsProvider } = useAiSettings();
   const { data: topics, isLoading: topicsLoading } = useListTopics("all");
   const { data: progress } = useGetTopicProgress(slug);
   const updateProgress = useUpdateTopicProgress();
