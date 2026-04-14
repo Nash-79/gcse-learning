@@ -8,10 +8,13 @@ import { useAiSettings } from "@/lib/useAiSettings";
 import { apiFetch } from "@/lib/apiFetch";
 import { useOpenRouterModels } from "@/lib/useOpenRouterModels";
 import { appLog } from "@/lib/appLogger";
+import type { AiResponseMeta } from "@/lib/aiResponseMeta";
+import { extractMeta } from "@/lib/aiResponseMeta";
 
 interface Message {
   role: "user" | "assistant";
   content: string;
+  meta?: AiResponseMeta;
 }
 
 interface AiHelperProps {

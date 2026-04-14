@@ -377,7 +377,7 @@ export default function AiTutor() {
 
             return (
               <div key={i}>
-                <ChatMessage role={msg.role} content={cleanContent} onRegenerate={handleRegenerate} />
+                <ChatMessage role={msg.role} content={cleanContent} onRegenerate={handleRegenerate} meta={msg.meta} />
                 {isLastAssistant && suggestions.length > 0 && (
                   <FollowUpSuggestions
                     suggestions={suggestions}
