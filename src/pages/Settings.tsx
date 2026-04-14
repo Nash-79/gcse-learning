@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from "react";
 import { apiFetch } from "@/lib/apiFetch";
 import { appLog } from "@/lib/appLogger";
 import { motion, AnimatePresence } from "framer-motion";
-import { Settings as SettingsIcon, Key, Bot, Save, CheckCircle2, AlertCircle, Loader2, ExternalLink, Sparkles, Zap, Brain, Code2, Eye, Search, X, ChevronDown, Clock, AlertTriangle, Hash, Server, ShieldAlert, Lock, Users, Globe, Cloud, RefreshCw, Route } from "lucide-react";
+import { Settings as SettingsIcon, Key, Bot, Save, CheckCircle2, AlertCircle, Loader2, ExternalLink, Sparkles, Zap, Brain, Code2, Eye, Search, X, ChevronDown, Clock, AlertTriangle, Hash, Server, ShieldAlert, Lock, Users, Globe, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAiSettings, type RouteKey, type RoutePolicy } from "@/lib/useAiSettings";
@@ -12,7 +12,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useAdminRole } from "@/hooks/useAdminRole";
 import AdminLogViewer from "@/components/admin/AdminLogViewer";
 import AdminUserRoles from "@/components/admin/AdminUserRoles";
-import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
+import { Slider } from "@/components/ui/slider";
 
 interface FreeModel {
   id: string;
