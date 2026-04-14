@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import { apiFetch } from "@/lib/apiFetch";
+import { useAiSettings } from "@/lib/useAiSettings";
 import { appLog } from "@/lib/appLogger";
 import { Sparkles, Loader2, Zap, Flame, Target, Code2, GraduationCap, CheckCircle2, Circle, PlayCircle, Eye, EyeOff, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
