@@ -9,10 +9,13 @@ import { useAiSettings } from "@/lib/useAiSettings";
 import { apiFetch } from "@/lib/apiFetch";
 import { useOpenRouterModels } from "@/lib/useOpenRouterModels";
 import { appLog } from "@/lib/appLogger";
+import type { AiResponseMeta } from "@/lib/aiResponseMeta";
+import { extractMeta } from "@/lib/aiResponseMeta";
 
 interface Message {
   role: "user" | "assistant";
   content: string;
+  meta?: AiResponseMeta;
 }
 
 const CHAT_URL = `/api/gcse-chat`;
@@ -73,6 +76,7 @@ async function streamChat({
   onDelta,
   onDone,
   onError,
+  onMeta,
 }: {
   messages: Message[];
   model?: string;
@@ -80,6 +84,7 @@ async function streamChat({
   onDelta: (text: string) => void;
   onDone: () => void;
   onError: (msg: string) => void;
+  onMeta?: (meta: AiResponseMeta) => void;
 }) {
   const resp = await apiFetch(CHAT_URL, {
     method: "POST",
