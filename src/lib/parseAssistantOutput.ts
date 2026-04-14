@@ -13,13 +13,9 @@ export interface StructuredJson {
 }
 
 function unescapeIfNeeded(input: string): string {
-  const hasEscapedNewline = input.includes("\\n");
-  const hasEscapedQuote = input.includes('\\"');
-  const hasEscapedTab = input.includes("\\t");
-  if (!hasEscapedNewline && !hasEscapedQuote && !hasEscapedTab) {
+  if (!input.includes("\\n") && !input.includes('\\"') && !input.includes("\\t")) {
     return input;
   }
-
   return input
     .replace(/\\n/g, "\n")
     .replace(/\\t/g, "\t")
@@ -30,19 +26,7 @@ function unescapeIfNeeded(input: string): string {
 function looksLikePythonCode(input: string): boolean {
   const text = input.trim();
   if (!text) return false;
-  const signals = [
-    "print(",
-    "input(",
-    "for ",
-    "while ",
-    "if ",
-    "elif ",
-    "else:",
-    "def ",
-    "import ",
-    " = ",
-    "# ",
-  ];
+  const signals = ["print(", "input(", "for ", "while ", "if ", "elif ", "else:", "def ", "import ", " = ", "# "];
   return signals.some((s) => text.includes(s));
 }
 
@@ -81,7 +65,7 @@ export function parseAssistantOutput(text: string): ParsedOutput {
     // Not valid JSON, continue
   }
 
-  // Try extracting JSON from within text (model may wrap it)
+  // Try extracting JSON from within text
   const jsonMatch = text.match(/\{[\s\S]*\}/);
   if (jsonMatch) {
     try {
@@ -99,16 +83,16 @@ export function parseAssistantOutput(text: string): ParsedOutput {
     return { type: "markdown", data: text };
   }
 
-  // Raw content (regular markdown or plain text)
   return { type: "raw", data: text };
 }
 
-/** Convert structured JSON output to clean markdown for rendering */
+/** Convert structured JSON output to clean, well-formatted markdown */
 export function structuredJsonToMarkdown(data: StructuredJson): string {
   const parts: string[] = [];
 
+  // Summary as a highlighted callout
   if (data.summary) {
-    parts.push(data.summary);
+    parts.push(`> ${data.summary}`);
     parts.push("");
   }
 
@@ -130,12 +114,14 @@ export function structuredJsonToMarkdown(data: StructuredJson): string {
   if (data.next_step) {
     parts.push("---");
     parts.push("");
-    parts.push(`**Next Step:** ${data.next_step}`);
+    parts.push(`💡 **Next step:** ${data.next_step}`);
     parts.push("");
   }
 
   if (Array.isArray(data.suggestions) && data.suggestions.length > 0) {
-    parts.push("## Want to keep going?");
+    parts.push("---");
+    parts.push("");
+    parts.push("**Want to keep going?**");
     parts.push("");
     for (const suggestion of data.suggestions) {
       parts.push(`- ${suggestion}`);
@@ -147,11 +133,10 @@ export function structuredJsonToMarkdown(data: StructuredJson): string {
 
 /** Convert structured markdown fallback to clean markdown */
 export function structuredMarkdownToClean(text: string): string {
-  // Strip the MODE: markdown prefix and SUMMARY:/NEXT STEP: labels
   return text
     .replace(/^MODE:\s*markdown\s*\n/, "")
-    .replace(/^SUMMARY:\s*\n/m, "")
-    .replace(/^NEXT STEP:\s*$/m, "**Next Step:**")
-    .replace(/^SUGGESTIONS:\s*$/m, "## Want to keep going?")
+    .replace(/^SUMMARY:\s*\n/m, "> ")
+    .replace(/^NEXT STEP:\s*$/m, "💡 **Next step:**")
+    .replace(/^SUGGESTIONS:\s*$/m, "**Want to keep going?**")
     .trim();
 }
