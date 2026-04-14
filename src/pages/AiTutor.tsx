@@ -140,6 +140,11 @@ async function streamChat({
           onError(String(parsed.error));
           return;
         }
+        // Check for meta event from reliability layer
+        if (parsed?.meta && !parsed?.choices && onMeta) {
+          onMeta(parsed.meta as AiResponseMeta);
+          continue;
+        }
         const content = parsed.choices?.[0]?.delta?.content as string | undefined;
         if (content) onDelta(content);
       } catch {
