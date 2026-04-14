@@ -43,6 +43,7 @@ function gradeOutput(actual: string, expected: string | undefined): { result: "c
 }
 
 export function CodingChallengePanel({ topicSlug, topicTitle }: CodingChallengePanelProps) {
+  const { provider: settingsProvider } = useAiSettings();
   const [selectedDifficulty, setSelectedDifficulty] = useState<ChallengeDifficulty | "all">("all");
   const [selectedChallenge, setSelectedChallenge] = useState<CodingChallenge | null>(null);
   const [showHints, setShowHints] = useState(false);
