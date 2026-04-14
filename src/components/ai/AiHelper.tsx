@@ -10,6 +10,7 @@ import { useOpenRouterModels } from "@/lib/useOpenRouterModels";
 import { appLog } from "@/lib/appLogger";
 import type { AiResponseMeta } from "@/lib/aiResponseMeta";
 import { extractMeta } from "@/lib/aiResponseMeta";
+import { LOVABLE_AI_MODELS } from "@/lib/lovableModels";
 
 interface Message {
   role: "user" | "assistant";
@@ -153,6 +154,13 @@ export function AiHelper({ topicSlug, topicTitle }: AiHelperProps) {
             className="w-full text-xs bg-background border border-border rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary/50"
           >
             <option value={settingsModel}>Settings Default ({settingsModel.split("/").pop()?.replace(":free", "")})</option>
+            <optgroup label="Lovable AI">
+              {LOVABLE_AI_MODELS.map((m) => (
+                <option key={m.id} value={m.id}>
+                  ✦ {m.name}
+                </option>
+              ))}
+            </optgroup>
             <optgroup label="OpenRouter Free">
               {freeModels.map((model) => (
                 <option key={model.id} value={model.id}>
