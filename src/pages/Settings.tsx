@@ -99,6 +99,7 @@ export default function Settings() {
   const [activeProviderFilter, setActiveProviderFilter] = useState<string | null>(null);
   const [showAdminPanel, setShowAdminPanel] = useState(false);
   const [showUserRoles, setShowUserRoles] = useState(false);
+  const [showRoutePolicies, setShowRoutePolicies] = useState(false);
   const availableModels = dynamicModels.length > 0 ? dynamicModels : freeModels;
 
   useEffect(() => {
@@ -619,6 +620,152 @@ export default function Settings() {
                 })
               )}
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Route Policies (Advanced) */}
+        <Card className="rounded-2xl overflow-hidden">
+          <CardContent className="p-6">
+            <button
+              onClick={() => setShowRoutePolicies(!showRoutePolicies)}
+              className="w-full flex items-center justify-between"
+            >
+              <div>
+                <h3 className="text-lg font-display font-bold flex items-center gap-2">
+                  <Server className="w-5 h-5 text-primary" />
+                  Advanced: Route Policies
+                </h3>
+                <p className="text-sm text-muted-foreground text-left mt-1">
+                  Configure per-route fallback models and retry behaviour.
+                </p>
+              </div>
+              <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform ${showRoutePolicies ? "rotate-180" : ""}`} />
+            </button>
+
+            <AnimatePresence>
+              {showRoutePolicies && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="mt-4 space-y-6"
+                >
+                  {(["ai-chat", "gcse-chat", "mark-answer"] as RouteKey[]).map((routeKey) => {
+                    const policy = routePolicies?.[routeKey];
+                    const primaryModel = policy?.primaryModel || currentModel;
+                    const fallbacks = policy?.fallbackModelIds || [];
+                    const maxAttempts = policy?.maxAttempts || 2;
+                    const retryOn = policy?.retryOn || ["429", "500"];
+
+                    const routeLabels: Record<RouteKey, string> = {
+                      "ai-chat": "Topic Helper",
+                      "gcse-chat": "AI Tutor",
+                      "mark-answer": "Exam Marker",
+                    };
+
+                    const updateRoutePolicy = (updates: Partial<RoutePolicy>) => {
+                      const current = routePolicies || {};
+                      const currentPolicy: RoutePolicy = current[routeKey] || {
+                        primaryModel: currentModel,
+                        fallbackModelIds: [],
+                        maxAttempts: 2,
+                        retryOn: ["429", "500"],
+                      };
+                      updateSettings({
+                        routePolicies: {
+                          ...current,
+                          [routeKey]: { ...currentPolicy, ...updates },
+                        },
+                      });
+                    };
+
+                    return (
+                      <div key={routeKey} className="p-4 rounded-xl border border-border/40 bg-muted/10 space-y-3">
+                        <h4 className="text-sm font-display font-bold text-foreground">{routeLabels[routeKey]}</h4>
+                        <p className="text-[11px] text-muted-foreground font-mono">{routeKey}</p>
+
+                        {/* Primary model */}
+                        <div>
+                          <label className="text-xs font-medium text-muted-foreground mb-1 block">Primary Model</label>
+                          <select
+                            value={primaryModel}
+                            onChange={(e) => updateRoutePolicy({ primaryModel: e.target.value })}
+                            className="w-full text-xs bg-background border border-border rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary/50"
+                          >
+                            {availableModels.map((m) => (
+                              <option key={m.id} value={m.id}>{m.name}</option>
+                            ))}
+                          </select>
+                        </div>
+
+                        {/* Fallback models */}
+                        <div>
+                          <label className="text-xs font-medium text-muted-foreground mb-1 block">
+                            Fallback Models ({fallbacks.length} selected)
+                          </label>
+                          <select
+                            multiple
+                            value={fallbacks}
+                            onChange={(e) => {
+                              const selected = Array.from(e.target.selectedOptions, (o) => o.value);
+                              updateRoutePolicy({ fallbackModelIds: selected });
+                            }}
+                            className="w-full text-xs bg-background border border-border rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary/50 min-h-[80px]"
+                          >
+                            {availableModels
+                              .filter((m) => m.id !== primaryModel)
+                              .map((m) => (
+                                <option key={m.id} value={m.id}>{m.name}</option>
+                              ))}
+                          </select>
+                        </div>
+
+                        {/* Max attempts */}
+                        <div>
+                          <label className="text-xs font-medium text-muted-foreground mb-1 block">
+                            Max Attempts: {maxAttempts}
+                          </label>
+                          <Slider
+                            value={[maxAttempts]}
+                            onValueChange={([v]) => updateRoutePolicy({ maxAttempts: v })}
+                            min={1}
+                            max={4}
+                            step={1}
+                            className="w-full"
+                          />
+                        </div>
+
+                        {/* Retry conditions */}
+                        <div>
+                          <label className="text-xs font-medium text-muted-foreground mb-1 block">Retry On</label>
+                          <div className="flex flex-wrap gap-2">
+                            {["429", "500", "timeout"].map((cond) => {
+                              const active = retryOn.includes(cond);
+                              return (
+                                <button
+                                  key={cond}
+                                  onClick={() => {
+                                    const next = active ? retryOn.filter((c) => c !== cond) : [...retryOn, cond];
+                                    updateRoutePolicy({ retryOn: next });
+                                  }}
+                                  className={`text-[11px] px-2.5 py-1 rounded-lg border transition-colors ${
+                                    active
+                                      ? "bg-primary/10 border-primary/30 text-primary font-semibold"
+                                      : "border-border/40 text-muted-foreground hover:border-primary/20"
+                                  }`}
+                                >
+                                  {cond}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </CardContent>
         </Card>
 
