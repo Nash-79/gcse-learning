@@ -1,6 +1,6 @@
 import { Router, Request, Response } from "express";
 import {
-  callOpenRouterWithRetry,
+  executeOpenRouterPolicy,
   extractOpenRouterError,
   resolveApiKey,
 } from "./openrouter.js";
@@ -10,7 +10,7 @@ const router = Router();
 
 router.post("/", async (req: Request, res: Response) => {
   try {
-    const { question, studentAnswer, markScheme, modelAnswer, marks, questionType } = req.body;
+    const { question, studentAnswer, markScheme, modelAnswer, marks, questionType, policy } = req.body;
 
     const apiKey = resolveApiKey(req);
 
@@ -28,7 +28,7 @@ router.post("/", async (req: Request, res: Response) => {
       questionType,
     });
 
-    const response = await callOpenRouterWithRetry(apiKey, {
+    const { response, meta } = await executeOpenRouterPolicy(apiKey, {
       model: "meta-llama/llama-3.3-70b-instruct:free",
       messages: [
         { role: "system", content: MARK_ANSWER_SYSTEM_PROMPT },
@@ -36,20 +36,20 @@ router.post("/", async (req: Request, res: Response) => {
       ],
       response_format: { type: "json_object" },
       max_tokens: 1000,
-    });
+    }, policy);
 
     if (!response.ok) {
       if (response.status === 429) {
-        res.status(429).json({ error: "Rate limit exceeded. Please wait a moment and try again." });
+        res.status(429).json({ error: "Rate limit exceeded. Please wait a moment and try again.", meta });
         return;
       }
       if (response.status === 402) {
-        res.status(402).json({ error: "AI credits exhausted. Please add funds in Settings." });
+        res.status(402).json({ error: "AI credits exhausted. Please add funds in Settings.", meta });
         return;
       }
       const errorText = await extractOpenRouterError(response);
       console.error("AI gateway error:", response.status, errorText);
-      res.status(response.status).json({ error: errorText || `AI gateway error: ${response.status}` });
+      res.status(response.status).json({ error: errorText || `AI gateway error: ${response.status}`, meta });
       return;
     }
 
@@ -74,7 +74,7 @@ router.post("/", async (req: Request, res: Response) => {
       }
     }
 
-    res.json(parsed);
+    res.json({ ...(parsed as Record<string, unknown>), meta });
   } catch (e: unknown) {
     console.error("mark-answer error:", e);
     res.status(500).json({ error: e instanceof Error ? e.message : "Unknown error" });

@@ -30,4 +30,8 @@ export interface TopicTheoryData {
   color: string;
   description: string;
   sections: TheorySection[];
+  spec_code?: "J277" | "8525" | "1CP2" | "C500QS";
+  spec_version?: string;
+  source_url?: string;
+  last_reviewed_at?: string; // YYYY-MM-DD
 }
