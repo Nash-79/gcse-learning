@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 
-export type AiProvider = "openrouter";
+export type AiProvider = "openrouter" | "lovable";
 export type RouteKey = "ai-chat" | "gcse-chat" | "mark-answer";
 
 export interface RoutePolicy {
