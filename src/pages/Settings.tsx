@@ -302,6 +302,40 @@ export default function Settings() {
           </CardContent>
         </Card>
 
+        {/* Test Connection for Lovable AI */}
+        {currentProvider === "lovable" && (
+          <Card className="rounded-2xl overflow-hidden">
+            <CardContent className="p-6">
+              <h3 className="text-lg font-display font-bold mb-1 flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-secondary" />
+                Lovable AI Connection
+              </h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Built-in AI powered by Gemini. No API key needed — always available.
+              </p>
+              <div className="flex gap-3">
+                <Button variant="outline" onClick={testConnection} disabled={testing} className="gap-2 rounded-xl">
+                  {testing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Bot className="w-4 h-4" />}
+                  Test Connection
+                </Button>
+              </div>
+              <AnimatePresence>
+                {status !== "idle" && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
+                    className={`mt-3 flex items-center gap-2 text-sm px-4 py-2.5 rounded-xl border ${
+                      status === "success" ? "bg-green-500/10 text-green-500 border-green-500/20" : "bg-destructive/10 text-destructive border-destructive/20"
+                    }`}
+                  >
+                    {status === "success" ? <CheckCircle2 className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+                    {statusMsg}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </CardContent>
+          </Card>
+        )}
+
         {/* API Key Section — only show for OpenRouter */}
         {currentProvider === "openrouter" && (
           <Card className="rounded-2xl overflow-hidden">
