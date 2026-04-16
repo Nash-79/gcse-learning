@@ -125,6 +125,20 @@
   background: hsl(var(--muted-foreground) / 0.4);
 }
 
+/* ── Flashcard 3D flip ─────────────────────────────────────────────────── */
+.flashcard-scene {
+  perspective: 800px;
+}
+.flashcard-inner {
+  transform-style: preserve-3d;
+}
+.flashcard-face {
+  backface-visibility: hidden;
+}
+.flashcard-face--back {
+  transform: rotateY(180deg);
+}
+
 @layer utilities {
   .font-display {
     font-family: 'Outfit', sans-serif;

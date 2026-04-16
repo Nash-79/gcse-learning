@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 420" role="img" aria-labelledby="cpu-title cpu-desc">
+  <title id="cpu-title">CPU Internal Components</title>
+  <desc id="cpu-desc">Block diagram showing the internal components of a CPU: Control Unit, ALU, Cache, and Registers, all connected inside the CPU boundary.</desc>
+
+  <!-- Background -->
+  <rect width="760" height="420" fill="#F8FAFC" rx="12"/>
+
+  <!-- Title -->
+  <text x="380" y="36" font-family="Arial, sans-serif" font-size="17" font-weight="bold" fill="#1E293B" text-anchor="middle">CPU Internal Components</text>
+
+  <!-- CPU outer boundary -->
+  <rect x="60" y="56" width="640" height="340" rx="14" fill="#EFF6FF" stroke="#3B82F6" stroke-width="2.5" stroke-dasharray="8,4"/>
+  <text x="100" y="80" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#3B82F6">CPU</text>
+
+  <!-- Control Unit (CU) -->
+  <rect x="88" y="100" width="168" height="110" rx="10" fill="#DBEAFE" stroke="#3B82F6" stroke-width="2"/>
+  <text x="172" y="148" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#1D4ED8" text-anchor="middle">Control Unit</text>
+  <text x="172" y="166" font-family="Arial, sans-serif" font-size="11" fill="#3B82F6" text-anchor="middle">(CU)</text>
+  <text x="172" y="188" font-family="Arial, sans-serif" font-size="10" fill="#6B7280" text-anchor="middle">Fetches, decodes &amp;</text>
+  <text x="172" y="202" font-family="Arial, sans-serif" font-size="10" fill="#6B7280" text-anchor="middle">directs operations</text>
+
+  <!-- ALU -->
+  <rect x="296" y="100" width="168" height="110" rx="10" fill="#F3E8FF" stroke="#8B5CF6" stroke-width="2"/>
+  <text x="380" y="148" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#6D28D9" text-anchor="middle">Arithmetic Logic</text>
+  <text x="380" y="166" font-family="Arial, sans-serif" font-size="11" fill="#8B5CF6" text-anchor="middle">Unit (ALU)</text>
+  <text x="380" y="188" font-family="Arial, sans-serif" font-size="10" fill="#6B7280" text-anchor="middle">Arithmetic &amp; logic</text>
+  <text x="380" y="202" font-family="Arial, sans-serif" font-size="10" fill="#6B7280" text-anchor="middle">operations</text>
+
+  <!-- Cache -->
+  <rect x="504" y="100" width="168" height="110" rx="10" fill="#ECFDF5" stroke="#10B981" stroke-width="2"/>
+  <text x="588" y="155" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#065F46" text-anchor="middle">Cache</text>
+  <text x="588" y="176" font-family="Arial, sans-serif" font-size="10" fill="#6B7280" text-anchor="middle">Ultra-fast temporary</text>
+  <text x="588" y="190" font-family="Arial, sans-serif" font-size="10" fill="#6B7280" text-anchor="middle">storage inside CPU</text>
+
+  <!-- Registers -->
+  <rect x="220" y="256" width="320" height="110" rx="10" fill="#FEF3C7" stroke="#F59E0B" stroke-width="2"/>
+  <text x="380" y="295" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#92400E" text-anchor="middle">Registers</text>
+  <text x="380" y="315" font-family="Arial, sans-serif" font-size="10" fill="#6B7280" text-anchor="middle">Ultra-fast storage for current data &amp; addresses</text>
+  <text x="310" y="340" font-family="Arial, sans-serif" font-size="9.5" fill="#92400E" text-anchor="middle">PC</text>
+  <text x="355" y="340" font-family="Arial, sans-serif" font-size="9.5" fill="#92400E" text-anchor="middle">MAR</text>
+  <text x="405" y="340" font-family="Arial, sans-serif" font-size="9.5" fill="#92400E" text-anchor="middle">MDR</text>
+  <text x="455" y="340" font-family="Arial, sans-serif" font-size="9.5" fill="#92400E" text-anchor="middle">CIR</text>
+  <rect x="296" y="325" width="30" height="18" rx="4" fill="#FDE68A" stroke="#F59E0B" stroke-width="1"/>
+  <rect x="339" y="325" width="32" height="18" rx="4" fill="#FDE68A" stroke="#F59E0B" stroke-width="1"/>
+  <rect x="388" y="325" width="32" height="18" rx="4" fill="#FDE68A" stroke="#F59E0B" stroke-width="1"/>
+  <rect x="438" y="325" width="28" height="18" rx="4" fill="#FDE68A" stroke="#F59E0B" stroke-width="1"/>
+
+  <!-- Arrows: CU ↔ ALU -->
+  <line x1="256" y1="155" x2="296" y2="155" stroke="#94A3B8" stroke-width="1.8" marker-end="url(#arrow)" marker-start="url(#arrowR)"/>
+  <!-- Arrows: ALU ↔ Cache -->
+  <line x1="464" y1="155" x2="504" y2="155" stroke="#94A3B8" stroke-width="1.8" marker-end="url(#arrow)" marker-start="url(#arrowR)"/>
+  <!-- Arrows: Components → Registers -->
+  <line x1="172" y1="210" x2="310" y2="256" stroke="#94A3B8" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="380" y1="210" x2="380" y2="256" stroke="#94A3B8" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="588" y1="210" x2="450" y2="256" stroke="#94A3B8" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- Arrow markers -->
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#94A3B8"/>
+    </marker>
+    <marker id="arrowR" markerWidth="8" markerHeight="8" refX="2" refY="3" orient="auto-start-reverse">
+      <path d="M0,0 L0,6 L8,3 z" fill="#94A3B8"/>
+    </marker>
+  </defs>
+
+  <!-- Legend note -->
+  <text x="380" y="408" font-family="Arial, sans-serif" font-size="10" fill="#9CA3AF" text-anchor="middle">OCR J277 1.1a — AQA 8525 3.4</text>
+</svg>

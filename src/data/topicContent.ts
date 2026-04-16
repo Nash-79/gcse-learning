@@ -12,6 +12,7 @@ import { variablesConstants } from "./topics/variablesConstants";
 import { inputOutputConcatenation } from "./topics/inputOutputConcatenation";
 
 import { introToPython } from "./topics/introToPython";
+import { searchingSorting } from "./topics/searchingSorting";
 
 export type Difficulty = "easy" | "medium" | "hard";
 export type StepDifficulty = "beginner" | "intermediate" | "hard";
@@ -110,7 +111,7 @@ print("Grade:", grade, "out of 10")`
       { question: "Which line will cause an error?", options: ["age = '15'", "score = 99.5", "2name = 'Jo'", "is_valid = False"], correctIndex: 2, explanation: "Variable names cannot start with a digit. '2name' is invalid.", hint: "One of these breaks a naming rule about the first character.", difficulty: "hard" },
       { question: "After running: a = 5; b = a; a = 10 — what is b?", options: ["5", "10", "15", "Error"], correctIndex: 0, explanation: "b was assigned the value of a (5) at that moment. Changing a afterwards does not affect b.", hint: "Assignment copies the current value, it doesn't create a link.", difficulty: "hard" }
     ]
-  },
+  },
 
   "iteration": {
     topicSlug: "iteration",
@@ -985,4 +986,5 @@ else:
   "variables-constants": variablesConstants,
   "input-output-casting": { ...inputOutputConcatenation, topicSlug: "input-output-casting" },
   "intro-to-python": introToPython,
+  "searching-sorting": searchingSorting,
 };

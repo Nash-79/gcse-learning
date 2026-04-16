@@ -279,4 +279,264 @@ export const paper2Questions: ExamQuestion[] = [
     modelAnswer: "Value cannot be accidentally changed / makes program more reliable/secure (1).",
     markScheme: ["Cannot be accidentally changed / more reliable (1)"],
   },
+
+  // ── Programming Languages & IDEs (expanding from 2 to 10) ──────────────────
+  {
+    id: "p2-pi-003", question: "Explain the difference between a compiler and an interpreter.", marks: 4, difficulty: "mixed", topic: "Programming Languages & IDEs", paper: "2", type: "explain",
+    correctAnswer: "A compiler translates the entire source code into machine code in one go, producing an executable file. An interpreter translates and executes the source code line by line. Compiled programs run faster; interpreted programs are easier to debug.",
+    modelAnswer: "Compiler: translates whole program at once (1), produces standalone executable (1). Interpreter: translates line by line (1), stops at first error making debugging easier (1).",
+    markScheme: [
+      "Compiler translates entire program at once (1)",
+      "Compiler produces standalone executable / faster at runtime (1)",
+      "Interpreter translates line by line (1)",
+      "Interpreter easier to debug / stops at first error (1)",
+    ],
+  },
+  {
+    id: "p2-pi-004", question: "Explain what an assembler does and state one advantage of using assembly language over machine code.", marks: 3, difficulty: "mixed", topic: "Programming Languages & IDEs", paper: "2", type: "explain",
+    correctAnswer: "An assembler converts assembly language (mnemonics) into machine code (binary). Assembly language uses human-readable mnemonics like MOV and ADD instead of binary, making it easier to write and understand than pure machine code.",
+    modelAnswer: "Assembler converts assembly language/mnemonics into machine code/binary (2). Advantage: easier to read/write than machine code / uses meaningful mnemonics (1).",
+    markScheme: [
+      "Assembler translates assembly language into machine code (1)",
+      "Assembly uses mnemonics not binary (1)",
+      "Advantage: easier to read/write/understand than machine code (1)",
+    ],
+  },
+  {
+    id: "p2-pi-005", question: "State four features that an IDE provides to help a programmer write and debug code.", marks: 4, difficulty: "foundation", topic: "Programming Languages & IDEs", paper: "2", type: "short",
+    correctAnswer: "Auto-completion, syntax highlighting, error highlighting/debugging, breakpoints/step-through execution, variable watch window, code templates/snippets.",
+    modelAnswer: "Any four from: auto-completion (1), syntax highlighting (1), error highlighting / debugging tools (1), breakpoints / step-through execution (1), run/execute button (1), variable watch window (1). 1 mark each.",
+    markScheme: [
+      "Auto-completion / intellisense (1)",
+      "Syntax highlighting (1)",
+      "Error highlighting / live error detection (1)",
+      "Debugger / breakpoints / step-through (1)",
+      "Variable watch / inspector (1)",
+      "Run/build/execute facility (1)",
+    ],
+  },
+  {
+    id: "p2-pi-006", question: "Give two advantages and one disadvantage of using a high-level language compared to a low-level language.", marks: 3, difficulty: "mixed", topic: "Programming Languages & IDEs", paper: "2", type: "explain",
+    correctAnswer: "Advantages: easier to read and write; portable across different hardware. Disadvantage: less control over hardware / slower execution than low-level code.",
+    modelAnswer: "Advantage 1: easier to read/write/understand (1). Advantage 2: portable/works on different hardware (1). Disadvantage: less direct control over hardware / slower / needs translator (1).",
+    markScheme: [
+      "Advantage: easier to read / write / understand (1)",
+      "Advantage: portable across different processors/platforms (1)",
+      "Disadvantage: less control over hardware / slower / requires translator (1)",
+    ],
+  },
+  {
+    id: "p2-pi-007", question: "A programmer writes code in Python. Explain whether Python uses a compiler or an interpreter, and state one consequence of this for the programmer.", marks: 3, difficulty: "mixed", topic: "Programming Languages & IDEs", paper: "2", type: "explain",
+    correctAnswer: "Python uses an interpreter, which translates and executes code line by line. A consequence is that the program will stop at the first error encountered, making it easier to locate bugs.",
+    modelAnswer: "Python uses an interpreter (1) which translates line by line / at runtime (1). Consequence: program stops at first error making it easy to find bugs / no separate compile step needed (1).",
+    markScheme: [
+      "Python uses an interpreter (1)",
+      "Interpreter translates line by line / at runtime (1)",
+      "Consequence: stops at first error / easier to debug / no compile step (1)",
+    ],
+  },
+  {
+    id: "p2-pi-008", question: "Explain what is meant by 'machine code' and why processors can only execute machine code.", marks: 3, difficulty: "mixed", topic: "Programming Languages & IDEs", paper: "2", type: "explain",
+    correctAnswer: "Machine code is a set of binary instructions (0s and 1s) that the CPU can directly understand and execute. Processors can only execute machine code because the processor's circuits are designed to interpret specific binary patterns as operations.",
+    modelAnswer: "Machine code is binary/0s and 1s (1) that the CPU can directly execute (1). Processors are built with circuits that only recognise binary patterns / all other languages must be translated (1).",
+    markScheme: [
+      "Machine code is binary / 0s and 1s (1)",
+      "CPU can directly execute machine code without translation (1)",
+      "Processor circuits only understand binary / other languages need translator (1)",
+    ],
+  },
+  {
+    id: "p2-pi-009", question: "State two advantages of using an IDE's debugger over adding print statements to find errors.", marks: 2, difficulty: "challenge", topic: "Programming Languages & IDEs", paper: "2", type: "short",
+    correctAnswer: "A debugger allows you to pause execution at any line (breakpoint) and inspect all variable values at once, without modifying the code. Print statements require code changes and only show values you think to print.",
+    modelAnswer: "Any two from: can inspect all variables at once without changing code (1); can step through code line by line (1); can set breakpoints at any line (1); no need to remove debug code afterwards (1).",
+    markScheme: [
+      "Can inspect all variables without modifying code (1)",
+      "Can step through execution line by line (1)",
+      "Can set breakpoints to pause at a specific line (1)",
+      "No need to remove debug statements afterwards (1)",
+    ],
+  },
+  {
+    id: "p2-pi-010", question: "Explain why a programmer might choose to write a program in assembly language rather than a high-level language. Give two reasons.", marks: 4, difficulty: "challenge", topic: "Programming Languages & IDEs", paper: "2", type: "explain",
+    correctAnswer: "Assembly language gives direct control over hardware registers and memory, so it can be more efficient. It produces very fast, compact code which is important for embedded systems or device drivers where memory and speed are critical.",
+    modelAnswer: "Reason 1: direct control over hardware/registers/memory (1) — useful for device drivers/embedded systems (1). Reason 2: produces faster/more efficient code (1) — important where resources are limited (1).",
+    markScheme: [
+      "Direct control over hardware / CPU registers / memory (1)",
+      "Context: device drivers / embedded systems / where hardware control needed (1)",
+      "Produces faster / more memory-efficient code (1)",
+      "Context: limited resources / real-time systems (1)",
+    ],
+  },
+
+  // ── Boolean Logic (expanding from 4 to 10) ─────────────────────────────────
+  {
+    id: "p2-bl-004", question: "Complete the truth table for A OR B.\n\nA | B | Output\n0 | 0 | ?\n0 | 1 | ?\n1 | 0 | ?\n1 | 1 | ?", marks: 2, difficulty: "foundation", topic: "Boolean Logic", paper: "2", type: "short",
+    correctAnswer: "0, 1, 1, 1",
+    modelAnswer: "A=0,B=0→0 (½); A=0,B=1→1 (½); A=1,B=0→1 (½); A=1,B=1→1 (½). All four correct = 2 marks; any two correct = 1 mark.",
+    markScheme: [
+      "All four rows correct: 0, 1, 1, 1 (2)",
+      "2–3 rows correct (1)",
+    ],
+  },
+  {
+    id: "p2-bl-005", question: "Complete the truth table for NOT A.\n\nA | NOT A\n0 | ?\n1 | ?", marks: 1, difficulty: "foundation", topic: "Boolean Logic", paper: "2", type: "short",
+    correctAnswer: "1, 0",
+    modelAnswer: "A=0→1; A=1→0. Both correct (1).",
+    markScheme: ["Both rows correct: 1, 0 (1)"],
+  },
+  {
+    id: "p2-bl-006", question: "Draw the logic gate symbols for AND, OR and NOT gates and label each one.", marks: 3, difficulty: "foundation", topic: "Boolean Logic", paper: "2", type: "short",
+    correctAnswer: "AND: D-shape with flat left edge. OR: curved shield shape. NOT: triangle with circle (bubble) at output. Each correctly drawn and labelled.",
+    modelAnswer: "Correct AND gate symbol and label (1). Correct OR gate symbol and label (1). Correct NOT gate symbol and label (1).",
+    markScheme: [
+      "AND gate: correct D-shape with label (1)",
+      "OR gate: correct curved shape with label (1)",
+      "NOT gate: triangle with bubble at output with label (1)",
+    ],
+  },
+  {
+    id: "p2-bl-007", question: "Evaluate the Boolean expression: Q = (A AND B) OR (NOT C)\nfor A=1, B=0, C=0.", marks: 3, difficulty: "mixed", topic: "Boolean Logic", paper: "2", type: "short",
+    correctAnswer: "A AND B = 1 AND 0 = 0. NOT C = NOT 0 = 1. Q = 0 OR 1 = 1.",
+    modelAnswer: "A AND B = 0 (1). NOT C = 1 (1). Q = 0 OR 1 = 1 (1).",
+    markScheme: [
+      "A AND B = 0 (1)",
+      "NOT C = 1 (1)",
+      "Q = 1 (1)",
+    ],
+  },
+  {
+    id: "p2-bl-008", question: "Complete the full truth table for: Q = A AND (NOT B)\n\nA | B | NOT B | Q\n0 | 0 | ? | ?\n0 | 1 | ? | ?\n1 | 0 | ? | ?\n1 | 1 | ? | ?", marks: 3, difficulty: "mixed", topic: "Boolean Logic", paper: "2", type: "short",
+    correctAnswer: "NOT B: 1,0,1,0. Q: 0,0,1,0.",
+    modelAnswer: "NOT B column: 1,0,1,0 (1). Q column: 0,0,1,0 (1). All correct with working shown (1).",
+    markScheme: [
+      "NOT B column all correct: 1, 0, 1, 0 (1)",
+      "Q column all correct: 0, 0, 1, 0 (1)",
+      "All values correct with evidence of method (1)",
+    ],
+  },
+  {
+    id: "p2-bl-009", question: "A security system output Q is described by: Q = (A OR B) AND (NOT C). Construct the full truth table for all combinations of A, B and C.", marks: 4, difficulty: "challenge", topic: "Boolean Logic", paper: "2", type: "short",
+    correctAnswer: "8 rows. A OR B gives 0,1,1,1,1,1,1,1. NOT C gives 1,1,0,0,1,1,0,0. Q = (A OR B) AND (NOT C): 0,1,0,0,1,1,0,0.",
+    modelAnswer: "Correct 8-row table with columns A,B,C,A OR B,NOT C,Q (1). A OR B column correct (1). NOT C column correct (1). Final Q column correct (1).",
+    markScheme: [
+      "8 rows with all input combinations listed (A,B,C from 000 to 111) (1)",
+      "A OR B intermediate column correct (1)",
+      "NOT C intermediate column correct (1)",
+      "Q column correct: 0,1,0,0,1,1,0,0 (1)",
+    ],
+  },
+
+  // ── Producing Robust Programs (expanding from 5 to 11) ─────────────────────
+  {
+    id: "p2-rp-005", question: "Explain the difference between a runtime error and a logic error, giving an example of each.", marks: 4, difficulty: "mixed", topic: "Producing Robust Programs", paper: "2", type: "explain",
+    correctAnswer: "A runtime error occurs while the program is running and causes it to crash (e.g. dividing by zero). A logic error does not crash the program but produces incorrect output (e.g. using + instead of * in a calculation).",
+    modelAnswer: "Runtime error: occurs during execution (1), causes program to crash / example: divide by zero, index out of range (1). Logic error: program runs but gives wrong output (1), example: wrong operator / off-by-one in loop (1).",
+    markScheme: [
+      "Runtime error: occurs during execution / causes crash (1)",
+      "Runtime error example: divide by zero / accessing invalid index (1)",
+      "Logic error: program runs but output is incorrect (1)",
+      "Logic error example: wrong operator / incorrect loop condition (1)",
+    ],
+  },
+  {
+    id: "p2-rp-006", question: "Write Python code to validate that a user enters a whole number that is either 1, 2 or 3.", marks: 4, difficulty: "mixed", topic: "Producing Robust Programs", paper: "2", type: "code",
+    correctAnswer: "choice = int(input('Enter 1, 2 or 3: '))\nwhile choice not in [1, 2, 3]:\n    print('Invalid input.')\n    choice = int(input('Enter 1, 2 or 3: '))\nprint('Valid:', choice)",
+    modelAnswer: "Input with prompt (1). Loop/condition checking value is in {1,2,3} (1). Error message inside loop (1). Re-prompts for input inside loop (1).",
+    markScheme: [
+      "Reads input and converts to integer (1)",
+      "Checks value is in [1, 2, 3] / valid range (1)",
+      "Loop repeats while invalid (1)",
+      "Re-prompts for input inside loop (1)",
+    ],
+  },
+  {
+    id: "p2-rp-007", question: "Explain what is meant by 'defensive design' in programming and give two techniques used.", marks: 4, difficulty: "mixed", topic: "Producing Robust Programs", paper: "2", type: "explain",
+    correctAnswer: "Defensive design means writing code that anticipates and handles unexpected or invalid inputs to prevent crashes and security vulnerabilities. Techniques include: input validation (checking inputs are in range/correct type) and authentication (requiring passwords to access features).",
+    modelAnswer: "Defensive design: writing code to handle unexpected inputs / prevent errors/crashes (1). Technique 1: input validation — checking input is correct type/range (1). Technique 2: authentication — verifying user identity before access (1). Third technique for full marks: sanitisation of inputs (1).",
+    markScheme: [
+      "Defensive design: anticipating/handling invalid inputs to prevent errors (1)",
+      "Technique 1: input validation / checking type and range (1)",
+      "Technique 2: authentication / access control (1)",
+      "Technique 3 or elaboration: input sanitisation / error handling (1)",
+    ],
+  },
+  {
+    id: "p2-rp-008", question: "Explain the purpose of using test data when testing a program. Describe what is meant by normal, boundary and erroneous test data, with an example of each for a program that accepts ages 0–120.", marks: 6, difficulty: "challenge", topic: "Producing Robust Programs", paper: "2", type: "explain",
+    correctAnswer: "Testing ensures the program works correctly for all inputs. Normal: typical valid input (e.g. 25). Boundary: values at the edge of the valid range (e.g. 0 and 120). Erroneous: data that should be rejected (e.g. -5 or 200 or 'abc').",
+    modelAnswer: "Purpose: to verify program produces correct output for all input types (1). Normal: valid input within range e.g. 25 (1). Boundary: at the edges of valid range e.g. 0 and 120 (1). Erroneous: input outside valid range or wrong type e.g. -1, 200, or 'abc' (1). Boundary tests limits/edge cases (1). Erroneous tests rejection of invalid data (1).",
+    markScheme: [
+      "Purpose: verifies correct output for different input types (1)",
+      "Normal: valid typical value e.g. 25 (1)",
+      "Boundary: edge of valid range e.g. 0 or 120 (1)",
+      "Erroneous: invalid value that should be rejected e.g. -5 or 200 or 'abc' (1)",
+      "Boundary tests program behaves correctly at limits (1)",
+      "Erroneous tests program correctly rejects invalid inputs (1)",
+    ],
+  },
+  {
+    id: "p2-rp-009", question: "Look at this code:\n\ndef divide(a, b):\n    return a / b\n\nresult = divide(10, 0)\nprint(result)\n\nIdentify the type of error and explain how to fix it.", marks: 3, difficulty: "mixed", topic: "Producing Robust Programs", paper: "2", type: "explain",
+    correctAnswer: "This is a runtime error (ZeroDivisionError). It can be fixed by adding a check before dividing: if b == 0: return None (or print an error). Alternatively, use a try/except block to catch the ZeroDivisionError.",
+    modelAnswer: "Runtime error / ZeroDivisionError (1). Fix: check if b == 0 before dividing (1). Alternative fix: try/except to handle the exception (1).",
+    markScheme: [
+      "Runtime error / ZeroDivisionError (1)",
+      "Fix: check if b == 0 before dividing / guard clause (1)",
+      "Or: try/except ZeroDivisionError (1)",
+    ],
+  },
+  {
+    id: "p2-rp-010", question: "Explain why programs should be thoroughly tested before release. State two consequences of releasing software with bugs.", marks: 4, difficulty: "foundation", topic: "Producing Robust Programs", paper: "2", type: "explain",
+    correctAnswer: "Testing ensures the software works correctly, is reliable, and secure. Consequences of releasing buggy software include: loss of user trust/reputation damage, financial cost of fixing bugs after release, security vulnerabilities that could be exploited, or data loss.",
+    modelAnswer: "Testing ensures software is correct/reliable/secure before users depend on it (2). Consequence 1: damage to reputation / loss of user trust (1). Consequence 2: security vulnerabilities / data loss / financial cost (1).",
+    markScheme: [
+      "Ensures software is correct / reliable / works as intended (1)",
+      "Ensures software is secure / no vulnerabilities (1)",
+      "Consequence 1: damage to reputation / loss of trust (1)",
+      "Consequence 2: security vulnerability exploited / data loss / costly patches (1)",
+    ],
+  },
+
+  // ── Algorithms (expanding from 6 to 10) ────────────────────────────────────
+  {
+    id: "p2-al-007", question: "Trace through one complete pass of bubble sort on the list: [5, 3, 8, 1, 9, 2]\nShow the list after each swap.", marks: 4, difficulty: "mixed", topic: "Algorithms", paper: "2", type: "short",
+    correctAnswer: "Compare 5,3 → swap → [3,5,8,1,9,2]. Compare 5,8 → no swap. Compare 8,1 → swap → [3,5,1,8,9,2]. Compare 8,9 → no swap. Compare 9,2 → swap → [3,5,1,8,2,9].",
+    modelAnswer: "[3,5,8,1,9,2] after first swap (1). [3,5,1,8,9,2] after third swap (1). [3,5,1,8,2,9] after final swap (1). Correctly identifies 3 swaps in first pass (1).",
+    markScheme: [
+      "[3,5,8,1,9,2] — first swap of 5 and 3 (1)",
+      "[3,5,1,8,9,2] — swap of 8 and 1 (1)",
+      "[3,5,1,8,2,9] — swap of 9 and 2 (1)",
+      "Correct number of comparisons (6) identified (1)",
+    ],
+  },
+  {
+    id: "p2-al-008", question: "Explain what is meant by the time complexity of an algorithm. State the time complexity of linear search and binary search in terms of n (the number of items).", marks: 4, difficulty: "challenge", topic: "Algorithms", paper: "2", type: "explain",
+    correctAnswer: "Time complexity describes how the running time of an algorithm grows as the input size n increases. Linear search is O(n) — worst case checks every item. Binary search is O(log n) — halves the search space each step.",
+    modelAnswer: "Time complexity: how running time scales/grows with input size n (2). Linear search: O(n) / worst case checks all n items (1). Binary search: O(log n) / halves search space each step (1).",
+    markScheme: [
+      "Time complexity: how running time grows with input size (1)",
+      "Measured in terms of worst/average case number of operations (1)",
+      "Linear search: O(n) — checks up to n items (1)",
+      "Binary search: O(log n) — halves search space each step (1)",
+    ],
+  },
+  {
+    id: "p2-al-009", question: "Write pseudocode for a function that uses linear search to find a target value in a list called 'items'. The function should return the index of the target or -1 if not found.", marks: 4, difficulty: "mixed", topic: "Algorithms", paper: "2", type: "short",
+    correctAnswer: "FUNCTION linearSearch(items, target)\n  FOR i = 0 TO LEN(items) - 1\n    IF items[i] == target THEN\n      RETURN i\n    ENDIF\n  ENDFOR\n  RETURN -1\nENDFUNCTION",
+    modelAnswer: "Function/procedure definition with parameters (1). Loop through all elements (1). Comparison of each element to target (1). Return index if found, -1 if not found (1).",
+    markScheme: [
+      "Function with appropriate parameters (items, target) (1)",
+      "Loop iterating through all elements (1)",
+      "Comparison of element to target (1)",
+      "Return index on match; return -1 if loop completes without match (1)",
+    ],
+  },
+  {
+    id: "p2-al-010", question: "A sorted list contains 1024 items. What is the maximum number of comparisons needed to find an item using binary search? Show your working.", marks: 3, difficulty: "challenge", topic: "Algorithms", paper: "2", type: "short",
+    correctAnswer: "Binary search halves the list each step. 1024 → 512 → 256 → 128 → 64 → 32 → 16 → 8 → 4 → 2 → 1. That is 10 steps. log₂(1024) = 10 comparisons maximum.",
+    modelAnswer: "log₂(1024) = 10 (1). Shows halving: 1024→512→...→1 taking 10 steps (1). States maximum 10 comparisons (1).",
+    markScheme: [
+      "Method: log₂(n) or repeated halving shown (1)",
+      "log₂(1024) = 10 or 10 halving steps shown (1)",
+      "Answer: 10 comparisons maximum (1)",
+    ],
+  },
 ];

@@ -150,6 +150,54 @@ export const paper1Questions: ExamQuestion[] = [
     modelAnswer: "A compiler translates all the source code at once (1) and produces an executable/object file (1). An interpreter translates one line/instruction at a time (1) and executes it immediately without producing a separate file (1).",
     markScheme: ["Compiler: translates entire code at once (1)", "Compiler: produces executable file (1)", "Interpreter: translates one line at a time (1)", "Interpreter: executes immediately / no separate file (1)"],
   },
+  {
+    id: "p1-ss-003", question: "Give two advantages of using an interpreter over a compiler during program development.", marks: 2, difficulty: "foundation", topic: "Systems Software", paper: "1", type: "short",
+    correctAnswer: "Interpreter stops at the first error, making it easier to find bugs. No separate compilation step is needed before running the code.",
+    modelAnswer: "Stops immediately when it finds an error, making it easier to identify which line has the bug (1). No compilation step is needed — code can be tested immediately as it is written (1).",
+    markScheme: ["Stops at first error / easier to debug (1)", "No compilation step needed / run immediately (1)"],
+  },
+  {
+    id: "p1-ss-004", question: "Describe what utility software is and give two examples.", marks: 3, difficulty: "foundation", topic: "Systems Software", paper: "1", type: "explain",
+    correctAnswer: "Utility software performs maintenance tasks to keep the computer running efficiently. Examples include antivirus software and disk defragmentation software.",
+    modelAnswer: "Software that performs maintenance/housekeeping tasks to keep the computer running efficiently (1). Example 1: antivirus — detects and removes malware (1). Example 2: disk defragmenter — reorganises fragmented files on a HDD for faster access (1).",
+    markScheme: ["Utility software: performs maintenance/housekeeping tasks (1)", "Valid example 1 with description (1)", "Valid example 2 with description (1) — antivirus, defragmenter, backup, compression, encryption all valid"],
+  },
+  {
+    id: "p1-ss-005", question: "Explain why disk defragmentation software should NOT be used on a solid state drive (SSD).", marks: 2, difficulty: "mixed", topic: "Systems Software", paper: "1", type: "explain",
+    correctAnswer: "SSDs have no moving parts and access all locations equally fast, so defragmentation provides no performance benefit. Running it also causes unnecessary write cycles, shortening the SSD's lifespan.",
+    modelAnswer: "SSDs have no moving parts / access all locations equally fast (1), so there is no performance benefit from defragmenting. Running defragmentation causes unnecessary read/write cycles which reduces the SSD's lifespan (1).",
+    markScheme: ["No benefit as SSDs access data equally fast / no seek time (1)", "Causes unnecessary write cycles / reduces SSD lifespan (1)"],
+  },
+  {
+    id: "p1-ss-006", question: "State two differences between lossy and lossless compression.", marks: 4, difficulty: "mixed", topic: "Systems Software", paper: "1", type: "explain",
+    correctAnswer: "Lossy compression permanently removes some data, so the original cannot be recovered. Lossless compression reduces file size without losing any data, allowing the original to be perfectly restored.",
+    modelAnswer: "Lossy: data is permanently removed / cannot recover original file (1). Lossless: no data is lost / original can be perfectly restored (1). Lossy produces smaller files (1). Lossless is suitable for text/data files where accuracy is essential (1).",
+    markScheme: ["Lossy: data permanently removed (1)", "Lossless: no data lost / original recoverable (1)", "Lossy produces smaller files (1)", "Lossless used for text/code/data (1) — any two clear differences for 4 marks"],
+  },
+  {
+    id: "p1-ss-007", question: "A 24-bit colour image has a resolution of 1200 × 900 pixels. Calculate the file size in megabytes (MB). Show your working.", marks: 4, difficulty: "challenge", topic: "Systems Software", paper: "1", type: "short",
+    correctAnswer: "File size = 1200 × 900 × 24 = 25,920,000 bits. ÷ 8 = 3,240,000 bytes. ÷ 1024 = 3164 KB. ÷ 1024 ≈ 3.09 MB.",
+    modelAnswer: "1200 × 900 × 24 = 25,920,000 bits (1). ÷ 8 = 3,240,000 bytes (1). ÷ 1024 = 3164 KB (1). ÷ 1024 ≈ 3.09 MB (1).",
+    markScheme: ["Correct multiplication of width × height × colour depth (1)", "Correct conversion to bytes ÷8 (1)", "Correct conversion to KB ÷1024 (1)", "Correct final MB answer (accept 3.09–3.10 MB) (1)"],
+  },
+  {
+    id: "p1-ss-008", question: "Explain the purpose of virtual memory.", marks: 3, difficulty: "mixed", topic: "Systems Software", paper: "1", type: "explain",
+    correctAnswer: "Virtual memory uses part of the secondary storage (hard drive or SSD) as an extension of RAM. When RAM is full, the operating system moves some data to the disk temporarily, allowing more programs to run than the RAM would otherwise support.",
+    modelAnswer: "Virtual memory uses secondary storage (HDD/SSD) as if it were RAM (1). Used when RAM is full / insufficient for all running programs (1). Allows more programs to run simultaneously / system to continue functioning (1).",
+    markScheme: ["Uses secondary storage as an extension of RAM (1)", "Used when RAM is full (1)", "Allows more programs to run simultaneously (1)"],
+  },
+  {
+    id: "p1-ss-009", question: "Explain the difference between a GUI (Graphical User Interface) and a CLI (Command Line Interface). State one advantage of each.", marks: 4, difficulty: "mixed", topic: "Systems Software", paper: "1", type: "explain",
+    correctAnswer: "A GUI uses windows, icons, and a mouse for interaction — easier for non-technical users. A CLI requires text commands to be typed — harder to learn but more powerful and efficient for experienced users and scripting.",
+    modelAnswer: "GUI: uses graphical elements such as windows, icons, menus and a pointer/mouse (1). CLI: text-based interface where the user types commands (1). GUI advantage: easier for non-technical users to use (1). CLI advantage: more efficient for experienced users / can be used for scripting/automation (1).",
+    markScheme: ["GUI description (1)", "CLI description (1)", "GUI advantage (1)", "CLI advantage (1)"],
+  },
+  {
+    id: "p1-ss-010", question: "What is an assembler and what type of language does it translate?", marks: 2, difficulty: "foundation", topic: "Systems Software", paper: "1", type: "short",
+    correctAnswer: "An assembler translates assembly language (a low-level language using mnemonics like MOV and ADD) into machine code that the CPU can execute directly.",
+    modelAnswer: "An assembler translates assembly language (1) into machine code / binary (1).",
+    markScheme: ["Translates assembly language (1)", "Into machine code / binary instructions (1)"],
+  },
 
   // === Ethical, Legal & Environmental ===
   {

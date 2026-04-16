@@ -76,4 +76,22 @@ export const topicLearningSteps: Record<string, LearningStep[]> = {
     { title: "SELECT, FROM, WHERE basics", difficulty: "beginner", explanation: "SQL retrieves data from databases. SELECT columns FROM table WHERE condition. Use * to select all columns. WHERE filters rows. String values must be in quotes. SQL keywords are conventionally UPPERCASE.", examples: [{ code: `# SQL (written on paper in the exam):\n# SELECT * FROM students\n# SELECT name, age FROM students WHERE age > 15\n\n# Python simulation:\nstudents = [{"name":"Alice","age":15},{"name":"Bob","age":17}]\nfor s in students:\n    if s["age"] > 15:\n        print(s["name"], s["age"])`, description: "SQL can't run in Python — learn the syntax for the exam paper." }], hints: ["SELECT * means 'all columns'", "WHERE filters which rows to return", "String values need quotes: WHERE name = 'Alice'"], interactiveTask: { instruction: "Write SQL queries as comments, then simulate them in Python.", starterCode: `# Write SQL: Get all students over 16\n# SQL: \n\n# Simulate in Python:\nstudents = [\n    {"name": "Alice", "age": 15},\n    {"name": "Bob", "age": 17},\n    {"name": "Charlie", "age": 16},\n]\n` } },
     { title: "ORDER BY, LIKE, and operators", difficulty: "intermediate", explanation: "ORDER BY sorts results: ASC (ascending, default) or DESC (descending). LIKE with % wildcard for pattern matching. SQL uses <> for 'not equal' (not != like Python). AND/OR combine conditions.", examples: [{ code: `# ORDER BY:\n# SELECT * FROM students ORDER BY age DESC\n\n# LIKE:\n# SELECT * FROM students WHERE name LIKE 'A%'  -- starts with A\n# SELECT * FROM students WHERE name LIKE '%son' -- ends with son\n\n# Combined:\n# SELECT name FROM students WHERE age > 15 AND grade = 'A'`, description: "% matches any characters. ORDER BY ASC/DESC sorts results." }], hints: ["% is the SQL wildcard (not *)", "<> means 'not equal to' in SQL", "ASC is default (ascending), DESC for descending"], interactiveTask: { instruction: "Write SQL to find products under £10, sorted by price ascending, where name starts with 'S'.", starterCode: `# Write your SQL queries as comments:\n# Query 1: Products under £10\n# \n# Query 2: Sorted by price\n# \n# Query 3: Name starts with 'S'\n# \n` } },
   ],
+  "searching-sorting": [
+    { 
+      title: "The Linear Search", 
+      difficulty: "beginner", 
+      explanation: "Imagine you're looking for a specific card in a shuffled deck. You'd check them one by one from the top. That's a Linear Search! It works on any list, sorted or not.", 
+      examples: [{ code: `def search(items, target):\n    for x in items:\n        if x == target:\n            return True\n    return False`, description: "Checks every item until it finds a match." }], 
+      hints: ["Simple but slow for big lists", "Doesn't need the data to be sorted"],
+      interactiveTask: { instruction: "Write a loop that prints 'Found' if the number 7 is in the list.", starterCode: `nums = [1, 9, 4, 7, 3]\n# Your code here\n` }
+    },
+    { 
+      title: "The Binary Search", 
+      difficulty: "intermediate", 
+      explanation: "This is the 'High-Low' game strategy. Open a sorted book to the middle. If your page is higher, throw away the left half. Repeat. It's incredibly fast but ONLY works if the data is sorted.", 
+      examples: [{ code: `# Binary search halves the search space every time.\n# 1000 items -> 500 -> 250 -> 125...`, description: "Takes only ~10 steps to search 1,000 items!" }], 
+      hints: ["Data MUST be sorted first", "Much faster than linear for large datasets"],
+      interactiveTask: { instruction: "Calculate how many steps it takes to find '8' in [1, 3, 5, 7, 8, 9, 11] using Binary Search.", starterCode: `# Mid 1: 7 (Target > 7)\n# Mid 2: 9 (Target < 9)\n# Mid 3: 8 (Found!)\nsteps = 0 # Update this\n` }
+    }
+  ],
 };

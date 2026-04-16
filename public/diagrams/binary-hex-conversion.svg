@@ -1,0 +1,107 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 480" role="img" aria-labelledby="bh-title bh-desc">
+  <title id="bh-title">Binary and Hexadecimal Conversion</title>
+  <desc id="bh-desc">Step-by-step worked examples converting between binary, denary and hexadecimal, with a reference table of hex digits 0–F.</desc>
+  <rect width="760" height="480" fill="#F8FAFC" rx="12"/>
+  <text x="380" y="34" font-family="Arial, sans-serif" font-size="17" font-weight="bold" fill="#1E293B" text-anchor="middle">Binary ↔ Denary ↔ Hexadecimal</text>
+
+  <!-- Hex reference table (top right) -->
+  <rect x="490" y="48" width="250" height="200" rx="10" fill="#F0FDF4" stroke="#10B981" stroke-width="1.5"/>
+  <text x="615" y="68" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#065F46" text-anchor="middle">Hex Reference Table</text>
+  <!-- headers -->
+  <text x="530" y="86" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#374151" text-anchor="middle">Denary</text>
+  <text x="580" y="86" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#374151" text-anchor="middle">Hex</text>
+  <text x="650" y="86" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#374151" text-anchor="middle">Binary</text>
+  <!-- rows 0-7 -->
+  <text x="530" y="100" font-family="Arial, sans-serif" font-size="9" fill="#374151" text-anchor="middle">0</text><text x="580" y="100" font-family="Arial, sans-serif" font-size="9" fill="#374151" text-anchor="middle">0</text><text x="650" y="100" font-family="Arial, sans-serif" font-size="9" fill="#374151" text-anchor="middle">0000</text>
+  <text x="530" y="113" font-family="Arial, sans-serif" font-size="9" fill="#374151" text-anchor="middle">1</text><text x="580" y="113" font-family="Arial, sans-serif" font-size="9" fill="#374151" text-anchor="middle">1</text><text x="650" y="113" font-family="Arial, sans-serif" font-size="9" fill="#374151" text-anchor="middle">0001</text>
+  <text x="530" y="126" font-family="Arial, sans-serif" font-size="9" fill="#374151" text-anchor="middle">2</text><text x="580" y="126" font-family="Arial, sans-serif" font-size="9" fill="#374151" text-anchor="middle">2</text><text x="650" y="126" font-family="Arial, sans-serif" font-size="9" fill="#374151" text-anchor="middle">0010</text>
+  <text x="530" y="139" font-family="Arial, sans-serif" font-size="9" fill="#374151" text-anchor="middle">4</text><text x="580" y="139" font-family="Arial, sans-serif" font-size="9" fill="#374151" text-anchor="middle">4</text><text x="650" y="139" font-family="Arial, sans-serif" font-size="9" fill="#374151" text-anchor="middle">0100</text>
+  <text x="530" y="152" font-family="Arial, sans-serif" font-size="9" fill="#374151" text-anchor="middle">8</text><text x="580" y="152" font-family="Arial, sans-serif" font-size="9" fill="#374151" text-anchor="middle">8</text><text x="650" y="152" font-family="Arial, sans-serif" font-size="9" fill="#374151" text-anchor="middle">1000</text>
+  <!-- rows 10-15 highlighted -->
+  <text x="530" y="165" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#1D4ED8" text-anchor="middle">10</text><text x="580" y="165" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#1D4ED8" text-anchor="middle">A</text><text x="650" y="165" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#1D4ED8" text-anchor="middle">1010</text>
+  <text x="530" y="178" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#1D4ED8" text-anchor="middle">11</text><text x="580" y="178" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#1D4ED8" text-anchor="middle">B</text><text x="650" y="178" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#1D4ED8" text-anchor="middle">1011</text>
+  <text x="530" y="191" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#1D4ED8" text-anchor="middle">12</text><text x="580" y="191" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#1D4ED8" text-anchor="middle">C</text><text x="650" y="191" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#1D4ED8" text-anchor="middle">1100</text>
+  <text x="530" y="204" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#1D4ED8" text-anchor="middle">13</text><text x="580" y="204" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#1D4ED8" text-anchor="middle">D</text><text x="650" y="204" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#1D4ED8" text-anchor="middle">1101</text>
+  <text x="530" y="217" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#1D4ED8" text-anchor="middle">14</text><text x="580" y="217" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#1D4ED8" text-anchor="middle">E</text><text x="650" y="217" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#1D4ED8" text-anchor="middle">1110</text>
+  <text x="530" y="230" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#1D4ED8" text-anchor="middle">15</text><text x="580" y="230" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#1D4ED8" text-anchor="middle">F</text><text x="650" y="230" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#1D4ED8" text-anchor="middle">1111</text>
+
+  <!-- Example 1: Binary → Denary -->
+  <text x="46" y="68" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#1D4ED8">1. Binary → Denary</text>
+  <text x="46" y="86" font-family="Arial, sans-serif" font-size="11" fill="#374151">Convert 10110101₂ to denary</text>
+  <!-- bit column headers -->
+  <text x="72"  y="104" font-family="Arial, sans-serif" font-size="9" fill="#6B7280" text-anchor="middle">128</text>
+  <text x="112" y="104" font-family="Arial, sans-serif" font-size="9" fill="#6B7280" text-anchor="middle">64</text>
+  <text x="152" y="104" font-family="Arial, sans-serif" font-size="9" fill="#6B7280" text-anchor="middle">32</text>
+  <text x="192" y="104" font-family="Arial, sans-serif" font-size="9" fill="#6B7280" text-anchor="middle">16</text>
+  <text x="232" y="104" font-family="Arial, sans-serif" font-size="9" fill="#6B7280" text-anchor="middle">8</text>
+  <text x="272" y="104" font-family="Arial, sans-serif" font-size="9" fill="#6B7280" text-anchor="middle">4</text>
+  <text x="312" y="104" font-family="Arial, sans-serif" font-size="9" fill="#6B7280" text-anchor="middle">2</text>
+  <text x="352" y="104" font-family="Arial, sans-serif" font-size="9" fill="#6B7280" text-anchor="middle">1</text>
+  <!-- bits: 1 0 1 1 0 1 0 1 -->
+  <rect x="52"  y="108" width="38" height="30" rx="4" fill="#DBEAFE" stroke="#3B82F6" stroke-width="1.5"/><text x="71"  y="128" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#1D4ED8" text-anchor="middle">1</text>
+  <rect x="92"  y="108" width="38" height="30" rx="4" fill="#F1F5F9" stroke="#CBD5E1" stroke-width="1.5"/><text x="111" y="128" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#94A3B8" text-anchor="middle">0</text>
+  <rect x="132" y="108" width="38" height="30" rx="4" fill="#DBEAFE" stroke="#3B82F6" stroke-width="1.5"/><text x="151" y="128" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#1D4ED8" text-anchor="middle">1</text>
+  <rect x="172" y="108" width="38" height="30" rx="4" fill="#DBEAFE" stroke="#3B82F6" stroke-width="1.5"/><text x="191" y="128" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#1D4ED8" text-anchor="middle">1</text>
+  <rect x="212" y="108" width="38" height="30" rx="4" fill="#F1F5F9" stroke="#CBD5E1" stroke-width="1.5"/><text x="231" y="128" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#94A3B8" text-anchor="middle">0</text>
+  <rect x="252" y="108" width="38" height="30" rx="4" fill="#DBEAFE" stroke="#3B82F6" stroke-width="1.5"/><text x="271" y="128" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#1D4ED8" text-anchor="middle">1</text>
+  <rect x="292" y="108" width="38" height="30" rx="4" fill="#F1F5F9" stroke="#CBD5E1" stroke-width="1.5"/><text x="311" y="128" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#94A3B8" text-anchor="middle">0</text>
+  <rect x="332" y="108" width="38" height="30" rx="4" fill="#DBEAFE" stroke="#3B82F6" stroke-width="1.5"/><text x="351" y="128" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#1D4ED8" text-anchor="middle">1</text>
+  <text x="52" y="156" font-family="Arial, sans-serif" font-size="10" fill="#374151">= 128 + 32 + 16 + 4 + 1 = </text>
+  <text x="243" y="156" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#065F46">181₁₀</text>
+
+  <!-- Example 2: Hex → Binary nibble method -->
+  <text x="46" y="186" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#8B5CF6">2. Hex → Binary  (nibble method)</text>
+  <text x="46" y="204" font-family="Arial, sans-serif" font-size="11" fill="#374151">Convert B5₁₆ to binary</text>
+  <!-- B nibble -->
+  <rect x="52"  y="210" width="60" height="34" rx="6" fill="#EDE9FE" stroke="#8B5CF6" stroke-width="2"/>
+  <text x="82" y="232" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#6D28D9" text-anchor="middle">B</text>
+  <text x="120" y="232" font-family="Arial, sans-serif" font-size="12" fill="#374151">→</text>
+  <rect x="134" y="210" width="38" height="34" rx="4" fill="#DBEAFE" stroke="#3B82F6" stroke-width="1.5"/><text x="153" y="232" font-family="Arial, sans-serif" font-size="12" fill="#1D4ED8" text-anchor="middle">1</text>
+  <rect x="174" y="210" width="38" height="34" rx="4" fill="#DBEAFE" stroke="#3B82F6" stroke-width="1.5"/><text x="193" y="232" font-family="Arial, sans-serif" font-size="12" fill="#1D4ED8" text-anchor="middle">0</text>
+  <rect x="214" y="210" width="38" height="34" rx="4" fill="#DBEAFE" stroke="#3B82F6" stroke-width="1.5"/><text x="233" y="232" font-family="Arial, sans-serif" font-size="12" fill="#1D4ED8" text-anchor="middle">1</text>
+  <rect x="254" y="210" width="38" height="34" rx="4" fill="#DBEAFE" stroke="#3B82F6" stroke-width="1.5"/><text x="273" y="232" font-family="Arial, sans-serif" font-size="12" fill="#1D4ED8" text-anchor="middle">1</text>
+  <!-- 5 nibble -->
+  <rect x="306" y="210" width="60" height="34" rx="6" fill="#EDE9FE" stroke="#8B5CF6" stroke-width="2"/>
+  <text x="336" y="232" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#6D28D9" text-anchor="middle">5</text>
+  <text x="374" y="232" font-family="Arial, sans-serif" font-size="12" fill="#374151">→</text>
+  <rect x="388" y="210" width="38" height="34" rx="4" fill="#DBEAFE" stroke="#3B82F6" stroke-width="1.5"/><text x="407" y="232" font-family="Arial, sans-serif" font-size="12" fill="#1D4ED8" text-anchor="middle">0</text>
+  <rect x="428" y="210" width="38" height="34" rx="4" fill="#DBEAFE" stroke="#3B82F6" stroke-width="1.5"/><text x="447" y="232" font-family="Arial, sans-serif" font-size="12" fill="#1D4ED8" text-anchor="middle">1</text>
+  <rect x="468" y="210" width="38" height="34" rx="4" fill="#DBEAFE" stroke="#3B82F6" stroke-width="1.5"/><text x="487" y="232" font-family="Arial, sans-serif" font-size="12" fill="#1D4ED8" text-anchor="middle">0</text>
+  <rect x="508" y="210" width="38" height="34" rx="4" fill="#DBEAFE" stroke="#3B82F6" stroke-width="1.5"/><text x="527" y="232" font-family="Arial, sans-serif" font-size="12" fill="#1D4ED8" text-anchor="middle">1</text>
+  <text x="46" y="262" font-family="Arial, sans-serif" font-size="10" fill="#374151">B₁₆ = 1011₂   and   5₁₆ = 0101₂</text>
+  <text x="46" y="278" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#065F46">∴ B5₁₆ = 1011 0101₂</text>
+  <text x="46" y="293" font-family="Arial, sans-serif" font-size="9" fill="#6B7280">Tip: split hex into nibbles (4 bits each) — convert each independently</text>
+
+  <!-- Example 3: Binary → Hex -->
+  <text x="46" y="322" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#065F46">3. Binary → Hex  (group into nibbles)</text>
+  <text x="46" y="340" font-family="Arial, sans-serif" font-size="11" fill="#374151">Convert 1101 1110₂ to hex</text>
+  <!-- nibble 1: 1101 -->
+  <rect x="52"  y="346" width="38" height="30" rx="4" fill="#FEF3C7" stroke="#F59E0B" stroke-width="1.5"/><text x="71"  y="366" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#92400E" text-anchor="middle">1</text>
+  <rect x="92"  y="346" width="38" height="30" rx="4" fill="#FEF3C7" stroke="#F59E0B" stroke-width="1.5"/><text x="111" y="366" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#92400E" text-anchor="middle">1</text>
+  <rect x="132" y="346" width="38" height="30" rx="4" fill="#FEF3C7" stroke="#F59E0B" stroke-width="1.5"/><text x="151" y="366" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#92400E" text-anchor="middle">0</text>
+  <rect x="172" y="346" width="38" height="30" rx="4" fill="#FEF3C7" stroke="#F59E0B" stroke-width="1.5"/><text x="191" y="366" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#92400E" text-anchor="middle">1</text>
+  <text x="222" y="366" font-family="Arial, sans-serif" font-size="14" fill="#374151">→</text>
+  <rect x="240" y="346" width="42" height="30" rx="6" fill="#FEF3C7" stroke="#F59E0B" stroke-width="2"/>
+  <text x="261" y="366" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#92400E" text-anchor="middle">D</text>
+  <!-- nibble 2: 1110 -->
+  <rect x="302" y="346" width="38" height="30" rx="4" fill="#ECFDF5" stroke="#10B981" stroke-width="1.5"/><text x="321" y="366" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#065F46" text-anchor="middle">1</text>
+  <rect x="342" y="346" width="38" height="30" rx="4" fill="#ECFDF5" stroke="#10B981" stroke-width="1.5"/><text x="361" y="366" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#065F46" text-anchor="middle">1</text>
+  <rect x="382" y="346" width="38" height="30" rx="4" fill="#ECFDF5" stroke="#10B981" stroke-width="1.5"/><text x="401" y="366" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#065F46" text-anchor="middle">1</text>
+  <rect x="422" y="346" width="38" height="30" rx="4" fill="#ECFDF5" stroke="#10B981" stroke-width="1.5"/><text x="441" y="366" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#065F46" text-anchor="middle">0</text>
+  <text x="472" y="366" font-family="Arial, sans-serif" font-size="14" fill="#374151">→</text>
+  <rect x="490" y="346" width="42" height="30" rx="6" fill="#ECFDF5" stroke="#10B981" stroke-width="2"/>
+  <text x="511" y="366" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#065F46" text-anchor="middle">E</text>
+  <text x="46" y="396" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#065F46">∴ 1101 1110₂ = DE₁₆</text>
+  <text x="46" y="412" font-family="Arial, sans-serif" font-size="9" fill="#6B7280">1101₂ = 8+4+1 = 13 = D   |   1110₂ = 8+4+2 = 14 = E</text>
+
+  <!-- Why hex? box -->
+  <rect x="490" y="264" width="250" height="120" rx="10" fill="#FEF3C7" stroke="#F59E0B" stroke-width="1.5"/>
+  <text x="615" y="286" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#92400E" text-anchor="middle">Why Use Hexadecimal?</text>
+  <text x="500" y="308" font-family="Arial, sans-serif" font-size="10" fill="#374151">• Shorter than binary (FF vs 11111111)</text>
+  <text x="500" y="326" font-family="Arial, sans-serif" font-size="10" fill="#374151">• Each hex digit = exactly 4 bits</text>
+  <text x="500" y="344" font-family="Arial, sans-serif" font-size="10" fill="#374151">• Used in: MAC addresses, colour codes,</text>
+  <text x="510" y="360" font-family="Arial, sans-serif" font-size="10" fill="#374151">  memory addresses, error codes</text>
+  <text x="500" y="378" font-family="Arial, sans-serif" font-size="10" fill="#374151">• Easier for humans to read/write</text>
+
+  <text x="380" y="472" font-family="Arial, sans-serif" font-size="10" fill="#9CA3AF" text-anchor="middle">OCR J277 1.1 / AQA 8525 — Number systems: binary, denary and hexadecimal</text>
+</svg>
