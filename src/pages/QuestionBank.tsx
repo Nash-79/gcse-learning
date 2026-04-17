@@ -1,4 +1,3 @@
-import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -12,8 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { allQuestions, mockExamSets, practicePaperSets, topicMasterySets, fiveADaySets, allPaperSets } from "@/data/questionBank/paperSets";
 import { PaperSet as PaperSetType } from "@/data/questionBank/types";
-import { paper1Theory } from "@/data/questionBank/paper1Theory";
-import { paper2Theory } from "@/data/questionBank/paper2Theory";
+import { getPrintablePastPaperResources } from "@/lib/contentLibrary";
 
 const container = {
   hidden: { opacity: 0 },
@@ -31,7 +29,7 @@ const heroStats = [
   { value: `${allQuestions.length}+`, label: "Questions" },
   { value: "11", label: "Topic Areas" },
   { value: "2", label: "Papers" },
-  { value: "100%", label: "Spec Coverage" },
+  { value: `${getPrintablePastPaperResources("all").length}`, label: "Printable PDFs" },
 ];
 
 const paper1Topics = ["Systems Architecture", "Memory & Storage", "Computer Networks", "Network Security", "Systems Software", "Ethical, Legal & Environmental"];
@@ -118,6 +116,7 @@ export default function QuestionBank() {
   const p2TopicSets = topicMasterySets.filter(s => s.paper === "2");
   const p1FiveADay = fiveADaySets.filter(s => s.paper === "1");
   const p2FiveADay = fiveADaySets.filter(s => s.paper === "2");
+  const printablePastPapers = getPrintablePastPaperResources("all");
 
   return (
     <div className="flex flex-col min-h-full pb-20">
@@ -140,7 +139,7 @@ export default function QuestionBank() {
                   Question Bank Practice
                 </h1>
                 <p className="text-white/70 text-sm md:text-base mt-1">
-                  Practice OCR J277 exam-style questions with <span className="text-white font-semibold">AI-powered marking &amp; explanations</span>
+                  Practice board-tagged exam-style questions with <span className="text-white font-semibold">AI-powered marking &amp; explanations</span>
                 </p>
               </div>
             </div>
@@ -177,7 +176,7 @@ export default function QuestionBank() {
                 <div className="flex-1">
                   <h3 className="font-display font-bold text-base mb-1">Available Course Library</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    Our library contains over {allQuestions.length} professionally-written questions aligned to the OCR J277 GCSE Computer Science specification.
+                    Our library contains over {allQuestions.length} professionally written questions aligned to the OCR J277 GCSE Computer Science specification.
                     Every question includes mark schemes, model answers, and pseudocode hints. Covering {paper1Topics.length + paper2Topics.length} topic areas across both papers.
                   </p>
                   <div className="flex items-center gap-4 mt-2 text-[11px] text-muted-foreground">
@@ -193,6 +192,50 @@ export default function QuestionBank() {
                 </Link>
               </CardContent>
             </Card>
+          </motion.section>
+
+          <motion.section variants={item}>
+            <div className="flex items-center gap-2.5 mb-1">
+              <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                <LayoutGrid className="w-4.5 h-4.5 text-emerald-500" />
+              </div>
+              <h2 className="text-xl font-display font-bold">Printable Past Papers & Specifications</h2>
+            </div>
+            <p className="text-xs text-muted-foreground mb-4 ml-8">
+              Download official-style papers, specimen papers, and specification documents for offline printing and timed practice.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {printablePastPapers.map((resource) => (
+                <Card key={resource.relativePath} className="rounded-2xl border-border/50 overflow-hidden">
+                  <CardContent className="p-5 flex flex-col gap-3">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h4 className="font-display font-bold text-sm">{resource.title}</h4>
+                      <Badge variant="secondary" className="text-[10px] border-none bg-primary/10 text-primary">
+                        {resource.board.toUpperCase()}
+                      </Badge>
+                      <Badge variant="secondary" className="text-[10px] border-none">
+                        {resource.kind}
+                      </Badge>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Open in the browser for quick review or download for printing and timed revision.
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <a href={resource.openUrl} target="_blank" rel="noreferrer">
+                        <Button size="sm" variant="outline" className="rounded-full h-8">
+                          Open PDF
+                        </Button>
+                      </a>
+                      <a href={resource.downloadUrl}>
+                        <Button size="sm" className="rounded-full h-8">
+                          Download
+                        </Button>
+                      </a>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           </motion.section>
 
           {/* Mock Exams */}
@@ -217,11 +260,11 @@ export default function QuestionBank() {
               </div>
               <h2 className="text-xl font-display font-bold">Practice Paper Sets</h2>
             </div>
-            <p className="text-xs text-muted-foreground mb-4 ml-8">60-minute practice papers at Foundation, Mixed, and Challenge levels. {practicePaperSets.length} papers — 3 per paper, progressing in difficulty.</p>
+            <p className="text-xs text-muted-foreground mb-4 ml-8">60-minute practice papers at Foundation, Mixed, and Challenge levels. {practicePaperSets.length} papers - 3 per paper, progressing in difficulty.</p>
             <div className="space-y-4">
               <div>
                 <h3 className="text-sm font-display font-semibold text-muted-foreground mb-3 flex items-center gap-1.5">
-                  <GraduationCap className="w-4 h-4" /> Paper 1 — Computer Systems
+                  <GraduationCap className="w-4 h-4" /> Paper 1 - Computer Systems
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                   {p1Practice.map(s => <SetCard key={s.id} set={s} />)}
@@ -229,7 +272,7 @@ export default function QuestionBank() {
               </div>
               <div>
                 <h3 className="text-sm font-display font-semibold text-muted-foreground mb-3 flex items-center gap-1.5">
-                  <GraduationCap className="w-4 h-4" /> Paper 2 — Computational Thinking
+                  <GraduationCap className="w-4 h-4" /> Paper 2 - Computational Thinking
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                   {p2Practice.map(s => <SetCard key={s.id} set={s} />)}
@@ -261,7 +304,7 @@ export default function QuestionBank() {
               </div>
               <h2 className="text-xl font-display font-bold">Five A Day Sets</h2>
             </div>
-            <p className="text-xs text-muted-foreground mb-4 ml-8">Daily bite-sized practice — 5 questions per session. {fiveADaySets.length} daily sets to keep your knowledge sharp.</p>
+            <p className="text-xs text-muted-foreground mb-4 ml-8">Daily bite-sized practice - 5 questions per session. {fiveADaySets.length} daily sets to keep your knowledge sharp.</p>
             <div className="space-y-4">
               <div>
                 <h3 className="text-sm font-display font-semibold text-muted-foreground mb-3 flex items-center gap-1.5">
@@ -279,7 +322,7 @@ export default function QuestionBank() {
                           <p className="text-[10px] text-muted-foreground leading-relaxed line-clamp-2">{f.description}</p>
                           <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
                             <span>{f.questionIds.length} Qs</span>
-                            <span>·</span>
+                            <span>&middot;</span>
                             <span>{f.duration} min</span>
                           </div>
                         </CardContent>
@@ -304,7 +347,7 @@ export default function QuestionBank() {
                           <p className="text-[10px] text-muted-foreground leading-relaxed line-clamp-2">{f.description}</p>
                           <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
                             <span>{f.questionIds.length} Qs</span>
-                            <span>·</span>
+                            <span>&middot;</span>
                             <span>{f.duration} min</span>
                           </div>
                         </CardContent>
@@ -320,3 +363,4 @@ export default function QuestionBank() {
     </div>
   );
 }
+

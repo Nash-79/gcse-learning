@@ -7,7 +7,15 @@
       "Bash(wc -l /c/repos/gcse-learning/src/data/questionBank/*.ts)",
       "Bash(sed 's/\"\"\"\".*//')",
       "Bash(node -c /c/repos/gcse-learning/src/data/questionBank/paper1Theory.ts)",
-      "Bash(python3 -m py_compile /c/repos/gcse-learning/src/data/codingChallenges.ts)"
+      "Bash(python3 -m py_compile /c/repos/gcse-learning/src/data/codingChallenges.ts)",
+      "Bash(wc -l /c/repos/gcse-pylearn/src/data/questionBank/*.ts)",
+      "Bash(wc -l /c/repos/gcse-pylearn/server/routes/*.ts)",
+      "Bash(wc -l /c/repos/gcse-pylearn/server/prompts/*.ts)",
+      "Bash(ls -lh /c/repos/gcse-pylearn/content-library/*.pdf)",
+      "Bash(xargs grep *)",
+      "Bash(npm install *)",
+      "Bash(npx tsc *)",
+      "Bash(grep -n \"p1-ss-\" c:/repos/gcse-pylearn/src/data/questionBank/*.ts)"
     ]
   }
 }

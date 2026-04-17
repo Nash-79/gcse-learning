@@ -12,9 +12,11 @@ export interface Topic {
   examBoards: ExamBoard[];
   ocrRef?: string;
   aqaRef?: string;
+  difficulty: "beginner" | "intermediate" | "hard";
+  level: "gcse" | "expert";
 }
 
-const topicsList: Topic[] = [
+const baseTopicsList = [
   // === Fundamentals (both boards) ===
   { id: 8, slug: "intro-to-python", title: "Intro to Python", category: "Getting Started", order: 0, examBoards: ["ocr", "aqa"] },
 
@@ -57,6 +59,35 @@ const topicsList: Topic[] = [
   { id: 17, slug: "pseudocode-trace-tables", title: "Pseudocode & Trace Tables", category: "Exam Preparation", order: 22, examBoards: ["ocr", "aqa"], ocrRef: "2.1" },
   { id: 18, slug: "exam-tips", title: "Exam Tips & Strategies", category: "Exam Preparation", order: 23, examBoards: ["ocr", "aqa"] },
 ];
+
+function inferDifficulty(slug: string, category: string): Topic["difficulty"] {
+  if (["intro-to-python", "variables-data-types", "variables-constants", "input-output-casting", "arithmetic-operators"].includes(slug)) {
+    return "beginner";
+  }
+  if (["string-manipulation", "2d-arrays", "functions-scope", "file-handling", "random-numbers", "error-handling", "boolean-logic", "searching-algorithms", "sorting-algorithms", "sql-basics", "pseudocode-trace-tables"].includes(slug)) {
+    return "intermediate";
+  }
+  if (["insertion-sort", "exam-tips", "robust-programming"].includes(slug)) {
+    return "hard";
+  }
+
+  if (category === "Getting Started") return "beginner";
+  if (category === "Exam Preparation" || category === "Algorithms") return "hard";
+  return "intermediate";
+}
+
+function inferLevel(slug: string): Topic["level"] {
+  if (["sql-basics", "insertion-sort", "exam-tips"].includes(slug)) {
+    return "expert";
+  }
+  return "gcse";
+}
+
+const topicsList: Topic[] = baseTopicsList.map((topic) => ({
+  ...topic,
+  difficulty: inferDifficulty(topic.slug, topic.category),
+  level: inferLevel(topic.slug),
+}));
 
 function getStoredBoard(): ExamBoard {
   try {

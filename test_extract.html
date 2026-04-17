@@ -1,0 +1,858 @@
+<html><body><div class="question"><h1>Question 1</h1>
+  
+  
+  
+
+  
+  
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+
+  <div class="top-actions">
+    <button class="btn-dark-mode" id="darkModeToggle" type="button" aria-label="Theme" aria-pressed="false" data-theme="light"><i class="bi bi-sun me-2" aria-hidden="true"></i>Light</button>
+  </div>
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+  
+
+  <nav class="site-nav" role="navigation" aria-label="Primary" style="margin-top:48px;">
+    <div class="container">
+      <div class="nav-inline" style="display:flex; gap:.5rem; flex-wrap:wrap; width:100%; justify-content:center; align-items:center;">
+        <!-- Return Home (spec-aware) -->
+        <a class="nav-pill" href="/computerscience
+                  ">
+           <i class="bi bi-house-door"></i> Home
+        </a>
+
+        <!-- ===== SINGLE MEGA MENU TRIGGER ===== -->
+        <div class="mn" id="megaNav">
+          <button class="nav-pill nav-pill--subjects" id="megaTrigger" type="button" aria-expanded="false" aria-controls="megaPanel">
+            <i class="bi bi-grid-3x3-gap-fill"></i> Subjects <i class="bi bi-chevron-down mn-chev"></i>
+          </button>
+
+          <!-- Two-panel dropdown -->
+          <div class="mn-panel" id="megaPanel">
+            <!-- Left: subject list -->
+            <div class="mn-left">
+              <div class="mn-group-label">UK Curriculum</div>
+              <button class="mn-item " data-mn="physics" type="button">
+                <i class="bi bi-lightning-charge-fill" style="color:#4f8ef7"></i> Physics
+                <i class="bi bi-chevron-right mn-arr"></i>
+              </button>
+              <button class="mn-item " data-mn="biochem" type="button">
+                <i class="bi bi-droplet-half" style="color:#0d9488"></i> Bio / Chem
+                <i class="bi bi-chevron-right mn-arr"></i>
+              </button>
+              <button class="mn-item " data-mn="maths" type="button">
+                <i class="bi bi-grid-3x3-gap-fill" style="color:#0284c7"></i> Maths
+                <i class="bi bi-chevron-right mn-arr"></i>
+              </button>
+              <button class="mn-item mn-active" data-mn="compsci" type="button">
+                <i class="bi bi-code-slash" style="color:#475569"></i> Computer Science
+                <i class="bi bi-chevron-right mn-arr"></i>
+              </button>
+              <button class="mn-item " data-mn="english" type="button">
+                <i class="bi bi-chat-quote-fill" style="color:#0f766e"></i> English
+                <i class="bi bi-chevron-right mn-arr"></i>
+              </button>
+              <button class="mn-item " data-mn="history" type="button">
+                <i class="bi bi-hourglass-split" style="color:#b45309"></i> History
+                <i class="bi bi-chevron-right mn-arr"></i>
+              </button>
+              <button class="mn-item " data-mn="geography" type="button">
+                <i class="bi bi-globe-europe-africa" style="color:#c2410c"></i> Geography
+                <i class="bi bi-chevron-right mn-arr"></i>
+              </button>
+              <button class="mn-item " data-mn="psychology" type="button">
+                <i class="bi bi-people-fill" style="color:#be185d"></i> Psychology
+                <i class="bi bi-chevron-right mn-arr"></i>
+              </button>
+              <button class="mn-item " data-mn="sociology" type="button">
+                <i class="bi bi-diagram-3-fill" style="color:#0891b2"></i> Sociology
+                <i class="bi bi-chevron-right mn-arr"></i>
+              </button>
+              <button class="mn-item " data-mn="rs" type="button">
+                <i class="bi bi-book-fill" style="color:#059669"></i> Religious Studies
+                <i class="bi bi-chevron-right mn-arr"></i>
+              </button>
+              <button class="mn-item " data-mn="economics" type="button">
+                <i class="bi bi-graph-up-arrow" style="color:#6d28d9"></i> Economics
+                <i class="bi bi-chevron-right mn-arr"></i>
+              </button>
+              <button class="mn-item " data-mn="ucat" type="button">
+                <i class="bi bi-heart-pulse-fill" style="color:#e11d48"></i> UCAT
+                <i class="bi bi-chevron-right mn-arr"></i>
+              </button>
+              <div class="mn-group-label" style="margin-top:.3rem">🦅 US Curriculum</div>
+              <button class="mn-item " data-mn="ap" type="button">
+                <i class="bi bi-flag-fill" style="color:#dc2626"></i> AP &amp; SAT (23)
+                <i class="bi bi-chevron-right mn-arr"></i>
+              </button>
+              <div class="mn-group-label" style="margin-top:.3rem">🏛️ Professional</div>
+              <button class="mn-item " data-mn="prof" type="button">
+                <i class="bi bi-briefcase-fill" style="color:#7c3aed"></i> Professional Quals (14)
+                <i class="bi bi-chevron-right mn-arr"></i>
+              </button>
+            </div>
+            <!-- Right: flyout links per subject -->
+            <div class="mn-right">
+              <div class="mn-fly" data-mn-for="physics">
+                <div class="mn-fly-title">GCSE Physics</div>
+                <a href="/">GCSE Home</a>
+                <a href="/assessments">Assessment Hub</a>
+                <a href="/learn">Learn Hub</a>
+                <a href="/physics/textbook">Notes / Textbook</a>
+                <a href="/single_generate">Random Generator</a>
+                <a href="/mixed_generate_form">Mixed Worksheet</a>
+                <a href="/multi-stage/select">Multi-step</a>
+                <a href="/flashcards/spec">Flashcards</a>
+                <a href="/practicals">Required Practicals</a>
+                <a href="/alevel/gcse/trilogy-physics/long_answer">Long Answer (Combined)</a>
+                <a href="/alevel/gcse/separate-physics/long_answer">Long Answer (Separate)</a>
+                <a href="/alevel/gcse/trilogy-physics/interactive-practice">Interactive Practice (Combined)</a>
+                <a href="/alevel/gcse/separate-physics/interactive-practice">Interactive Practice (Separate)</a>
+                <div class="mn-fly-title">A-Level Physics</div>
+                <a href="/alevel/home">A-Level Home</a>
+                <a href="/alevel/assessments">Assessment Hub</a>
+                <a href="/alevel/learn">Learn Hub</a>
+                <a href="/physics/alevel/textbook">Notes / Textbook</a>
+                <a href="/alevel/multi_stage/index">Multi-step</a>
+                <a href="/alevel/physics/long_answer">Long-Answer</a>
+                <a href="/alevel/physics/interactive-practice">Interactive Practice</a>
+                <a href="/physics/ocr-a/interactive-practice">Interactive Practice (OCR A)</a>
+                <a href="/physics/edexcel/interactive-practice">Interactive Practice (Edexcel)</a>
+                <a href="/alevel/flashcards">Flashcards</a>
+                <a href="/alevel/practicals">Required Practicals</a>
+              </div>
+              <div class="mn-fly" data-mn-for="biochem">
+                <div class="mn-fly-title">GCSE Biology</div>
+                <a href="/bio/assessments">Assessment Hub</a>
+                <a href="/bio/multi-stage/select">Multi-step</a>
+                <a href="/bio/textbook">Notes</a>
+                <a href="/bio/flashcards/spec">Flashcards</a>
+                <a href="/alevel/gcse/trilogy-biology/long_answer">Long Answer (Combined)</a>
+                <a href="/alevel/gcse/separate-biology/long_answer">Long Answer (Separate)</a>
+                <a href="/alevel/gcse/trilogy-biology/interactive-practice">Interactive Practice (Combined)</a>
+                <a href="/alevel/gcse/separate-biology/interactive-practice">Interactive Practice (Separate)</a>
+                <div class="mn-fly-title">GCSE Chemistry</div>
+                <a href="/chem/assessments">Assessment Hub</a>
+                <a href="/chem/multi-stage/select">Multi-step</a>
+                <a href="/chem/textbook">Notes</a>
+                <a href="/chem/flashcards/spec">Flashcards</a>
+                <a href="/alevel/gcse/trilogy-chemistry/long_answer">Long Answer (Combined)</a>
+                <a href="/alevel/gcse/separate-chemistry/long_answer">Long Answer (Separate)</a>
+                <a href="/alevel/gcse/trilogy-chemistry/interactive-practice">Interactive Practice (Combined)</a>
+                <a href="/alevel/gcse/separate-chemistry/interactive-practice">Interactive Practice (Separate)</a>
+                <div class="mn-fly-title">A-Level Biology</div>
+                <a href="/bio/alevel/assessments">Assessment Hub</a>
+                <a href="/bio/alevel/textbook">Notes / Textbook</a>
+                <a href="/bio/alevel/multi-stage/topics">Multi-step</a>
+                <a href="/alevel/biology/long_answer">Long-Answer</a>
+                <a href="/bio/alevel/flashcards">Flashcards</a>
+                <a href="/alevel/biology/interactive-practice">Interactive Practice</a>
+                <div class="mn-fly-title">A-Level Chemistry</div>
+                <a href="/chem/alevel/assessments">Assessment Hub</a>
+                <a href="/chem/alevel/textbook">Notes / Textbook</a>
+                <a href="/chem/alevel/multi-stage/topics">Multi-step</a>
+                <a href="/alevel/chemistry/long_answer">Long-Answer</a>
+                <a href="/chem/alevel/flashcards/select">Flashcards</a>
+                <a href="/alevel/chemistry/interactive-practice">Interactive Practice</a>
+              </div>
+              <div class="mn-fly" data-mn-for="maths">
+                <div class="mn-fly-title">GCSE Foundation</div>
+                <a href="/maths/assessments/gcse/foundation">Assessment Hub</a>
+                <a href="/maths/textbook/gcse/foundation">Notes</a>
+                <a href="/maths/multi-stage/gcse/foundation/topics">Multi-step</a>
+                <div class="mn-fly-title">GCSE Higher</div>
+                <a href="/maths/assessments/gcse/higher">Assessment Hub</a>
+                <a href="/maths/textbook/gcse/higher">Notes</a>
+                <a href="/maths/multi-stage/gcse/higher/topics">Multi-step</a>
+                <a href="/maths/gcse/edexcel-higher/interactive-practice">Interactive Practice (Edexcel)</a>
+                <div class="mn-fly-title">A-Level Maths</div>
+                <a href="/maths/assessments/alevel">Assessment Hub</a>
+                <a href="/maths/alevel/textbook">Notes</a>
+                <a href="/maths/multi-stage/alevel/topics">Multi-step</a>
+                <a href="/maths/alevel/edexcel/interactive-practice">Interactive Practice (Edexcel)</a>
+                <div class="mn-fly-title">A-Level Further Maths</div>
+                <a href="/maths/assessments/alevel_further">Assessment Hub</a>
+                <a href="/maths/alevel/further/textbook">Notes</a>
+                <a href="/maths/multi-stage/alevel_further/topics">Multi-step</a>
+                <a href="/maths/alevel/edexcel-further/interactive-practice">Interactive Practice (Edexcel)</a>
+              </div>
+              <div class="mn-fly" data-mn-for="compsci">
+                <div class="mn-fly-title">GCSE AQA</div>
+                <a href="/computerscience/gcse/aqa/assessments">Assessment</a>
+                <a href="/computerscience/gcse/aqa/textbook">Notes</a>
+                <a href="/computerscience/gcse/aqa/longanswer">Long-Answer</a>
+                <a href="/computerscience/gcse/aqa/interactive-practice">Interactive Practice</a>
+                <div class="mn-fly-title">GCSE Edexcel</div>
+                <a href="/computerscience/gcse/edexcel/assessments">Assessment</a>
+                <a href="/computerscience/gcse/edexcel/textbook">Notes</a>
+                <a href="/computerscience/gcse/edexcel/longanswer">Long-Answer</a>
+                <a href="/computerscience/gcse/edexcel/interactive-practice">Interactive Practice</a>
+                <div class="mn-fly-title">GCSE OCR</div>
+                <a href="/computerscience/gcse/ocr/assessments">Assessment</a>
+                <a href="/computerscience/gcse/ocr/textbook">Notes</a>
+                <a href="/computerscience/gcse/ocr/longanswer">Long-Answer</a>
+                <a href="/computerscience/gcse/ocr/interactive-practice">Interactive Practice</a>
+                <div class="mn-fly-title">A-Level OCR</div>
+                <a href="/computerscience/alevel/ocr/assessments">Assessment</a>
+                <a href="/computerscience/alevel/ocr/textbook">Notes</a>
+                <a href="/computerscience/alevel/ocr/longanswer">Long-Answer</a>
+                <a href="/computerscience/alevel/ocr/interactive-practice">Interactive Practice</a>
+                <div class="mn-fly-title">A-Level AQA</div>
+                <a href="/computerscience/alevel/aqa/assessments">Assessment</a>
+                <a href="/computerscience/alevel/aqa/textbook">Notes</a>
+                <a href="/computerscience/alevel/aqa/longanswer">Long-Answer</a>
+                <a href="/computerscience/alevel/aqa/interactive-practice">Interactive Practice</a>
+              </div>
+              <div class="mn-fly" data-mn-for="english">
+                <div class="mn-fly-title">GCSE English (AQA)</div>
+                <a href="/english/assessments/gcse/aqa">Assessment Hub</a>
+                <a href="/english/gcse/aqa/notebook">Notes / Notebook</a>
+                <a href="/english/gcse/aqa/longanswer">Long-Answer</a>
+                <div class="mn-fly-title">A-Level English (AQA)</div>
+                <a href="/english/assessments/alevel/aqa">Assessment Hub</a>
+                <a href="/english/alevel/aqa/notebook">Notes / Textbook</a>
+                <a href="/english/alevel/aqa/longanswer">Long-Answer</a>
+              </div>
+              <div class="mn-fly" data-mn-for="history">
+                <div class="mn-fly-title">GCSE History (AQA)</div>
+                <a href="/history/gcse/aqa/interactive-practice">Interactive Practice</a>
+                <a href="/history/gcse/aqa/mcq-assessment">Assessment Hub</a>
+                <a href="/history/gcse/aqa/long-answer">Long-Answer Practice</a>
+                <a href="/history/gcse/aqa/notebook">Notes/Textbook</a>
+                <div class="mn-fly-title">GCSE History (Edexcel)</div>
+                <a href="/history/gcse/edexcel/interactive-practice">Interactive Practice</a>
+                <a href="/history/gcse/edexcel/mcq-assessment">Assessment Hub</a>
+                <a href="/history/gcse/edexcel/long-answer">Long-Answer Practice</a>
+                <a href="/history/gcse/edexcel/notebook">Notes/Textbook</a>
+                <div class="mn-fly-title">A-Level History (AQA 7042)</div>
+                <a href="/history/alevel/aqa/mtq-practice">MTQ Practice</a>
+                <span style="font-size:.72rem;color:#9ca3af;padding:.15rem .6rem;">Textbook — Coming Soon</span>
+                <span style="font-size:.72rem;color:#9ca3af;padding:.15rem .6rem;">Long-Answer — Coming Soon</span>
+              </div>
+              <div class="mn-fly" data-mn-for="geography">
+                <div class="mn-fly-title">GCSE Geography</div>
+                <a href="/geography/assessments/gcse">Assessment Hub</a>
+                <a href="/geography/textbook/gcse">Notes / Textbook</a>
+                <a href="/geography/multi-stage/topics">Long-Answer</a>
+                <div class="mn-fly-title">A-Level Geography</div>
+                <a href="/geography/assessments/alevel">Assessment Hub</a>
+                <a href="/geography/alevel/textbook">Notes / Textbook</a>
+                <a href="/geography/alevel/multi-stage/topics">Long-Answer</a>
+              </div>
+              <div class="mn-fly" data-mn-for="psychology">
+                <div class="mn-fly-title">A-Level Psychology</div>
+                <a href="/psychology/assessments/alevel">Assessment Hub</a>
+                <a href="/psychology/alevel/textbook">Notes / Textbook</a>
+                <a href="/psychology/alevel_multi_stage">Long-Answer</a>
+                <a href="/psychology/interactive-practice">Interactive Practice</a>
+              </div>
+              <div class="mn-fly" data-mn-for="sociology">
+                <div class="mn-fly-title">A-Level Sociology (AQA 7192)</div>
+                <a href="/sociology">Sociology Home</a>
+                <a href="/sociology/mtq-practice">MTQ Practice</a>
+              </div>
+              <div class="mn-fly" data-mn-for="economics">
+                <div class="mn-fly-title">A-Level Economics</div>
+                <a href="/economics/edexcel/interactive-practice">Interactive Practice (Edexcel)</a>
+                <a href="/economics/aqa/interactive-practice">Interactive Practice (AQA)</a>
+                <a href="/economics/assessments/alevel">Assessment Hub</a>
+                <a href="/economics/alevel/textbook">Notes / Textbook</a>
+                <a href="/economics/alevel_multi_stage">Long-Answer</a>
+              </div>
+              <div class="mn-fly" data-mn-for="rs">
+                <div class="mn-fly-title">GCSE Religious Studies (AQA)</div>
+                <a href="/rs/gcse/aqa/interactive-practice">Interactive Practice</a>
+                <a href="/rs/gcse/aqa/mcq-assessment">Assessment Hub</a>
+                <a href="/rs/gcse/aqa/long-answer">Long-Answer Practice</a>
+                <a href="/rs/gcse/aqa/notebook">Notes / Textbook</a>
+              </div>
+              <div class="mn-fly" data-mn-for="ucat">
+                <div class="mn-fly-title">UCAT (Medical &amp; Dental Admissions)</div>
+                <a href="/prof/ucat/mcq-assessment">Assessment Hub</a>
+                <a href="/prof/ucat/interactive-practice">Interactive Practice</a>
+                <a href="/prof/ucat/notebook">Notes / Textbook</a>
+              </div>
+              <div class="mn-fly" data-mn-for="ap">
+                <div class="mn-fly-title">Sciences</div>
+                <a href="/ap/physics_1">AP Physics 1</a>
+                <a href="/ap/physics_1/interactive-practice">AP Physics 1 Interactive Practice</a>
+                <a href="/ap/physics_2">AP Physics 2</a>
+                <a href="/ap/physics_2/interactive-practice">AP Physics 2 Interactive Practice</a>
+                <a href="/ap/physics_c_mech">AP Physics C: Mechanics</a>
+                <a href="/ap/physics_c_mech/interactive-practice">AP Physics C: Mechanics Interactive Practice</a>
+                <a href="/ap/physics_c_em">AP Physics C: E&amp;M</a>
+                <a href="/ap/physics_c_em/interactive-practice">AP Physics C: E&amp;M Interactive Practice</a>
+                <a href="/ap/chemistry">AP Chemistry</a>
+                <a href="/ap/chemistry/interactive-practice">AP Chemistry Interactive Practice</a>
+                <a href="/ap/biology">AP Biology</a>
+                <a href="/ap/biology/interactive-practice">AP Biology Interactive Practice</a>
+                <a href="/ap/environmental_science">AP Environmental Science</a>
+                <a href="/ap/environmental_science/interactive-practice">AP Env Sci Interactive Practice</a>
+                <div class="mn-fly-title">Maths</div>
+                <a href="/ap/calculus_ab">AP Calculus AB</a>
+                <a href="/ap/calculus_ab/interactive-practice">AP Calculus AB Interactive Practice</a>
+                <a href="/ap/calculus_bc">AP Calculus BC</a>
+                <a href="/ap/calculus_bc/interactive-practice">AP Calculus BC Interactive Practice</a>
+                <a href="/ap/statistics">AP Statistics</a>
+                <a href="/ap/statistics/interactive-practice">AP Statistics Interactive Practice</a>
+                <a href="/ap/precalculus">AP Precalculus</a>
+                <a href="/ap/precalculus/interactive-practice">AP Precalculus Interactive Practice</a>
+                <div class="mn-fly-title">Humanities</div>
+                <a href="/ap/english_lang">AP English Language</a>
+                <a href="/ap/english_lit">AP English Literature</a>
+                <a href="/ap/us_history">AP US History</a>
+                <a href="/ap/world_history">AP World History</a>
+                <a href="/ap/world_history/interactive-practice">AP World History Interactive Practice</a>
+                <a href="/ap/us_gov">AP US Government</a>
+                <a href="/ap/us_gov/interactive-practice">AP US Government Interactive Practice</a>
+                <a href="/ap/human_geo">AP Human Geography</a>
+                <a href="/ap/human_geo/interactive-practice">AP Human Geography Interactive Practice</a>
+                <a href="/ap/psychology">AP Psychology</a>
+                <a href="/ap/psychology/interactive-practice">AP Psychology Interactive Practice</a>
+                <div class="mn-fly-title">Social Sciences &amp; CS</div>
+                <a href="/ap/macroeconomics">AP Macroeconomics</a>
+                <a href="/ap/macroeconomics/interactive-practice">AP Macroeconomics Interactive Practice</a>
+                <a href="/ap/microeconomics">AP Microeconomics</a>
+                <a href="/ap/microeconomics/interactive-practice">AP Microeconomics Interactive Practice</a>
+                <a href="/ap/cs_principles">AP CS Principles</a>
+                <a href="/ap/cs_principles/interactive-practice">AP CS Principles Interactive Practice</a>
+                <a href="/ap/cs_a">AP CS A</a>
+                <a href="/ap/cs_a/interactive-practice">AP CS A Interactive Practice</a>
+                <div class="mn-fly-title">📝 SAT</div>
+                <a href="/ap/sat">Digital SAT Prep</a>
+                <a href="/ap/sat/interactive-practice">SAT Interactive Practice</a>
+                <a href="/ap/sat/mcq-assessment">SAT Assessment Hub</a>
+                <a href="/ap/sat/textbook">SAT Textbook</a>
+                <a href="/ap/" style="font-weight:700;color:#2563eb;margin-top:.3rem;">View all 22 AP subjects + SAT →</a>
+              </div>
+              <div class="mn-fly" data-mn-for="prof">
+                <div class="mn-fly-title">Accounting &amp; Finance</div>
+                <a href="/prof/cima">CIMA</a>
+                <a href="/prof/acca">ACCA</a>
+                <a href="/prof/ca">CA (ICAI)</a>
+                <a href="/prof/cpa">CPA</a>
+                <a href="/prof" style="opacity:.55;pointer-events:none;">CFA — Coming Soon</a>
+                <a href="/prof" style="opacity:.55;pointer-events:none;">CMA — Coming Soon</a>
+                <a href="/prof" style="opacity:.55;pointer-events:none;">FRM — Coming Soon</a>
+                <a href="/prof" style="opacity:.55;pointer-events:none;">CFE — Coming Soon</a>
+                <div class="mn-fly-title">Project Management &amp; IT</div>
+                <a href="/prof/pmp">PMP</a>
+                <a href="/prof/prince2">PRINCE2</a>
+                <a href="/prof/psm1">PSM I</a>
+                <a href="/prof/cissp">CISSP</a>
+                <a href="/prof" style="opacity:.55;pointer-events:none;">CCIE — Coming Soon</a>
+                <div class="mn-fly-title">Legal</div>
+                <a href="/prof/sqe1">SQE1</a>
+                <a href="/prof/" style="font-weight:700;color:#7c3aed;margin-top:.3rem;">View all 12 qualifications →</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Search -->
+        <a class="nav-pill" href="/search" aria-label="Search">
+          <i class="bi bi-search"></i>
+        </a>
+
+        <!-- Global donate button -->
+        <a class="nav-pill nav-pill--donate" href="/donate">
+          <i class="bi bi-heart-fill"></i> Support WPE
+        </a>
+
+        <button class="mobile-menu-btn" id="mobileMenuBtn" type="button" aria-controls="mobileMenu" aria-expanded="false">
+          <i class="bi bi-list" aria-hidden="true"></i>
+          <span class="visually-hidden">Open menu</span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <div id="mobileMenu" class="mobile-menu" hidden="">
+    <div class="mobile-menu__panel" role="dialog" aria-modal="true" aria-labelledby="mobileMenuTitle">
+      <button class="mobile-menu__close" id="mobileMenuClose" type="button" aria-label="Close menu">
+        <i class="bi bi-x-lg"></i>
+      </button>
+      <h2 id="mobileMenuTitle" class="visually-hidden">Site navigation</h2>
+      <ul class="mobile-menu__list">
+        <!-- always-available direct return to site entrance -->
+        <li><a href="/">Return to Site Home</a></li>
+
+        <!-- Global donate link (mobile) -->
+        <li><a href="/donate">Support WPE</a></li>
+        <li><a href="/search"><i class="bi bi-search"></i> Search</a></li>
+
+        <li>
+          <a href="/computerscience
+                   ">Home</a>
+        </li>
+
+        
+          <!-- Computer Science (mobile) -->
+          <li><a href="/computerscience">Computer Science Home</a></li>
+          <li><a href="/computerscience/gcse/aqa/assessments">GCSE AQA — Assessment Hub</a></li>
+          <li><a href="/computerscience/gcse/aqa/textbook">GCSE AQA — Notes/Textbook</a></li>
+          <li><a href="/computerscience/gcse/aqa/longanswer">GCSE AQA — Long-Answer Hub</a></li>
+          <li><a href="/computerscience/gcse/aqa/interactive-practice">GCSE AQA — Interactive Practice</a></li>
+          <li><a href="/computerscience/gcse/edexcel/assessments">GCSE Edexcel — Assessment Hub</a></li>
+          <!-- NEW: Edexcel Notes/Textbook (mobile) -->
+          <li><a href="/computerscience/gcse/edexcel/textbook">GCSE Edexcel — Notes/Textbook</a></li>
+          <!-- NEW: Edexcel long-answer hub (mobile) -->
+          <li><a href="/computerscience/gcse/edexcel/longanswer">GCSE Edexcel — Long-Answer Hub</a></li>
+          <li><a href="/computerscience/gcse/edexcel/interactive-practice">GCSE Edexcel — Interactive Practice</a></li>
+          <li><a href="/computerscience/gcse/ocr/assessments">GCSE OCR — Assessment Hub</a></li>
+          <li><a href="/computerscience/gcse/ocr/textbook">GCSE OCR — Notes/Textbook</a></li>
+          <li><a href="/computerscience/gcse/ocr/longanswer">GCSE OCR — Long-Answer Hub</a></li>
+          <li><a href="/computerscience/gcse/ocr/interactive-practice">GCSE OCR — Interactive Practice</a></li>
+          <!-- NEW: A-Level OCR Assessment Hub (mobile) -->
+          <li><a href="/computerscience/alevel/ocr/assessments">A-Level OCR — Assessment Hub</a></li>
+          <!-- NEW: A-Level OCR Notes/Textbook (mobile) -->
+          <li><a href="/computerscience/alevel/ocr/textbook">A-Level OCR — Notes/Textbook</a></li>
+          <!-- NEW: A-Level OCR Long-Answer hub (mobile) -->
+          <li><a href="/computerscience/alevel/ocr/longanswer">A-Level OCR — Long-Answer Hub</a></li>
+          <li><a href="/computerscience/alevel/ocr/interactive-practice">A-Level OCR — Interactive Practice</a></li>
+          <!-- NEW: A-Level AQA Assessment Hub (mobile) -->
+          <li><a href="/computerscience/alevel/aqa/assessments">A-Level AQA — Assessment Hub</a></li>
+          <!-- NEW: A-Level AQA Notes/Textbook (mobile) -->
+          <li><a href="/computerscience/alevel/aqa/textbook">A-Level AQA — Notes/Textbook</a></li>
+          <!-- NEW: A-Level AQA Long-Answer hub (mobile) -->
+          <li><a href="/computerscience/alevel/aqa/longanswer">A-Level AQA — Long-Answer Hub</a></li>
+          <!-- NEW: A-Level AQA Interactive Practice (mobile) -->
+          <li><a href="/computerscience/alevel/aqa/interactive-practice">A-Level AQA — Interactive Practice</a></li>
+          <li><a href="/">Site Home</a></li>
+
+        
+      </ul>
+    </div>
+  </div>
+
+  
+  
+
+  
+  
+  
+
+  
+  
+  
+
+  <header class="wpe-hero" data-subject="cs">
+    <div class="wpe-hero__content">
+      <h1>
+        
+Algorithms Trace Tables — Long-Answer / Multi-Stage — Standard — Question 1/5
+
+      </h1>
+
+      <p class="subtitle">
+        Over <strong>1,100,000+ marks</strong> of exam-aligned content across <strong>67 qualifications</strong>. 4,200+ auto-marked assessments &amp; long-answer practice. No login required.
+      </p>
+
+      <div class="page-extras">
+        
+        
+        
+        
+      </div>
+    </div>
+    <div class="wpe-hero__accent"></div>
+  </header>
+  
+
+  <!-- IMPORTANT: use a DIV instead of MAIN to avoid any global `main { max-width: ... }` rules boxing hubs -->
+  <div id="pageRoot" class="">
+
+    
+    <div id="qnMount"><nav class="quick-nav qn-global" aria-label="Resource type"><a href="/computerscience/gcse/ocr/assessments" class="btn"><i class="bi bi-check2-square"></i> Assessment Hub</a><a href="/computerscience/gcse/ocr/textbook" class="btn"><i class="bi bi-book"></i> Notes / Textbook</a><a href="/computerscience/gcse/ocr/longanswer" class="btn qn-active"><i class="bi bi-pencil-square"></i> Long-Answer Practice</a></nav></div>
+    <script>
+    (function(){
+      var p = location.pathname.replace(/\/+$/,'');
+      /* Skip test/submit/results/home/flashcard/practical pages */
+      if (/\/(test|submit|results|flashcard|practical)/.test(p)) return;
+      if (p === '/' || p === '') return;
+
+      /* ── Mapping: each entry = [pathPrefix, assessURL, notesURL, longanswerURL] ──
+         null = hub doesn't exist for this subject. Order: longest prefix first per group. */
+      var M = [
+        /* ── AP subjects (consistent /ap/{s}/assessments|notebook|longanswer) ── */
+        ['/ap/physics_1',            '/ap/physics_1/assessments',            '/ap/physics_1/notebook',            '/ap/physics_1/longanswer',            '/ap/physics_1/interactive-practice'],
+        ['/ap/physics_2',            '/ap/physics_2/assessments',            '/ap/physics_2/notebook',            '/ap/physics_2/longanswer',            '/ap/physics_2/interactive-practice'],
+        ['/ap/physics_c_mech',       '/ap/physics_c_mech/assessments',       '/ap/physics_c_mech/notebook',       '/ap/physics_c_mech/longanswer',       '/ap/physics_c_mech/interactive-practice'],
+        ['/ap/physics_c_em',         '/ap/physics_c_em/assessments',         '/ap/physics_c_em/notebook',         '/ap/physics_c_em/longanswer',         '/ap/physics_c_em/interactive-practice'],
+        ['/ap/biology',              '/ap/biology/assessments',              '/ap/biology/notebook',              '/ap/biology/longanswer',              '/ap/biology/interactive-practice'],
+        ['/ap/chemistry',            '/ap/chemistry/assessments',            '/ap/chemistry/notebook',            '/ap/chemistry/longanswer',            '/ap/chemistry/interactive-practice'],
+        ['/ap/environmental_science','/ap/environmental_science/assessments','/ap/environmental_science/notebook','/ap/environmental_science/longanswer','/ap/environmental_science/interactive-practice'],
+        ['/ap/calculus_ab',          '/ap/calculus_ab/assessments',          '/ap/calculus_ab/notebook',          '/ap/calculus_ab/longanswer',          '/ap/calculus_ab/interactive-practice'],
+        ['/ap/calculus_bc',          '/ap/calculus_bc/assessments',          '/ap/calculus_bc/notebook',          '/ap/calculus_bc/longanswer',          '/ap/calculus_bc/interactive-practice'],
+        ['/ap/precalculus',          '/ap/precalculus/assessments',          '/ap/precalculus/notebook',          '/ap/precalculus/longanswer',          '/ap/precalculus/interactive-practice'],
+        ['/ap/statistics',           '/ap/statistics/assessments',           '/ap/statistics/notebook',           '/ap/statistics/longanswer',           '/ap/statistics/interactive-practice'],
+        ['/ap/cs_principles',        '/ap/cs_principles/assessments',        '/ap/cs_principles/notebook',        '/ap/cs_principles/longanswer',        '/ap/cs_principles/interactive-practice'],
+        ['/ap/cs_a',                 '/ap/cs_a/assessments',                 '/ap/cs_a/notebook',                 '/ap/cs_a/longanswer',                 '/ap/cs_a/interactive-practice'],
+        ['/ap/psychology',           '/ap/psychology/assessments',           '/ap/psychology/notebook',           '/ap/psychology/longanswer',           '/ap/psychology/interactive-practice'],
+        ['/ap/us_gov',               '/ap/us_gov/assessments',               '/ap/us_gov/notebook',               '/ap/us_gov/longanswer',               '/ap/us_gov/interactive-practice'],
+        ['/ap/us_history',           '/ap/us_history/assessments',           '/ap/us_history/notebook',           '/ap/us_history/longanswer',           '/ap/us_history/interactive-practice'],
+        ['/ap/world_history',        '/ap/world_history/assessments',        '/ap/world_history/notebook',        '/ap/world_history/longanswer',        '/ap/world_history/interactive-practice'],
+        ['/ap/human_geo',            '/ap/human_geo/assessments',            '/ap/human_geo/notebook',            '/ap/human_geo/longanswer',            '/ap/human_geo/interactive-practice'],
+        ['/ap/macroeconomics',       '/ap/macroeconomics/assessments',       '/ap/macroeconomics/notebook',       '/ap/macroeconomics/longanswer',       '/ap/macroeconomics/interactive-practice'],
+        ['/ap/microeconomics',       '/ap/microeconomics/assessments',       '/ap/microeconomics/notebook',       '/ap/microeconomics/longanswer',       '/ap/microeconomics/interactive-practice'],
+        ['/ap/english_lang',         '/ap/english_lang/assessments',         '/ap/english_lang/notebook',         '/ap/english_lang/longanswer',         '/ap/english_lang/interactive-practice'],
+        ['/ap/english_lit',          '/ap/english_lit/assessments',          '/ap/english_lit/notebook',          '/ap/english_lit/longanswer',          '/ap/english_lit/interactive-practice'],
+
+        /* ── CIMA (Professional) ── */
+        ['/prof/cima/cba',         '/prof/cima/cba/assessments',         '/prof/cima/cba/notebook',         '/prof/cima/cba/longanswer'],
+        ['/prof/cima/operational', '/prof/cima/operational/assessments', '/prof/cima/operational/notebook', '/prof/cima/operational/longanswer'],
+        /* ── ACCA (Professional) ── */
+        ['/prof/acca/ak', '/prof/acca/ak/assessments', '/prof/acca/ak/notebook', '/prof/acca/ak/mtq-practice'],
+        ['/prof/acca/as', '/prof/acca/as/assessments', '/prof/acca/as/la-practice', '/prof/acca/as/notebook'],
+        /* ── CA ICAI (Professional) ── */
+        ['/prof/ca/foundation', '/prof/ca/foundation/assessments', '/prof/ca/foundation/notebook', '/prof/ca/foundation/longanswer'],
+        ['/prof/ca/intermediate', '/prof/ca/intermediate/assessments', '/prof/ca/intermediate/notebook', '/prof/ca/intermediate/longanswer'],
+        /* ── PMP (Professional) ── */
+        ['/prof/pmp', '/prof/pmp/mcq-assessment', '/prof/pmp/notebook', '/prof/pmp/mtq-practice'],
+        /* ── PRINCE2 (Professional) ── */
+        ['/prof/prince2', '/prof/prince2/mcq-assessment', '/prof/prince2/mtq-practice', '/prof/prince2/notebook'],
+        /* ── SQE1 (Professional) ── */
+        ['/prof/sqe1', '/prof/sqe1/mcq-assessment', '/prof/sqe1/interactive-practice', '/prof/sqe1/notebook'],
+        /* ── CISSP (Professional) ── */
+        ['/prof/cissp', '/prof/cissp/mcq-assessment', '/prof/cissp/interactive-practice', '/prof/cissp/notebook'],
+        /* ── CPA (Professional) ── */
+        ['/prof/cpa', '/prof/cpa/mcq-assessment', '/prof/cpa/interactive-practice', '/prof/cpa/tbs-practice', '/prof/cpa/notebook'],
+        /* ── UCAT (Professional / Admissions) ── */
+        ['/prof/ucat', '/prof/ucat/mcq-assessment', '/prof/ucat/interactive-practice', '/prof/ucat/notebook'],
+
+        /* ── Computer Science (board-specific, most specific prefixes first) ── */
+        ['/computerscience/gcse/ocr',     '/computerscience/gcse/ocr/assessments',     '/computerscience/gcse/ocr/textbook',     '/computerscience/gcse/ocr/longanswer'],
+        ['/computerscience/gcse/edexcel',  '/computerscience/gcse/edexcel/assessments',  '/computerscience/gcse/edexcel/textbook',  '/computerscience/gcse/edexcel/longanswer',  '/computerscience/gcse/edexcel/interactive-practice'],
+        ['/computerscience/gcse/aqa',      '/computerscience/gcse/aqa/assessments',      '/computerscience/gcse/aqa/textbook',      '/computerscience/gcse/aqa/longanswer',      '/computerscience/gcse/aqa/interactive-practice'],
+        ['/computerscience/alevel/ocr',    '/computerscience/alevel/ocr/assessments',    '/computerscience/alevel/ocr/textbook',    '/computerscience/alevel/ocr/longanswer',    '/computerscience/alevel/ocr/interactive-practice'],
+        ['/computerscience/alevel/aqa',    '/computerscience/alevel/aqa/assessments',    '/computerscience/alevel/aqa/textbook',    '/computerscience/alevel/aqa/longanswer'],
+
+        /* ── English (board-specific) ── */
+        ['/english/gcse/aqa',              '/english/assessments/gcse/aqa',   '/english/gcse/aqa/notebook',   '/english/gcse/aqa/longanswer'],
+        ['/english/assessments/gcse/aqa',  '/english/assessments/gcse/aqa',   '/english/gcse/aqa/notebook',   '/english/gcse/aqa/longanswer'],
+        ['/english/alevel/aqa',            '/english/assessments/alevel/aqa', '/english/alevel/aqa/notebook', '/english/alevel/aqa/longanswer'],
+        ['/english/assessments/alevel/aqa','/english/assessments/alevel/aqa', '/english/alevel/aqa/notebook', '/english/alevel/aqa/longanswer'],
+
+        /* ── GCSE History (board-specific) ── */
+        ['/history/gcse/aqa',     '/history/gcse/aqa/interactive-practice',     '/history/gcse/aqa/mcq-assessment', '/history/gcse/aqa/long-answer', '/history/gcse/aqa/notebook'],
+        ['/history/gcse/edexcel', '/history/gcse/edexcel/interactive-practice', '/history/gcse/edexcel/mcq-assessment', '/history/gcse/edexcel/long-answer', '/history/gcse/edexcel/notebook'],
+
+        /* ── Geography ── */
+        ['/geography/alevel',   '/geography/assessments/alevel', '/geography/alevel/textbook',  '/geography/alevel/multi-stage/topics'],
+        ['/geography/assessments/alevel', '/geography/assessments/alevel', '/geography/alevel/textbook', '/geography/alevel/multi-stage/topics'],
+        ['/geography/assessments/gcse',   '/geography/assessments/gcse',   '/geography/textbook/gcse',    '/geography/multi-stage/topics'],
+        ['/geography/textbook/gcse',      '/geography/assessments/gcse',   '/geography/textbook/gcse',    '/geography/multi-stage/topics'],
+        ['/geography/multi-stage',        '/geography/assessments/gcse',   '/geography/textbook/gcse',    '/geography/multi-stage/topics'],
+
+        /* ── Psychology (A-Level only) ── */
+        ['/psychology/assessments', '/psychology/assessments/alevel', '/psychology/alevel/textbook', '/psychology/alevel_multi_stage', '/psychology/interactive-practice'],
+        ['/psychology/alevel',      '/psychology/assessments/alevel', '/psychology/alevel/textbook', '/psychology/alevel_multi_stage', '/psychology/interactive-practice'],
+
+        /* ── Economics (A-Level only) ── */
+        ['/economics/assessments', '/economics/assessments/alevel', '/economics/alevel/textbook', '/economics/alevel_multi_stage'],
+        ['/economics/alevel',      '/economics/assessments/alevel', '/economics/alevel/textbook', '/economics/alevel_multi_stage'],
+
+        /* ── Biology ── */
+        ['/bio/alevel', '/bio/alevel/assessments', '/bio/alevel/textbook', null],
+        ['/bio',        '/bio/assessments',        '/bio/textbook',        '/bio/multi-stage/select'],
+
+        /* ── Chemistry ── */
+        ['/chem/alevel', '/chem/alevel/assessments', '/chem/alevel/textbook', null],
+        ['/chem',        '/chem/assessments',        '/chem/textbook',        '/chem/multi-stage/select'],
+
+        /* ── Maths ── */
+        ['/maths/assessments/gcse/foundation', '/maths/assessments/gcse/foundation', '/maths/textbook/gcse/foundation', null],
+        ['/maths/assessments/gcse/higher',     '/maths/assessments/gcse/higher',     '/maths/textbook/gcse/higher',     null],
+        ['/maths/textbook/gcse/foundation',    '/maths/assessments/gcse/foundation', '/maths/textbook/gcse/foundation', null],
+        ['/maths/textbook/gcse/higher',        '/maths/assessments/gcse/higher',     '/maths/textbook/gcse/higher',     null],
+        ['/maths/alevel/further', null,                           '/maths/alevel/further/textbook', null],
+        ['/maths/alevel',         null,                           '/maths/alevel/textbook',         null],
+
+        /* ── GCSE Physics ── */
+        ['/alevel/assessments', '/alevel/assessments', '/physics/alevel/textbook', '/alevel/multi_stage'],
+        ['/alevel/multi_stage', '/alevel/assessments', '/physics/alevel/textbook', '/alevel/multi_stage'],
+        ['/alevel/multi-stage', '/alevel/assessments', '/physics/alevel/textbook', '/alevel/multi_stage'],
+        ['/physics/alevel',     '/alevel/assessments', '/physics/alevel/textbook', '/alevel/multi_stage'],
+        ['/assessments',        '/assessments',        '/physics/textbook',        '/multi-stage/select'],
+        ['/physics/textbook',   '/assessments',        '/physics/textbook',        '/multi-stage/select'],
+        ['/multi-stage',        '/assessments',        '/physics/textbook',        '/multi-stage/select']
+      ];
+
+      /* Find longest matching prefix */
+      var match = null;
+      for (var i = 0; i < M.length; i++) {
+        if (p.indexOf(M[i][0]) === 0) {
+          if (!match || M[i][0].length > match[0].length) match = M[i];
+        }
+      }
+      if (!match) return;
+
+      /* Don't inject if a quick-nav already exists (notebook templates) */
+      if (document.querySelector('.quick-nav')) return;
+
+      /* Detect active type */
+      var active = '';
+      if (/\/(assessments)/.test(p))                          active = 'assess';
+      else if (/\/(notebook|textbook|learn)/.test(p))         active = 'notes';
+      else if (/\/(longanswer|multi.stage|multi_stage)/.test(p)) active = 'long';
+
+      /* If we can't tell what type of page this is, don't show */
+      if (!active) return;
+
+      /* Build pills */
+      var pills = [];
+      if (match[1]) pills.push({href:match[1], label:'Assessment Hub',     icon:'bi-check2-square', key:'assess'});
+      if (match[2]) pills.push({href:match[2], label:'Notes / Textbook',   icon:'bi-book',          key:'notes'});
+      if (match[3]) pills.push({href:match[3], label:'Long-Answer Practice',icon:'bi-pencil-square', key:'long'});
+
+      if (pills.length < 2) return; /* Need at least 2 resource types to show a switcher */
+
+      var html = '<nav class="quick-nav qn-global" aria-label="Resource type">';
+      for (var j = 0; j < pills.length; j++) {
+        var pill = pills[j];
+        var cls = 'btn' + (pill.key === active ? ' qn-active' : '');
+        html += '<a href="' + pill.href + '" class="' + cls + '"><i class="bi ' + pill.icon + '"></i> ' + pill.label + '</a>';
+      }
+      html += '</nav>';
+
+      var mount = document.getElementById('qnMount');
+      if (mount) mount.innerHTML = html;
+    })();
+    </script>
+
+    
+<div class="container">
+  <div class="card" id="msCard" style="padding:2rem;">
+
+    <!-- Page-scoped layout (NO MathJax anywhere) -->
+    <style>
+      #msCard { overflow-x:auto; }
+      #msCard table { width:100%; border-collapse:collapse; }
+      #msCard table th, #msCard table td { padding:.5rem; text-align:left; vertical-align:top; }
+      #msCard .question-card p { text-align:left; }
+
+      .solution, .model-answer { display:none; margin-top:1rem; }
+      .btn-row { display:flex; gap:.75rem; flex-wrap:wrap; margin-top:.5rem; }
+      .nav-buttons { margin-top:2rem; display:flex; justify-content:space-around; gap:1rem; }
+
+      @media (max-width: 480px){
+        #msCard { padding:1.25rem; border-radius:1rem; }
+        #msCard .btn-primary, #msCard .btn-secondary { width:100%; margin:0; }
+        .nav-buttons { display:grid; grid-template-columns:1fr; row-gap:.75rem; }
+      }
+    </style>
+
+    <div id="question-1" class="question-card">
+      
+      
+        <div class="stem" style="margin-bottom:1rem;">
+          <p><b>Using a trace table to follow an algorithm</b><br>A programmer has written an algorithm to calculate the total cost of items in a shopping basket after applying a discount:<br><br></p><pre>total = 0
+count = 0
+prices = [12, 8, 15, 5]
+
+for i = 0 to 3
+    total = total + prices[i]
+    count = count + 1
+next i
+
+if total &gt; 30 then
+    discount = total * 0.1
+    total = total - discount
+endif
+
+print(total)</pre><br><br><b>Task (6 marks)</b>: Create a <b>trace table</b> to show how the values of the variables change as this algorithm executes. Show the value of each variable after each line executes. State the final output of the algorithm and explain what the algorithm does.<p></p>
+        </div>
+      
+
+      <div class="btn-row">
+        <button id="solution-toggle-1" class="btn-primary" onclick="toggleSolutionMS(1); return false;">Hide Solution</button>
+
+        <!-- Example model answer toggle -->
+        <button id="model-toggle-1" class="btn-secondary" onclick="toggleModelAnswer(1); return false;">Hide Example Answer</button>
+      </div>
+
+      
+      <div id="solution-1" class="solution" style="display: block;">
+        
+          <p><b>Levels of response (6 marks)</b></p>
+<pre><b>Level 1 (1-2):</b> Attempts trace table but with significant errors; may not correctly identify which variables change at each step; final output incorrect; explanation missing or very basic.
+<b>Level 2 (3-4):</b> Reasonable trace table tracking most variables correctly with minor errors; correctly identifies final output of 36 or close; some explanation including adding prices and applying discount but may lack detail.
+<b>Level 3 (5-6):</b> Accurate, complete trace table with correct final output and clear explanation: Initial: total=0, count=0, prices=[12,8,15,5]. i=0: prices[0]=12, total=0+12=12, count=1. i=1: prices[1]=8, total=12+8=20, count=2. i=2: prices[2]=15, total=20+15=35, count=3. i=3: prices[3]=5, total=35+5=40, count=4. After loop: total=40, count=4. IF check: Is 40&gt;30? TRUE. discount=40*0.1=4, total=40-4=36. Output: 36. <b>What algorithm does</b>: Calculates total cost of items in basket by summing array elements, then applies 10% discount if total exceeds £30. Items cost £12+£8+£15+£5=£40, exceeds £30 threshold, so £4 discount applied giving final total £36.
+
+<b>Indicative content</b>: Tracking variables through iterations; array indexing with i; loop counter changes; conditional evaluation; percentage calculation; clear explanation of discount logic.</pre>
+        
+      </div>
+
+      
+      <div id="model-1" class="model-answer" style="display: block;">
+        
+          <p><b>Trace table:</b></p><div class="wpe-table-wrapper"><table class="trace-table"><thead><tr><th>Step</th><th>i</th><th>prices[i]</th><th>total</th><th>count</th><th>discount</th></tr></thead><tbody><tr><td>Initial</td><td>-</td><td>-</td><td>0</td><td>0</td><td>-</td></tr><tr><td>i = 0</td><td>0</td><td>12</td><td>12</td><td>1</td><td>-</td></tr><tr><td>i = 1</td><td>1</td><td>8</td><td>20</td><td>2</td><td>-</td></tr><tr><td>i = 2</td><td>2</td><td>15</td><td>35</td><td>3</td><td>-</td></tr><tr><td>i = 3</td><td>3</td><td>5</td><td>40</td><td>4</td><td>-</td></tr><tr><td>After IF</td><td>-</td><td>-</td><td>36</td><td>4</td><td>4</td></tr></tbody></table></div><p><b>Step-by-step explanation:</b></p><p>Initial values: total=0, count=0, prices array contains [12, 8, 15, 5].</p><p>The FOR loop runs four times with i taking values 0, 1, 2, 3.</p><p><b>i=0:</b> prices[0]=12. total=0+12=12. count=0+1=1.</p><p><b>i=1:</b> prices[1]=8. total=12+8=20. count=1+1=2.</p><p><b>i=2:</b> prices[2]=15. total=20+15=35. count=2+1=3.</p><p><b>i=3:</b> prices[3]=5. total=35+5=40. count=3+1=4.</p><p>After loop: total=40, count=4.</p><p><b>IF statement:</b> Is total &gt; 30? Is 40 &gt; 30? TRUE, so code inside IF executes. discount=40*0.1=4. total=40-4=36.</p><p><b>Final output: 36</b></p><p><b>What the algorithm does:</b></p><p>This algorithm calculates the total cost of items in a shopping basket and applies a percentage discount if the customer spends over a threshold. It uses a FOR loop to iterate through an array of item prices, adding each price to a running total and incrementing a counter to track how many items have been processed. After all items have been totalled, the algorithm uses selection (an IF statement) to check whether the subtotal exceeds £30. If the total is greater than 30, a 10% discount is calculated by multiplying the total by 0.1, and this discount amount is then subtracted from the total to give the final discounted price.</p><p>In this specific case, the basket contains items costing £12, £8, £15, and £5, giving a subtotal of £40. Since £40 is greater than the £30 threshold, the customer qualifies for the discount. The discount amount is £4 (10% of £40), which is subtracted to give a final total of £36 that is displayed to the customer.</p>
+        
+      </div>
+    </div>
+
+    <div class="nav-buttons">
+      
+        <span></span>
+      
+
+      
+        <a href="/computerscience/gcse/ocr/longanswer/questions?topic=algorithms_trace_tables&amp;difficulty=standard&amp;q=2" class="btn-secondary">
+          Next Question
+        </a>
+      
+
+      <a href="/computerscience/gcse/ocr/longanswer" class="btn-secondary">
+        Back to Topics
+      </a>
+    </div>
+  </div>
+</div>
+
+<script>
+  function toggleSolutionMS(id){
+    const sol = document.getElementById('solution-' + id);
+    const btn = document.getElementById('solution-toggle-' + id);
+    if (!sol || !btn) return;
+
+    const show = sol.style.display !== 'block';
+    sol.style.display = show ? 'block' : 'none';
+    btn.textContent   = show ? 'Hide Solution' : 'Show Solution';
+  }
+
+  function toggleModelAnswer(id){
+    const block = document.getElementById('model-' + id);
+    const btn   = document.getElementById('model-toggle-' + id);
+    if (!block || !btn) return;
+
+    const show = block.style.display !== 'block';
+    block.style.display = show ? 'block' : 'none';
+    btn.textContent     = show ? 'Hide Example Answer' : 'Show Example Answer';
+  }
+</script>
+
+
+    
+    
+
+    <!-- Safety fallback: never keep test/results pages hidden if MathJax fails -->
+    <script>
+      (function () {
+        var root = document.getElementById('pageRoot');
+        if (!root) return;
+        if (!root.classList.contains('mjx-pending')) return;
+
+        function reveal(){ root.classList.remove('mjx-pending'); }
+
+        // If MathJax loads normally, startup.pageReady will reveal.
+        // If it doesn't, reveal after a short grace period.
+        setTimeout(function () {
+          if (root.classList.contains('mjx-pending')) reveal();
+        }, 1500);
+      })();
+    </script>
+  </div>
+
+  <footer>
+    <p style="max-width:70ch;margin:.25rem auto;text-align:center;">
+      <strong>Williams Physics Education</strong> — over <strong>1,100,000+ marks</strong> of exam-aligned content and
+      <strong>4,200+ auto-marked assessments</strong> across 67 qualifications at GCSE, A-Level, AP &amp; Professional Qualifications.
+      Free to use, no login required.
+    </p>
+    <p style="max-width:70ch;margin:.25rem auto;text-align:center;">
+      <a href="/about">About &amp; Contact</a> ·
+      <a href="/privacy">Privacy</a> ·
+      <a href="/terms">Terms</a> ·
+      <a href="/accessibility">Accessibility</a> ·
+      <a href="/copyright">Copyright</a> ·
+      <a href="/dmca">DMCA</a> ·
+      <a href="https://www.youtube.com/@WilliamsPhysicsEducation">YouTube</a>
+    </p>
+    <p style="max-width:70ch;margin:.25rem auto;text-align:center;font-size:.9rem;opacity:.9;">
+      WPE is free for everyone. If our resources help you or your students, you can
+      <a href="/donate">support the project here</a>.
+    </p>
+    <p style="font-size:.85rem;opacity:.8;margin:.25rem auto;text-align:center;">
+      © 2026 Williams Physics Education. All rights reserved.
+    </p>
+  </footer>
+
+  <!-- Critical: site JS (generators' show/hide solutions, etc.) -->
+  <script src="/static/script.js?v=11"></script>
+
+  <!-- Mega Nav: two-panel flyout -->
+  <script>
+  (function(){
+    var mn = document.getElementById('megaNav');
+    var trigger = document.getElementById('megaTrigger');
+    var panel = document.getElementById('megaPanel');
+    if (!mn || !trigger || !panel) return;
+
+    var items = mn.querySelectorAll('.mn-item[data-mn]');
+    var flies = mn.querySelectorAll('.mn-fly[data-mn-for]');
+
+    function showFly(key){
+      flies.forEach(function(f){ f.classList.toggle('mn-fly-active', f.getAttribute('data-mn-for') === key); });
+      items.forEach(function(it){ it.classList.toggle('mn-hover', it.getAttribute('data-mn') === key); });
+    }
+
+    // Open/close panel
+    trigger.addEventListener('click', function(e){
+      e.preventDefault(); e.stopPropagation();
+      var open = mn.classList.toggle('open');
+      trigger.setAttribute('aria-expanded', open);
+      if (open) {
+        // Auto-show the active subject or first
+        var active = mn.querySelector('.mn-item.mn-active');
+        showFly((active || items[0]).getAttribute('data-mn'));
+      }
+    });
+
+    // Hover on left items shows flyout
+    items.forEach(function(item){
+      item.addEventListener('mouseenter', function(){ showFly(this.getAttribute('data-mn')); });
+      item.addEventListener('click', function(){ showFly(this.getAttribute('data-mn')); });
+    });
+
+    // Close on outside click
+    document.addEventListener('click', function(e){
+      if (!e.target.closest('#megaNav')){ mn.classList.remove('open'); trigger.setAttribute('aria-expanded','false'); }
+    });
+    // Close on Escape
+    document.addEventListener('keydown', function(e){
+      if (e.key === 'Escape'){ mn.classList.remove('open'); trigger.setAttribute('aria-expanded','false'); }
+    });
+  })();
+  </script>
+
+  
+  
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9ed92d4f4ffed094',t:'MTc3NjQwNTI4Ng=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><iframe height="1" width="1" style="position: absolute; top: 0px; left: 0px; border: none; visibility: hidden;"></iframe><script defer="" src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon="{&quot;version&quot;:&quot;2024.11.0&quot;,&quot;token&quot;:&quot;e6cef6c8dbb44f1aa40e3ba7fae3ff08&quot;,&quot;server_timing&quot;:{&quot;name&quot;:{&quot;cfCacheStatus&quot;:true,&quot;cfEdge&quot;:true,&quot;cfExtPri&quot;:true,&quot;cfL4&quot;:true,&quot;cfOrigin&quot;:true,&quot;cfSpeedBrain&quot;:true},&quot;location_startswith&quot;:null}}" crossorigin="anonymous"></script>
+</div></body></html>

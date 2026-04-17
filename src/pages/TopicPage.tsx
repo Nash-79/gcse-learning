@@ -1,26 +1,43 @@
-import { useEffect, useState, useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { motion } from "framer-motion";
+import {
+  AlertTriangle,
+  Award,
+  BookOpen,
+  Bot,
+  CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
+  Code2,
+  FileText,
+  GraduationCap,
+  Lightbulb,
+  Loader2,
+  Sparkles,
+  Swords,
+} from "lucide-react";
 import { apiFetch } from "@/lib/apiFetch";
 import { appLog } from "@/lib/appLogger";
-import { useParams, Link, useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
-import { CheckCircle2, ChevronLeft, ChevronRight, BookOpen, Code2, Award, AlertTriangle, Lightbulb, Sparkles, Bot, Loader2, Swords, GraduationCap, FileText } from "lucide-react";
+import { getTopicLibraryResources, isTopicResourceGroupEmpty } from "@/lib/contentLibrary";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { CodeRunner } from "@/components/code/CodeRunner";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RunnableCode } from "@/components/code/RunnableCode";
-import { QuizComponent } from "@/components/quiz/QuizComponent";
-import { SteppedLearning } from "@/components/learning/SteppedLearning";
-import type { QuizQuestion } from "@/data/topicContent";
+import { CodeRunner } from "@/components/code/CodeRunner";
 import { AiHelper } from "@/components/ai/AiHelper";
 import { CodingChallengePanel } from "@/components/challenges/CodingChallengePanel";
+import { TopicResourcePanel } from "@/components/content/TopicResourcePanel";
+import { TopicAugmentationPanel } from "@/components/content/TopicAugmentationPanel";
+import { SteppedLearning } from "@/components/learning/SteppedLearning";
 import { ExamQuestionBank } from "@/components/quiz/ExamQuestionBank";
-import { topicData } from "@/data/topicContent";
+import { QuizComponent } from "@/components/quiz/QuizComponent";
 import { topicLearningSteps } from "@/data/learningSteps";
-import { useListTopics, useGetTopicProgress, useUpdateTopicProgress } from "@/hooks/useTopics";
+import { topicData, type QuizQuestion } from "@/data/topicContent";
+import { useExamBoard, useGetTopicProgress, useListTopics, useUpdateTopicProgress } from "@/hooks/useTopics";
+import { getTopicAugmentation } from "@/lib/topicAugmentation";
 
-// Correct YouTube videos per topic
 const topicVideos: Record<string, string> = {
   "intro-to-python": "https://www.youtube.com/embed/kqtD5dpn9C8",
   "variables-data-types": "https://www.youtube.com/embed/cQT33yu9pY8",
@@ -29,7 +46,7 @@ const topicVideos: Record<string, string> = {
   "input-output-casting": "https://www.youtube.com/embed/I9h1c-121Uk",
   "arithmetic-operators": "https://www.youtube.com/embed/Aj8FQRIHJSc",
   "selection-if-else": "https://www.youtube.com/embed/Zp5MuPOtsSY",
-  "iteration": "https://www.youtube.com/embed/6iF8Xb7Z3wQ",
+  iteration: "https://www.youtube.com/embed/6iF8Xb7Z3wQ",
   "string-handling": "https://www.youtube.com/embed/lSItwlnF0eU",
   "string-manipulation": "https://www.youtube.com/embed/lSItwlnF0eU",
   "lists-tuples-dicts": "https://www.youtube.com/embed/W8KRzm-HUcc",
@@ -51,21 +68,28 @@ const topicVideos: Record<string, string> = {
 export default function TopicPage() {
   const { slug = "" } = useParams<{ slug: string }>();
   const navigate = useNavigate();
+  const { board } = useExamBoard();
 
   const { data: topics, isLoading: topicsLoading } = useListTopics("all");
   const { data: progress } = useGetTopicProgress(slug);
   const updateProgress = useUpdateTopicProgress();
-  
 
   const content = topicData[slug];
-  const topicMeta = topics?.find(t => t.slug === slug);
+  const topicMeta = topics?.find((topic) => topic.slug === slug);
   const learningSteps = topicLearningSteps[slug];
+  const hasSteps = Boolean(learningSteps && learningSteps.length > 0);
   const videoUrl = topicVideos[slug] || content?.videoUrl;
 
   const [aiQuestions, setAiQuestions] = useState<QuizQuestion[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationError, setGenerationError] = useState<string | null>(null);
   const [showAiHelper, setShowAiHelper] = useState(false);
+  const [activeTab, setActiveTab] = useState<string>(hasSteps ? "learn" : "lesson");
+  const [aiSeedPrompt, setAiSeedPrompt] = useState("");
+
+  const libraryResources = getTopicLibraryResources(slug, board);
+  const hasLibraryResources = !isTopicResourceGroupEmpty(libraryResources);
+  const augmentation = getTopicAugmentation(slug, board);
 
   useEffect(() => {
     if (!slug) return;
@@ -75,16 +99,20 @@ export default function TopicPage() {
     return () => clearInterval(interval);
   }, [slug]);
 
-  // Reset state when topic changes — including AI helper context
   useEffect(() => {
     setAiQuestions([]);
     setShowAiHelper(false);
-  }, [slug]);
+    setGenerationError(null);
+    setActiveTab(hasSteps ? "learn" : "lesson");
+    setAiSeedPrompt("");
+  }, [slug, hasSteps]);
 
   const generateMoreQuestions = useCallback(async () => {
     if (!content) return;
+
     setIsGenerating(true);
     setGenerationError(null);
+
     try {
       const response = await apiFetch("/api/ai-chat", {
         method: "POST",
@@ -92,18 +120,28 @@ export default function TopicPage() {
         body: JSON.stringify({
           mode: "generate",
           topicTitle: topicMeta?.title || slug,
-          systemPromptOverride: `You are a GCSE Computer Science quiz generator. Generate exactly 5 multiple-choice questions about "${topicMeta?.title || slug}" for Python programming. Return ONLY a JSON object with a "questions" array of objects with these fields: question (string), options (array of 4 strings), correctIndex (0-3), explanation (string), hint (string), difficulty ("easy"|"medium"|"hard"). Do not include any other text.`,
-          userPromptOverride: `Generate 5 new quiz questions about ${topicMeta?.title || slug}. Existing questions to avoid repeating: ${content.quiz.map(q => q.question).join("; ")}`,
+          systemPromptOverride:
+            `You are a GCSE Computer Science quiz generator. Generate exactly 5 multiple-choice questions about "${topicMeta?.title || slug}" for Python programming. ` +
+            `Return ONLY a JSON object with a "questions" array of objects with these fields: question (string), options (array of 4 strings), correctIndex (0-3), explanation (string), hint (string), difficulty ("easy"|"medium"|"hard"). Do not include any other text.`,
+          userPromptOverride: `Generate 5 new quiz questions about ${topicMeta?.title || slug}. Existing questions to avoid repeating: ${content.quiz.map((question) => question.question).join("; ")}`,
           maxTokens: 2000,
         }),
       });
+
       const data = await response.json();
-      if (!response.ok || data?.error) throw new Error(data?.error || "Request failed");
-      const text = data?.content || "";
-      const parsed = JSON.parse(text);
+      if (!response.ok || data?.error) {
+        throw new Error(data?.error || "Request failed");
+      }
+
+      const parsed = JSON.parse(data?.content || "{}");
       const questions: QuizQuestion[] = Array.isArray(parsed) ? parsed : parsed.questions || [];
-      if (questions.length === 0) throw new Error("No questions generated");
-      setAiQuestions(prev => [...prev, ...questions]);
+
+      if (questions.length === 0) {
+        throw new Error("No questions generated");
+      }
+
+      setAiQuestions((previous) => [...previous, ...questions]);
+      setActiveTab("quiz");
     } catch (err: any) {
       void appLog({
         event_type: "api_error",
@@ -113,11 +151,11 @@ export default function TopicPage() {
         error_stack: err?.stack,
         severity: "error",
       });
-      setGenerationError(err.message || "Failed to generate questions");
+      setGenerationError(err?.message || "Failed to generate questions");
     } finally {
       setIsGenerating(false);
     }
-  }, [slug, content, topicMeta]);
+  }, [content, slug, topicMeta]);
 
   if (topicsLoading) {
     return (
@@ -144,19 +182,19 @@ export default function TopicPage() {
     );
   }
 
-  const currentIndex = topics?.findIndex(t => t.slug === slug) ?? -1;
-  const prevTopic = currentIndex > 0 ? topics?.[currentIndex - 1] : null;
-  const nextTopic = currentIndex < (topics?.length || 0) - 1 ? topics?.[currentIndex + 1] : null;
-
+  const currentIndex = topics.findIndex((topic) => topic.slug === slug);
+  const previousTopic = currentIndex > 0 ? topics[currentIndex - 1] : null;
+  const nextTopic = currentIndex < topics.length - 1 ? topics[currentIndex + 1] : null;
   const allQuestions: QuizQuestion[] = [...content.quiz, ...aiQuestions];
-  const hasSteps = learningSteps && learningSteps.length > 0;
+  const handleUseAiPrompt = (prompt: string) => {
+    setAiSeedPrompt(prompt);
+    setShowAiHelper(true);
+    setActiveTab("lesson");
+  };
 
   return (
     <div className="container max-w-6xl mx-auto px-4 py-8 pb-24">
-      <motion.div
-        initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
-        className="mb-8"
-      >
+      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
         <Button
           variant="ghost"
           size="sm"
@@ -164,24 +202,25 @@ export default function TopicPage() {
           className="mb-3 -ml-2 gap-1.5 text-muted-foreground hover:text-foreground text-xs h-8 rounded-lg"
           aria-label="Go back to previous page"
         >
-          <ChevronLeft className="w-4 h-4" aria-hidden="true" />
+          <ChevronLeft className="w-4 h-4" />
           Back
         </Button>
 
-        <div className="flex items-center gap-2 text-sm font-medium text-primary mb-3">
+        <div className="flex items-center gap-2 text-sm font-medium text-primary mb-3 flex-wrap">
           <BookOpen className="w-4 h-4" />
           <span>{topicMeta.category}</span>
-          <span className="text-muted-foreground/40">·</span>
-          <span className="text-muted-foreground text-xs">Topic {currentIndex + 1} of {topics?.length || 0}</span>
+          <span className="text-muted-foreground/40">-</span>
+          <span className="text-muted-foreground text-xs">Topic {currentIndex + 1} of {topics.length}</span>
           {topicMeta.ocrRef && (
             <>
-              <span className="text-muted-foreground/40">·</span>
+              <span className="text-muted-foreground/40">-</span>
               <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-semibold flex items-center gap-1">
-                <GraduationCap className="w-3 h-3" /> OCR §{topicMeta.ocrRef}
+                <GraduationCap className="w-3 h-3" /> OCR {topicMeta.ocrRef}
               </span>
             </>
           )}
         </div>
+
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <h1 className="text-3xl md:text-4xl font-display font-extrabold tracking-tight text-foreground">
             {topicMeta.title}
@@ -190,7 +229,7 @@ export default function TopicPage() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setShowAiHelper(!showAiHelper)}
+              onClick={() => setShowAiHelper((value) => !value)}
               className="gap-1.5 text-secondary hover:text-secondary hover:bg-secondary/10 rounded-full"
             >
               <Bot className="w-4 h-4" />
@@ -206,40 +245,99 @@ export default function TopicPage() {
         </div>
       </motion.div>
 
-      {/* AI Helper — key={slug} forces reset when topic changes */}
       {showAiHelper && (
         <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="mb-8">
-          <AiHelper key={slug} topicSlug={slug} topicTitle={topicMeta.title} />
+          <AiHelper key={slug} topicSlug={slug} topicTitle={topicMeta.title} seedPrompt={aiSeedPrompt} />
         </motion.div>
       )}
 
-      <Tabs defaultValue={hasSteps ? "learn" : "lesson"} className="w-full">
+      <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1.4fr)_minmax(320px,0.8fr)] gap-6 mb-8">
+        <Card className="rounded-2xl border-primary/20 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5">
+          <CardContent className="p-5">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                <Sparkles className="w-5 h-5 text-primary" />
+              </div>
+              <div className="min-w-0">
+                <h2 className="text-lg font-display font-bold">Quick Check Before Full Assessment</h2>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Start with the built-in quiz, generate extra AI questions using the current free model path, then move into printable topic sets or the full exam question bank.
+                </p>
+                <div className="flex flex-wrap gap-2 mt-4">
+                  <Button size="sm" className="rounded-full gap-1.5" onClick={() => setActiveTab("quiz")}>
+                    <Award className="w-4 h-4" /> Open Quick Quiz
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="rounded-full gap-1.5"
+                    onClick={() => {
+                      setShowAiHelper(true);
+                      setActiveTab("lesson");
+                    }}
+                  >
+                    <Bot className="w-4 h-4" /> Validate With AI
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="rounded-full gap-1.5"
+                    disabled={isGenerating}
+                    onClick={() => void generateMoreQuestions()}
+                  >
+                    {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                    Generate Extra Questions
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {hasLibraryResources ? (
+          <TopicResourcePanel
+            title="Linked Topic Packs"
+            description="Board-matched textbook pages and printable topic sets from the content library."
+            groups={libraryResources}
+          />
+        ) : (
+          <Card className="rounded-2xl border-border/50">
+            <CardContent className="p-5">
+              <h2 className="text-lg font-display font-bold">Topic Packs</h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                No linked printable pack has been mapped to this topic yet. The existing lesson, quiz, and exam question flows still work normally.
+              </p>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <div className="overflow-x-auto -mx-4 px-4 mb-8 scrollbar-none">
-        <TabsList className="inline-flex h-11 min-w-max bg-muted/50 p-1 rounded-xl gap-0.5" aria-label="Topic sections">
-          {hasSteps && (
-            <TabsTrigger value="learn" className="rounded-lg font-medium data-[state=active]:bg-card data-[state=active]:shadow-sm gap-1.5 text-xs sm:text-sm px-3 py-2">
-              <GraduationCap className="w-4 h-4 shrink-0" aria-hidden="true" /> <span className="hidden sm:inline">Learn</span>
+          <TabsList className="inline-flex h-11 min-w-max bg-muted/50 p-1 rounded-xl gap-0.5" aria-label="Topic sections">
+            {hasSteps && (
+              <TabsTrigger value="learn" className="rounded-lg font-medium data-[state=active]:bg-card data-[state=active]:shadow-sm gap-1.5 text-xs sm:text-sm px-3 py-2">
+                <GraduationCap className="w-4 h-4 shrink-0" /> <span className="hidden sm:inline">Learn</span>
+              </TabsTrigger>
+            )}
+            <TabsTrigger value="lesson" className="rounded-lg font-medium data-[state=active]:bg-card data-[state=active]:shadow-sm gap-1.5 text-xs sm:text-sm px-3 py-2">
+              <BookOpen className="w-4 h-4 shrink-0" /> <span className="hidden sm:inline">Notes</span>
             </TabsTrigger>
-          )}
-          <TabsTrigger value="lesson" className="rounded-lg font-medium data-[state=active]:bg-card data-[state=active]:shadow-sm gap-1.5 text-xs sm:text-sm px-3 py-2">
-            <BookOpen className="w-4 h-4 shrink-0" aria-hidden="true" /> <span className="hidden sm:inline">Notes</span>
-          </TabsTrigger>
-          <TabsTrigger value="challenges" className="rounded-lg font-medium data-[state=active]:bg-card data-[state=active]:shadow-sm gap-1.5 text-xs sm:text-sm px-3 py-2">
-            <Swords className="w-4 h-4 shrink-0" aria-hidden="true" /> <span className="hidden sm:inline">Challenges</span>
-          </TabsTrigger>
-          <TabsTrigger value="practice" className="rounded-lg font-medium data-[state=active]:bg-card data-[state=active]:shadow-sm gap-1.5 text-xs sm:text-sm px-3 py-2">
-            <Code2 className="w-4 h-4 shrink-0" aria-hidden="true" /> <span className="hidden sm:inline">Practice</span>
-          </TabsTrigger>
-          <TabsTrigger value="exam" className="rounded-lg font-medium data-[state=active]:bg-card data-[state=active]:shadow-sm gap-1.5 text-xs sm:text-sm px-3 py-2">
-            <FileText className="w-4 h-4 shrink-0" aria-hidden="true" /> <span className="hidden sm:inline">Exam Qs</span>
-          </TabsTrigger>
-          <TabsTrigger value="quiz" className="rounded-lg font-medium data-[state=active]:bg-card data-[state=active]:shadow-sm gap-1.5 text-xs sm:text-sm px-3 py-2">
-            <Award className="w-4 h-4 shrink-0" aria-hidden="true" /> <span className="hidden sm:inline">Quiz</span>
-          </TabsTrigger>
-        </TabsList>
+            <TabsTrigger value="challenges" className="rounded-lg font-medium data-[state=active]:bg-card data-[state=active]:shadow-sm gap-1.5 text-xs sm:text-sm px-3 py-2">
+              <Swords className="w-4 h-4 shrink-0" /> <span className="hidden sm:inline">Challenges</span>
+            </TabsTrigger>
+            <TabsTrigger value="practice" className="rounded-lg font-medium data-[state=active]:bg-card data-[state=active]:shadow-sm gap-1.5 text-xs sm:text-sm px-3 py-2">
+              <Code2 className="w-4 h-4 shrink-0" /> <span className="hidden sm:inline">Practice</span>
+            </TabsTrigger>
+            <TabsTrigger value="exam" className="rounded-lg font-medium data-[state=active]:bg-card data-[state=active]:shadow-sm gap-1.5 text-xs sm:text-sm px-3 py-2">
+              <FileText className="w-4 h-4 shrink-0" /> <span className="hidden sm:inline">Exam Qs</span>
+            </TabsTrigger>
+            <TabsTrigger value="quiz" className="rounded-lg font-medium data-[state=active]:bg-card data-[state=active]:shadow-sm gap-1.5 text-xs sm:text-sm px-3 py-2">
+              <Award className="w-4 h-4 shrink-0" /> <span className="hidden sm:inline">Quiz</span>
+            </TabsTrigger>
+          </TabsList>
         </div>
 
-        {/* Interactive Stepped Learning */}
         {hasSteps && (
           <TabsContent value="learn" className="focus-visible:outline-none focus-visible:ring-0">
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
@@ -254,7 +352,7 @@ export default function TopicPage() {
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
                     className="w-full h-full"
-                  ></iframe>
+                  />
                 </div>
               )}
               <SteppedLearning steps={learningSteps} topicTitle={topicMeta.title} />
@@ -275,21 +373,37 @@ export default function TopicPage() {
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
                   className="w-full h-full"
-                ></iframe>
+                />
               </div>
             )}
 
             <div className="prose prose-lg max-w-none">
-              {content.explanation.map((para, i) => (
-                <p key={i} className="text-lg leading-relaxed text-muted-foreground">{para}</p>
+              {content.explanation.map((paragraph, index) => (
+                <p key={index} className="text-lg leading-relaxed text-muted-foreground">{paragraph}</p>
               ))}
             </div>
 
             <div className="grid grid-cols-1 gap-8 mt-10">
-              {content.codeExamples.map((ex, i) => (
-                <RunnableCode key={i} code={ex.code} title={ex.title} description={ex.description} />
+              {content.codeExamples.map((example, index) => (
+                <RunnableCode key={index} code={example.code} title={example.title} description={example.description} />
               ))}
             </div>
+
+            {hasLibraryResources && (
+              <div className="mt-10">
+                <TopicResourcePanel
+                  title="Textbook and Topic Set PDFs"
+                  description="Use the linked textbook pages for recap and the set PDFs to test this sub-topic before moving into full assessments."
+                  groups={libraryResources}
+                />
+              </div>
+            )}
+
+            {augmentation && (
+              <div className="mt-10">
+                <TopicAugmentationPanel augmentation={augmentation} onUseAiPrompt={handleUseAiPrompt} />
+              </div>
+            )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-10">
               <Card className="border-primary/20 bg-primary/5 shadow-none rounded-2xl">
@@ -298,10 +412,10 @@ export default function TopicPage() {
                     <Lightbulb className="w-5 h-5" /> Key Takeaways
                   </h3>
                   <ul className="space-y-3">
-                    {content.keyPoints.map((kp, i) => (
-                      <li key={i} className="flex items-start gap-2 text-sm text-foreground/80">
+                    {content.keyPoints.map((keyPoint, index) => (
+                      <li key={index} className="flex items-start gap-2 text-sm text-foreground/80">
                         <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
-                        {kp}
+                        {keyPoint}
                       </li>
                     ))}
                   </ul>
@@ -314,11 +428,11 @@ export default function TopicPage() {
                     <AlertTriangle className="w-5 h-5" /> Common Mistakes
                   </h3>
                   <ul className="space-y-4">
-                    {content.commonMistakes.map((cm, i) => (
-                      <li key={i} className="text-sm">
-                        <span className="text-destructive/80">✗ {cm.mistake}</span>
+                    {content.commonMistakes.map((mistake, index) => (
+                      <li key={index} className="text-sm">
+                        <span className="text-destructive/80">X {mistake.mistake}</span>
                         <br />
-                        <span className="text-green-500">✓ {cm.fix}</span>
+                        <span className="text-green-500">Correct: {mistake.fix}</span>
                       </li>
                     ))}
                   </ul>
@@ -355,7 +469,7 @@ export default function TopicPage() {
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
             <div className="mb-6">
               <h2 className="text-2xl font-display font-bold mb-2">Practice</h2>
-              <p className="text-muted-foreground">Edit and run code to practice what you've learned.</p>
+              <p className="text-muted-foreground">Edit and run code to practice what you have learned.</p>
             </div>
             <CodeRunner initialCode={content.codeExamples[0]?.code || 'print("Hello!")'} height="h-[400px]" />
           </motion.div>
@@ -367,11 +481,20 @@ export default function TopicPage() {
               <h2 className="text-2xl font-display font-bold mb-2">Exam Questions</h2>
               <p className="text-muted-foreground">Browse exam-style questions with pseudocode hints. Click to expand and attempt each one.</p>
             </div>
+            {hasLibraryResources && (
+              <div className="mb-6">
+                <TopicResourcePanel
+                  title="Printable Topic Assessments"
+                  description="Use these board-matched topic sets as quick validation before or after the interactive exam question bank."
+                  groups={libraryResources}
+                />
+              </div>
+            )}
             <ExamQuestionBank
               topicSlug={slug}
               topicTitle={topicMeta.title}
               questions={allQuestions}
-              onQuestionsGenerated={(newQs) => setAiQuestions(prev => [...prev, ...newQs])}
+              onQuestionsGenerated={(newQuestions) => setAiQuestions((previous) => [...previous, ...newQuestions])}
             />
           </motion.div>
         </TabsContent>
@@ -383,18 +506,16 @@ export default function TopicPage() {
                 <h2 className="text-2xl font-display font-bold mb-2">Quiz</h2>
                 <p className="text-muted-foreground">Test your understanding of {topicMeta.title}.</p>
               </div>
-              {(
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={generateMoreQuestions}
-                  disabled={isGenerating}
-                  className="gap-2 rounded-full border-secondary/30 text-secondary hover:bg-secondary/10 shrink-0"
-                >
-                  {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-                  Generate AI Questions
-                </Button>
-              )}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => void generateMoreQuestions()}
+                disabled={isGenerating}
+                className="gap-2 rounded-full border-secondary/30 text-secondary hover:bg-secondary/10 shrink-0"
+              >
+                {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                Generate AI Questions
+              </Button>
             </div>
 
             {aiQuestions.length > 0 && (
@@ -409,7 +530,9 @@ export default function TopicPage() {
                   <AlertTriangle className="w-4 h-4 shrink-0" />
                   <span>{generationError}</span>
                 </div>
-                <button onClick={() => setGenerationError(null)} className="text-xs underline opacity-80 hover:opacity-100">Dismiss</button>
+                <button type="button" onClick={() => setGenerationError(null)} className="text-xs underline opacity-80 hover:opacity-100">
+                  Dismiss
+                </button>
               </div>
             )}
 
@@ -418,47 +541,34 @@ export default function TopicPage() {
         </TabsContent>
       </Tabs>
 
-      {/* Topic Navigation */}
-      <nav
-        aria-label="Topic navigation"
-        className="flex justify-between gap-3 mt-16 pt-8 border-t border-border/50"
-      >
-        {prevTopic ? (
-          <Link
-            to={`/topic/${prevTopic.slug}`}
-            aria-label={`Previous topic: ${prevTopic.title}`}
-            className="flex-1 max-w-[45%]"
-          >
-            <Button
-              variant="ghost"
-              className="w-full justify-start gap-2 hover:bg-primary/10 text-left h-auto py-2 px-3"
-            >
-              <ChevronLeft className="w-4 h-4 shrink-0" aria-hidden="true" />
+      <nav aria-label="Topic navigation" className="flex justify-between gap-3 mt-16 pt-8 border-t border-border/50">
+        {previousTopic ? (
+          <Link to={`/topic/${previousTopic.slug}`} aria-label={`Previous topic: ${previousTopic.title}`} className="flex-1 max-w-[45%]">
+            <Button variant="ghost" className="w-full justify-start gap-2 hover:bg-primary/10 text-left h-auto py-2 px-3">
+              <ChevronLeft className="w-4 h-4 shrink-0" />
               <span className="flex flex-col items-start min-w-0">
                 <span className="text-[10px] text-muted-foreground">Previous</span>
-                <span className="text-sm font-medium truncate w-full">{prevTopic.title}</span>
+                <span className="text-sm font-medium truncate w-full">{previousTopic.title}</span>
               </span>
             </Button>
           </Link>
-        ) : <div className="flex-1" />}
+        ) : (
+          <div className="flex-1" />
+        )}
+
         {nextTopic ? (
-          <Link
-            to={`/topic/${nextTopic.slug}`}
-            aria-label={`Next topic: ${nextTopic.title}`}
-            className="flex-1 max-w-[45%]"
-          >
-            <Button
-              variant="ghost"
-              className="w-full justify-end gap-2 hover:bg-primary/10 text-right h-auto py-2 px-3"
-            >
+          <Link to={`/topic/${nextTopic.slug}`} aria-label={`Next topic: ${nextTopic.title}`} className="flex-1 max-w-[45%]">
+            <Button variant="ghost" className="w-full justify-end gap-2 hover:bg-primary/10 text-right h-auto py-2 px-3">
               <span className="flex flex-col items-end min-w-0">
                 <span className="text-[10px] text-muted-foreground">Up Next</span>
                 <span className="text-sm font-medium truncate w-full">{nextTopic.title}</span>
               </span>
-              <ChevronRight className="w-4 h-4 shrink-0" aria-hidden="true" />
+              <ChevronRight className="w-4 h-4 shrink-0" />
             </Button>
           </Link>
-        ) : <div className="flex-1" />}
+        ) : (
+          <div className="flex-1" />
+        )}
       </nav>
     </div>
   );

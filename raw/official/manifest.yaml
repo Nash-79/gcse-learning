@@ -1,0 +1,24 @@
+# raw/official/manifest.yaml
+# Every file in raw/ must have an entry here before it can be used in the pipeline.
+# Fields: filename, board, spec_code, source_type, source_url, downloaded_at, checksum_sha256
+
+sources:
+  - filename: 558027-specification-gcse-computer-science-j277.pdf
+    board: ocr
+    spec_code: J277
+    source_type: official_specification
+    source_url: "https://www.ocr.org.uk/Images/558027-specification-gcse-computer-science-j277.pdf"
+    downloaded_at: "2026-04-14"
+    checksum_sha256: ""   # fill in after download: sha256sum <file>
+    license: public_examination_material
+    may_republish: false  # use for research only — write original notes
+
+  - filename: 558027-sample-assessment-material-j277-01.pdf
+    board: ocr
+    spec_code: J277
+    source_type: past_paper
+    source_url: "https://www.ocr.org.uk/qualifications/gcse/computer-science-j277-from-2020/"
+    downloaded_at: "2026-04-14"
+    checksum_sha256: ""
+    license: public_examination_material
+    may_republish: false

@@ -1,22 +1,22 @@
-// ── Diagram & Image ──────────────────────────────────────────────────────────
+// Diagram and image support
 
 /**
  * A static or AI-generated diagram image stored under public/diagrams/.
  * src is a public path (e.g. "/diagrams/cpu-block.svg") or an absolute URL.
- * aiPrompt is the prompt that was used to generate the image — keep it so the
+ * aiPrompt is the prompt that was used to generate the image - keep it so the
  * image can be regenerated or revised later.
  */
 export interface DiagramImage {
   src: string;
   alt: string;
   caption?: string;
-  aiPrompt?: string; // prompt used to generate — for audit & regeneration
+  aiPrompt?: string; // prompt used to generate - for audit and regeneration
 }
 
 /**
- * A Mermaid diagram — use only when flow/sequence/state makes conceptual sense
+ * A Mermaid diagram - use only when flow/sequence/state makes conceptual sense
  * (e.g. fetch-decode-execute sequence, network protocol flow, sorting steps).
- * Do NOT use for spatial / block-architecture diagrams — use DiagramImage there.
+ * Do NOT use for spatial / block-architecture diagrams - use DiagramImage there.
  */
 export interface MermaidDiagram {
   title: string;
@@ -34,7 +34,7 @@ export interface DiagramData {
   connections?: string[];
 }
 
-// ── Rich content primitives ───────────────────────────────────────────────────
+// Rich content primitives
 
 export interface WorkedExample {
   question: string;
@@ -44,16 +44,16 @@ export interface WorkedExample {
 }
 
 export interface CommonMistake {
-  mistake: string;    // what students get wrong
+  mistake: string; // what students get wrong
   correction: string; // the correct understanding
 }
 
 export interface Flashcard {
   front: string; // typically the key term or question
-  back: string;  // definition or answer
+  back: string; // definition or answer
 }
 
-// ── Section & Topic ───────────────────────────────────────────────────────────
+// Section and topic structures
 
 export interface TheorySection {
   id: string;
@@ -70,7 +70,7 @@ export interface TheorySection {
   // Block/grid diagram rendered natively
   diagram?: DiagramData;
 
-  // Mermaid diagram — use context-appropriately (flows, sequences, states)
+  // Mermaid diagram - use context-appropriately (flows, sequences, states)
   mermaid?: MermaidDiagram;
 
   keyTerms?: { term: string; definition: string }[];
