@@ -128,6 +128,29 @@ function saveCache(models: OpenRouterModel[]) {
   }
 }
 
+export async function readModelsResponse(response: Response): Promise<{ models: OpenRouterModel[]; error?: string }> {
+  const raw = await response.text();
+  let parsed: unknown = {};
+
+  try {
+    parsed = raw ? JSON.parse(raw) : {};
+  } catch {
+    const looksLikeHtml = raw.trimStart().startsWith("<") || raw.includes("<!DOCTYPE");
+    return {
+      models: [],
+      error: looksLikeHtml
+        ? "Model API route not reachable. Check VITE_API_BASE_URL and backend deployment."
+        : "Model API returned a non-JSON response.",
+    };
+  }
+
+  const payload = parsed as { models?: unknown; error?: unknown };
+  return {
+    models: Array.isArray(payload?.models) ? (payload.models as OpenRouterModel[]) : [],
+    error: typeof payload?.error === "string" ? payload.error : undefined,
+  };
+}
+
 export function useOpenRouterModels() {
   const [models, setModels] = useState<OpenRouterModel[]>(() => loadCache());
   const [loading, setLoading] = useState(models.length === 0);
@@ -143,11 +166,10 @@ export function useOpenRouterModels() {
     try {
       setError(null);
       const response = await apiFetch(forceRefresh ? "/api/openrouter/models?refresh=1" : "/api/openrouter/models");
-      const data = await response.json();
-      if (!response.ok || data?.error) {
-        throw new Error(data?.error || "Failed to load models");
+      const { models: nextModels, error: responseError } = await readModelsResponse(response);
+      if (!response.ok || responseError) {
+        throw new Error(responseError || `Failed to load models (${response.status})`);
       }
-      const nextModels = Array.isArray(data?.models) ? data.models as OpenRouterModel[] : [];
       if (nextModels.length > 0) {
         setModels(nextModels);
         saveCache(nextModels);
