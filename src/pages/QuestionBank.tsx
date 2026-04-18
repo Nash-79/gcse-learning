@@ -4,14 +4,13 @@ import {
   FileText, BookOpen, Clock, Target, Zap,
   ChevronRight, Sparkles, Layers, Calendar, ArrowRight,
   GraduationCap, Trophy, BarChart3, Play, Brain,
-  ClipboardCheck, Flame, NotebookPen, LayoutGrid
+  ClipboardCheck, Flame, NotebookPen
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { allQuestions, mockExamSets, practicePaperSets, topicMasterySets, fiveADaySets, allPaperSets } from "@/data/questionBank/paperSets";
 import { PaperSet as PaperSetType } from "@/data/questionBank/types";
-import { getPrintablePastPaperResources } from "@/lib/contentLibrary";
 
 const container = {
   hidden: { opacity: 0 },
@@ -29,7 +28,7 @@ const heroStats = [
   { value: `${allQuestions.length}+`, label: "Questions" },
   { value: "11", label: "Topic Areas" },
   { value: "2", label: "Papers" },
-  { value: `${getPrintablePastPaperResources("all").length}`, label: "Printable PDFs" },
+  { value: `${mockExamSets.length + practicePaperSets.length}`, label: "Exam Sets" },
 ];
 
 const paper1Topics = ["Systems Architecture", "Memory & Storage", "Computer Networks", "Network Security", "Systems Software", "Ethical, Legal & Environmental"];
@@ -116,7 +115,6 @@ export default function QuestionBank() {
   const p2TopicSets = topicMasterySets.filter(s => s.paper === "2");
   const p1FiveADay = fiveADaySets.filter(s => s.paper === "1");
   const p2FiveADay = fiveADaySets.filter(s => s.paper === "2");
-  const printablePastPapers = getPrintablePastPaperResources("all");
 
   return (
     <div className="flex flex-col min-h-full pb-20">
@@ -192,50 +190,6 @@ export default function QuestionBank() {
                 </Link>
               </CardContent>
             </Card>
-          </motion.section>
-
-          <motion.section variants={item}>
-            <div className="flex items-center gap-2.5 mb-1">
-              <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center">
-                <LayoutGrid className="w-4.5 h-4.5 text-emerald-500" />
-              </div>
-              <h2 className="text-xl font-display font-bold">Printable Past Papers & Specifications</h2>
-            </div>
-            <p className="text-xs text-muted-foreground mb-4 ml-8">
-              Download official-style papers, specimen papers, and specification documents for offline printing and timed practice.
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {printablePastPapers.map((resource) => (
-                <Card key={resource.relativePath} className="rounded-2xl border-border/50 overflow-hidden">
-                  <CardContent className="p-5 flex flex-col gap-3">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h4 className="font-display font-bold text-sm">{resource.title}</h4>
-                      <Badge variant="secondary" className="text-[10px] border-none bg-primary/10 text-primary">
-                        {resource.board.toUpperCase()}
-                      </Badge>
-                      <Badge variant="secondary" className="text-[10px] border-none">
-                        {resource.kind}
-                      </Badge>
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      Open in the browser for quick review or download for printing and timed revision.
-                    </p>
-                    <div className="flex items-center gap-2">
-                      <a href={resource.openUrl} target="_blank" rel="noreferrer">
-                        <Button size="sm" variant="outline" className="rounded-full h-8">
-                          Open PDF
-                        </Button>
-                      </a>
-                      <a href={resource.downloadUrl}>
-                        <Button size="sm" className="rounded-full h-8">
-                          Download
-                        </Button>
-                      </a>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
           </motion.section>
 
           {/* Mock Exams */}

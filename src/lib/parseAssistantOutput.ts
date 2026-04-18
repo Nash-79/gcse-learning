@@ -30,10 +30,26 @@ function looksLikePythonCode(input: string): boolean {
   return signals.some((s) => text.includes(s));
 }
 
+function hasMarkdownStructure(input: string): boolean {
+  if (input.includes("```")) return true;
+  // Any line that looks like prose, a heading, a list, or a blockquote —
+  // means it's a narrative section, not a raw code snippet.
+  return /(^|\n)\s*(#{1,6}\s|[-*]\s|>\s|\d+\.\s)/.test(input) ||
+    /[.!?]\s+[A-Z]/.test(input) ||
+    /\*\*[^*]+\*\*/.test(input);
+}
+
 function toMarkdownContent(content: string): string {
   const normalized = unescapeIfNeeded(content).trim();
   if (!normalized) return "";
-  if (looksLikePythonCode(normalized) && normalized.includes("\n")) {
+  // Only fence-wrap when the content is *purely* code — never when it
+  // already contains fences or prose/markdown markers, otherwise we
+  // nest fences and corrupt the rendered output.
+  if (
+    looksLikePythonCode(normalized) &&
+    normalized.includes("\n") &&
+    !hasMarkdownStructure(normalized)
+  ) {
     return `\`\`\`python\n${normalized}\n\`\`\``;
   }
   return normalized;

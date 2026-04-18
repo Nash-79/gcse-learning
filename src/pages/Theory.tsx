@@ -15,7 +15,6 @@ import { useExamBoard } from "@/hooks/useTopics";
 import { paper1Theory } from "@/data/questionBank/paper1Theory";
 import { paper2Theory } from "@/data/questionBank/paper2Theory";
 import { TopicTheoryData } from "@/data/questionBank/theoryTypes";
-import { getTopicLibraryResources } from "@/lib/contentLibrary";
 
 const container = {
   hidden: { opacity: 0 },
@@ -41,16 +40,6 @@ const iconColorMap: Record<string, string> = {
   destructive: "bg-destructive/15 text-destructive",
 };
 
-function getLinkedPdfCount(topic: TopicTheoryData, board: "ocr" | "aqa" | "all") {
-  const resources = getTopicLibraryResources(topic.slug, board);
-  return (
-    resources.textbook.length +
-    resources.assessmentOverview.length +
-    resources.assessmentSets.length +
-    resources.longAnswer.length
-  );
-}
-
 function hasValidationMetadata(topic: TopicTheoryData) {
   return Boolean(topic.spec_code) &&
     Boolean(topic.spec_version) &&
@@ -59,8 +48,6 @@ function hasValidationMetadata(topic: TopicTheoryData) {
 }
 
 function TheoryCard({ topic }: { topic: TopicTheoryData }) {
-  const linkedPdfCount = getLinkedPdfCount(topic, "all");
-
   return (
     <motion.div variants={item}>
       <Link to={`/topic-theory/${topic.slug}`}>
@@ -80,11 +67,6 @@ function TheoryCard({ topic }: { topic: TopicTheoryData }) {
                 <Badge variant="secondary" className="text-[10px] bg-background/60 border-none font-mono">
                   AQA {topic.aqaRef.join(", ")}
                 </Badge>
-                {linkedPdfCount > 0 && (
-                  <Badge variant="secondary" className="text-[10px] bg-primary/10 text-primary border-none">
-                    {linkedPdfCount} linked PDF{linkedPdfCount === 1 ? "" : "s"}
-                  </Badge>
-                )}
               </div>
             </div>
 
@@ -129,10 +111,6 @@ export default function Theory() {
     board === "all" ? allTheory : allTheory.filter((topic) => topic.examBoards.includes(board));
 
   const validatedCount = boardFiltered.filter(hasValidationMetadata).length;
-  const linkedPdfCount = boardFiltered.reduce(
-    (count, topic) => count + getLinkedPdfCount(topic, board === "all" ? "all" : board),
-    0
-  );
 
   const filtered = boardFiltered.filter((topic) => {
     const searchTerm = search.trim().toLowerCase();
@@ -184,7 +162,7 @@ export default function Theory() {
                   Theory Revision
                 </h1>
                 <p className="text-white/70 text-sm md:text-base mt-1">
-                  Rich GCSE Computer Science notes, diagrams, and linked printable practice
+                  Rich GCSE Computer Science notes, diagrams, and guided practice
                 </p>
               </div>
             </div>
@@ -216,12 +194,11 @@ export default function Theory() {
               </Button>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-8 max-w-2xl">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-8 max-w-xl">
               {[
                 { value: `${boardFiltered.length}`, label: "Topics" },
                 { value: `${boardFiltered.reduce((sum, topic) => sum + topic.sections.length, 0)}`, label: "Sections" },
                 { value: `${validatedCount}/${boardFiltered.length}`, label: "Reviewed Topics" },
-                { value: `${linkedPdfCount}`, label: "Linked PDFs" },
               ].map((stat, index) => (
                 <motion.div
                   key={stat.label}

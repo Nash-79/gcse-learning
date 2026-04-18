@@ -539,4 +539,52 @@ export const paper2Questions: ExamQuestion[] = [
       "Answer: 10 comparisons maximum (1)",
     ],
   },
+  {
+    id: "p2-al-011",
+    question:
+      "A local hospital maintains a patient record system containing 25,000 records. Each record has a unique patient ID and the file is already sorted by ID. The records team want a search routine that finds any patient record as quickly as possible.\n\nCompare linear search and binary search, then recommend which the hospital should use for this system. Justify your choice with reference to the scale of the dataset and the ordering of the records.",
+    marks: 6,
+    difficulty: "challenge",
+    topic: "Algorithms",
+    paper: "2",
+    type: "explain",
+    correctAnswer:
+      "Linear search inspects each record in turn until it finds the target ID or runs out of records. It works on any list whether ordered or not. Binary search repeatedly looks at the middle record: if the ID matches it returns, if the target ID is lower it keeps the lower half, if higher it keeps the upper half. Binary search only works when the list is already sorted. For 25,000 sorted records, linear search could need up to 25,000 comparisons in the worst case, while binary search needs at most log₂(25,000) ≈ 15 comparisons. Because the hospital data is already sorted by patient ID and the dataset is large, binary search is the appropriate choice — it satisfies the sorted-data prerequisite and offers dramatically faster lookups for users of the records system.",
+    modelAnswer:
+      "Explains linear search: sequential check of each record, works on sorted or unsorted data (1). Explains binary search: examines the middle item of a sorted list then discards the half that cannot contain the target, repeating until found (1). States binary search prerequisite that data must already be sorted (1). Compares worst-case behaviour: linear up to 25,000 comparisons vs binary ~15 comparisons / log₂(n) (1). Justifies recommendation referencing scale and sorted order already met (1). Recommends binary search with coherent reasoning linked to the hospital scenario (1).",
+    markScheme: [
+      "L1 (1–2): Describes one or both algorithms with some accuracy; recommendation unclear or missing justification (1 mark each).",
+      "L2 (3–4): Clear description of both algorithms with at least one comparison point; recommendation stated with partial justification (1 mark each).",
+      "L3 (5–6): Accurate description of both algorithms including binary search's sorted-data prerequisite; comparison quantifies the efficiency gap (linear ≤ 25,000 vs binary ≈ log₂ n); recommendation of binary search is explicitly tied to the sorted hospital dataset and the scale of the records (1 mark each).",
+    ],
+    hint: "Think about what each algorithm does step-by-step, what data they require, and how many checks each could need in the worst case for 25,000 items.",
+    board: "ocr",
+    spec_code: "J277/02",
+    spec_version: "2020",
+    last_reviewed_at: "2026-04-18",
+  },
+  {
+    id: "p2-al-012",
+    question:
+      "A bookseller runs an online shop with 5,000,000 products in its catalogue. The catalogue is kept sorted alphabetically by product name. When a customer types a query, the site must return matches fast enough that the page feels instant, otherwise customers leave for a competitor.\n\nAnalyse how linear search and binary search would perform in this context. Evaluate which algorithm is most appropriate and justify your recommendation, discussing the size of the catalogue, the sorted-data requirement, and the impact on customer experience.",
+    marks: 9,
+    difficulty: "challenge",
+    topic: "Algorithms",
+    paper: "2",
+    type: "explain",
+    correctAnswer:
+      "Linear search scans each product in turn from the first until the target is found or the end is reached; it makes no assumption about order and works on sorted or unsorted data. For 5,000,000 products the worst case is 5,000,000 comparisons, and the average case is roughly 2,500,000 — both noticeable to a user. Binary search repeatedly halves a sorted list: it examines the middle entry, returns if it matches, otherwise discards the half that cannot contain the target and repeats on the other half. For 5,000,000 items the worst case is at most log₂(5,000,000) ≈ 23 comparisons. Binary search's prerequisite — sorted data — is already met because the catalogue is stored alphabetically by product name, so no additional sorting work is required. At this scale, linear search would introduce user-visible latency that damages customer experience in a market where slow search directly costs the business. Binary search delivers results in a handful of comparisons regardless of where the match sits in the catalogue, making it the appropriate choice. Recommendation: binary search, because the sorted prerequisite is already satisfied, the catalogue is large enough that linear search would be noticeably slow, and fast search directly supports the commercial goal of retaining customers.",
+    modelAnswer:
+      "Describes linear search: sequential comparison, works on sorted or unsorted data, worst case = n comparisons (1). Describes binary search: examines middle of sorted list and halves the search space each step (1). States binary search prerequisite that data must be sorted (1). Analyses database size: quantifies worst-case comparisons for linear (up to 5,000,000) versus binary (~23 / log₂ n) for this catalogue (1). Analyses sorted-data requirement: identifies that the catalogue is already alphabetically sorted so the prerequisite is met without extra work (1). Analyses user-experience impact: linear search at this scale causes user-visible delay; binary search is near-instant (1). Links the user-experience point back to the commercial consequence (customers leaving for competitors) (1). Makes a clear, well-reasoned recommendation of binary search (1). Reasoning integrates all three factors — size, sorted order, user experience — into a coherent justification (1).",
+    markScheme: [
+      "L1 (1–3): Basic explanation of one or both algorithms; analysis is limited to one factor; recommendation made but poorly justified (1 mark per credit-worthy point).",
+      "L2 (4–6): Sound explanation of both algorithms including the sorted-data prerequisite; considers at least two of the three factors (size, sorted order, UX); recommendation is stated with partial justification tied to the scenario.",
+      "L3 (7–9): Comprehensive and accurate explanation of both algorithms with quantified worst-case comparisons; evaluates all three factors — catalogue scale (≈ log₂ 5,000,000 vs linear n), sorted-data prerequisite already met, and measurable UX/commercial impact; recommends binary search with justification that integrates all three factors.",
+    ],
+    hint: "Quantify the worst-case comparisons for both algorithms at n = 5,000,000, then tie the efficiency gap to the user experience and business impact.",
+    board: "ocr",
+    spec_code: "J277/02",
+    spec_version: "2020",
+    last_reviewed_at: "2026-04-18",
+  },
 ];

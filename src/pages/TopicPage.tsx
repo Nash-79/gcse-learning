@@ -20,7 +20,6 @@ import {
 import { apiFetch } from "@/lib/apiFetch";
 import { useAiSettings } from "@/lib/useAiSettings";
 import { appLog } from "@/lib/appLogger";
-import { getTopicLibraryResources, isTopicResourceGroupEmpty } from "@/lib/contentLibrary";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -29,7 +28,6 @@ import { RunnableCode } from "@/components/code/RunnableCode";
 import { CodeRunner } from "@/components/code/CodeRunner";
 import { AiHelper } from "@/components/ai/AiHelper";
 import { CodingChallengePanel } from "@/components/challenges/CodingChallengePanel";
-import { TopicResourcePanel } from "@/components/content/TopicResourcePanel";
 import { TopicAugmentationPanel } from "@/components/content/TopicAugmentationPanel";
 import { SteppedLearning } from "@/components/learning/SteppedLearning";
 import { ExamQuestionBank } from "@/components/quiz/ExamQuestionBank";
@@ -90,8 +88,6 @@ export default function TopicPage() {
   const [activeTab, setActiveTab] = useState<string>(hasSteps ? "learn" : "lesson");
   const [aiSeedPrompt, setAiSeedPrompt] = useState("");
 
-  const libraryResources = getTopicLibraryResources(slug, board);
-  const hasLibraryResources = !isTopicResourceGroupEmpty(libraryResources);
   const augmentation = getTopicAugmentation(slug, board);
   const relatedTheory = getRelatedTheory(slug);
 
@@ -264,9 +260,9 @@ export default function TopicPage() {
                 <Sparkles className="w-5 h-5 text-primary" />
               </div>
               <div className="min-w-0">
-                <h2 className="text-lg font-display font-bold">Quick Check Before Full Assessment</h2>
+                <h2 className="text-lg font-display font-bold">Quick Check Before Full Practice</h2>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Start with the built-in quiz, generate extra AI questions using the current free model path, then move into printable topic sets or the full exam question bank.
+                  Start with the built-in quiz, generate extra AI questions using the current free model path, then head into the full exam question bank.
                 </p>
                 <div className="flex flex-wrap gap-2 mt-4">
                   <Button size="sm" className="rounded-full gap-1.5" onClick={() => setActiveTab("quiz")}>
@@ -299,22 +295,6 @@ export default function TopicPage() {
           </CardContent>
         </Card>
 
-        {hasLibraryResources ? (
-          <TopicResourcePanel
-            title="Linked Topic Packs"
-            description="Board-matched textbook pages and printable topic sets from the content library."
-            groups={libraryResources}
-          />
-        ) : (
-          <Card className="rounded-2xl border-border/50">
-            <CardContent className="p-5">
-              <h2 className="text-lg font-display font-bold">Topic Packs</h2>
-              <p className="text-sm text-muted-foreground mt-1">
-                No linked printable pack has been mapped to this topic yet. The existing lesson, quiz, and exam question flows still work normally.
-              </p>
-            </CardContent>
-          </Card>
-        )}
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -394,15 +374,6 @@ export default function TopicPage() {
               ))}
             </div>
 
-            {hasLibraryResources && (
-              <div className="mt-10">
-                <TopicResourcePanel
-                  title="Textbook and Topic Set PDFs"
-                  description="Use the linked textbook pages for recap and the set PDFs to test this sub-topic before moving into full assessments."
-                  groups={libraryResources}
-                />
-              </div>
-            )}
 
             {augmentation && (
               <div className="mt-10">
@@ -513,15 +484,6 @@ export default function TopicPage() {
               <h2 className="text-2xl font-display font-bold mb-2">Exam Questions</h2>
               <p className="text-muted-foreground">Browse exam-style questions with pseudocode hints. Click to expand and attempt each one.</p>
             </div>
-            {hasLibraryResources && (
-              <div className="mb-6">
-                <TopicResourcePanel
-                  title="Printable Topic Assessments"
-                  description="Use these board-matched topic sets as quick validation before or after the interactive exam question bank."
-                  groups={libraryResources}
-                />
-              </div>
-            )}
             <ExamQuestionBank
               topicSlug={slug}
               topicTitle={topicMeta.title}

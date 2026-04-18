@@ -10,7 +10,6 @@ import {
 } from "lucide-react";
 import { AiHelper } from "@/components/ai/AiHelper";
 import { TopicAugmentationPanel } from "@/components/content/TopicAugmentationPanel";
-import { TopicResourcePanel } from "@/components/content/TopicResourcePanel";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -22,7 +21,6 @@ import {
 } from "@/data/questionBank/theoryTypes";
 import { topicMasterySets } from "@/data/questionBank/paperSets";
 import { useExamBoard } from "@/hooks/useTopics";
-import { getTopicLibraryResources, isTopicResourceGroupEmpty } from "@/lib/contentLibrary";
 import { getTopicAugmentation } from "@/lib/topicAugmentation";
 import { getRelatedPythonTopics } from "@/lib/topicCrossLinks";
 
@@ -626,8 +624,6 @@ export default function TopicTheory() {
   const { board } = useExamBoard();
   const [activeTab, setActiveTab] = useState<Tab>("notes");
   const [aiSeedPrompt, setAiSeedPrompt] = useState("");
-  const libraryResources = getTopicLibraryResources(slug || "", board);
-  const hasLibraryResources = !isTopicResourceGroupEmpty(libraryResources);
   const augmentation = getTopicAugmentation(slug || "", board);
 
   const practiceSet = useMemo(() => {
@@ -756,13 +752,6 @@ export default function TopicTheory() {
         {/* ── NOTES TAB ── */}
         {activeTab === "notes" && (
           <>
-            {hasLibraryResources && (
-              <TopicResourcePanel
-                title="Linked Revision Packs"
-                description="Board-matched textbook pages and printable topic assessments connected to this theory topic."
-                groups={libraryResources}
-              />
-            )}
             {/* Topic-level revision summary */}
             {topic.revisionSummary && topic.revisionSummary.length > 0 && (
               <Card className="rounded-2xl border-emerald-500/20">
@@ -856,13 +845,6 @@ export default function TopicTheory() {
         {/* ── PRACTICE TAB ── */}
         {activeTab === "practice" && (
           <div className="space-y-4">
-            {hasLibraryResources && (
-              <TopicResourcePanel
-                title="Printable Topic Practice"
-                description="Use these linked PDFs for quick board-specific validation before the full interactive assessment."
-                groups={libraryResources}
-              />
-            )}
             <Card className="rounded-2xl border-primary/20 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5">
               <CardContent className="p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4">
                 <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">

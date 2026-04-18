@@ -110,7 +110,7 @@ export function TopicAugmentationPanel({ augmentation, onUseAiPrompt }: TopicAug
           <div>
             <h2 className="text-lg font-display font-bold">Exam Board Booster</h2>
             <p className="text-sm text-muted-foreground mt-1">
-              Reviewed textbook insights and long-answer prompts layered onto this topic. Use the AI helper to grade your attempts.
+              Curated study-note insights and long-answer prompts layered onto this topic. Use the AI helper to grade your attempts.
             </p>
           </div>
         </div>

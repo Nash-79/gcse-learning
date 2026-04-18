@@ -11,6 +11,7 @@ import { appLog } from "@/lib/appLogger";
 import type { AiResponseMeta } from "@/lib/aiResponseMeta";
 import { extractMeta } from "@/lib/aiResponseMeta";
 import { LOVABLE_AI_MODELS } from "@/lib/lovableModels";
+import { parseAssistantOutput, structuredJsonToMarkdown } from "@/lib/parseAssistantOutput";
 
 interface Message {
   role: "user" | "assistant";
@@ -25,6 +26,19 @@ interface AiHelperProps {
 }
 
 function extractFollowUps(content: string): { cleanContent: string; suggestions: string[] } {
+  // Prefer the structured JSON contract when present — suggestions come
+  // from `data.suggestions`, and the main body is rendered from the
+  // remaining fields. Falling back to regex only matters for legacy
+  // markdown-mode outputs.
+  const parsed = parseAssistantOutput(content);
+  if (parsed.type === "json") {
+    const suggestions = Array.isArray(parsed.data.suggestions)
+      ? parsed.data.suggestions.filter((s): s is string => typeof s === "string" && s.trim().length > 0)
+      : [];
+    const cleanBody = structuredJsonToMarkdown({ ...parsed.data, suggestions: [] });
+    return { cleanContent: cleanBody, suggestions };
+  }
+
   const lines = content.split("\n");
   const suggestions: string[] = [];
   let followUpStart = -1;

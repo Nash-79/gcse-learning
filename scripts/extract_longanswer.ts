@@ -16,6 +16,7 @@ type RunOptions = {
   maxAttempts: number;
   headful: boolean;
   interactive: boolean;
+  channel?: 'chrome' | 'msedge';
   entry: 'landing' | 'direct';
   cfMaxWaitMs: number;
   cfStepMs: number;
@@ -30,6 +31,7 @@ function parseArgs(argv: string[]): RunOptions {
   let maxAttempts = 3;
   let headful = !!process.env.HEADFUL;
   let interactive = false;
+  let channel: 'chrome' | 'msedge' | undefined;
   let entry: 'landing' | 'direct' = 'landing';
   let cfMaxWaitMs = 2 * 60 * 1000;
   let cfStepMs = 25 * 1000;
@@ -72,6 +74,12 @@ function parseArgs(argv: string[]): RunOptions {
       headful = true;
       continue;
     }
+    if (arg === '--channel' && argv[i + 1]) {
+      const v = argv[i + 1];
+      if (v === 'chrome' || v === 'msedge') channel = v;
+      i++;
+      continue;
+    }
     if (arg === '--entry' && argv[i + 1]) {
       const v = argv[i + 1];
       if (v === 'landing' || v === 'direct') entry = v;
@@ -105,6 +113,7 @@ function parseArgs(argv: string[]): RunOptions {
     maxAttempts,
     headful,
     interactive,
+    channel,
     entry,
     cfMaxWaitMs,
     cfStepMs,
@@ -231,6 +240,7 @@ async function run() {
     ? await chromium.launchPersistentContext(opts.userDataDir, {
         headless: opts.headful ? false : true,
         args: launchArgs,
+        channel: opts.channel,
       })
     : null;
   const browser = persistentContext
@@ -238,6 +248,7 @@ async function run() {
     : await chromium.launch({
         headless: opts.headful ? false : true,
         args: launchArgs,
+        channel: opts.channel,
       });
 
   const topics = [

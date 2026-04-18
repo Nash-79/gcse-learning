@@ -17,7 +17,21 @@
       "Bash(npx tsc *)",
       "Bash(grep -n \"p1-ss-\" c:/repos/gcse-pylearn/src/data/questionBank/*.ts)",
       "Bash(npx eslint *)",
-      "Bash(git stash *)"
+      "Bash(git stash *)",
+      "Bash(npx tsx *)",
+      "Bash(node -e \"const m = require\\('pdf-parse'\\); console.log\\('type:', typeof m, 'keys:', Object.keys\\(m\\).slice\\(0,8\\)\\)\")",
+      "Bash(node -e \"const m = require\\('pdf-parse'\\); console.log\\(Object.keys\\(m\\).filter\\(k => /pdf|parse/i.test\\(k\\)\\)\\)\")",
+      "Bash(node -e \"const { PDFParse } = require\\('pdf-parse'\\); const p = new PDFParse\\({ data: require\\('fs'\\).readFileSync\\('content-library/aqa/assessments/cpu_architecture_set1.pdf'\\) }\\); p.getText\\(\\).then\\(r => console.log\\('text len:', r.text ? r.text.length : 'no text', 'keys:', Object.keys\\(r\\)\\)\\);\")",
+      "Bash(node -e \"const { PDFParse } = require\\('pdf-parse'\\); new PDFParse\\({ data: require\\('fs'\\).readFileSync\\('content-library/aqa/assessments/cpu_architecture_set1.pdf'\\) }\\).getText\\(\\).then\\(r => console.log\\(r.text.slice\\(0, 1500\\)\\)\\)\")",
+      "Bash(node -e \"const { PDFParse } = require\\('pdf-parse'\\); new PDFParse\\({ data: require\\('fs'\\).readFileSync\\('content-library/aqa/assessments/cpu_architecture_set1.pdf'\\) }\\).getText\\(\\).then\\(r => { console.log\\('LEN:', r.text.length\\); console.log\\('---TAIL---'\\); console.log\\(r.text.slice\\(-2500\\)\\); }\\)\")",
+      "Bash(node -e \"const { PDFParse } = require\\('pdf-parse'\\); new PDFParse\\({ data: require\\('fs'\\).readFileSync\\('content-library/ocr/longanswer/algorithms_searching_sorting/standard_full.pdf'\\) }\\).getText\\(\\).then\\(r => { console.log\\('LEN:', r.text.length\\); console.log\\('---HEAD---'\\); console.log\\(r.text.slice\\(0, 2000\\)\\); }\\)\")",
+      "Bash(node -e \"const { PDFParse } = require\\('pdf-parse'\\); new PDFParse\\({ data: require\\('fs'\\).readFileSync\\('content-library/ocr/longanswer/algorithms_searching_sorting/standard_full.pdf'\\) }\\).getText\\(\\).then\\(r => { const m = r.text.match\\(/Question \\\\d+\\\\/\\\\d+/g\\); console.log\\('Headings:', m\\); }\\)\")",
+      "Bash(node -e \"const { PDFParse } = require\\('pdf-parse'\\); new PDFParse\\({ data: require\\('fs'\\).readFileSync\\('content-library/ocr/longanswer/algorithms_searching_sorting/standard_full.pdf'\\) }\\).getText\\(\\).then\\(r => { const lines = r.text.split\\('\\\\n'\\); console.log\\('total lines:', lines.length\\); console.log\\('Question count:', \\(r.text.match\\(/Task \\\\\\(\\\\d+ marks?\\\\\\)/g\\) || []\\).length\\); console.log\\('Example Answer count:', \\(r.text.match\\(/Example Answer/g\\) || []\\).length\\); console.log\\('Levels of response:', \\(r.text.match\\(/Levels of response/g\\) || []\\).length\\); }\\)\")",
+      "Bash(node -e \"const { PDFParse } = require\\('pdf-parse'\\); new PDFParse\\({ data: require\\('fs'\\).readFileSync\\('content-library/ocr/longanswer/algorithms_searching_sorting/standard_full.pdf'\\) }\\).getText\\(\\).then\\(r => { require\\('fs'\\).writeFileSync\\('/tmp/q1_standard.txt', r.text\\); console.log\\('wrote standard:', r.text.length, 'chars'\\); }\\)\")",
+      "Bash(node -e \"const { PDFParse } = require\\('pdf-parse'\\); new PDFParse\\({ data: require\\('fs'\\).readFileSync\\('content-library/ocr/longanswer/algorithms_searching_sorting/extension_full.pdf'\\) }\\).getText\\(\\).then\\(r => { require\\('fs'\\).writeFileSync\\('/tmp/q1_extension.txt', r.text\\); console.log\\('wrote extension:', r.text.length, 'chars'\\); }\\)\")",
+      "Read(//tmp/**)",
+      "Read(//c/tmp/**)",
+      "Bash(git add *)"
     ]
   }
 }
