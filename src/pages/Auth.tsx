@@ -8,7 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 
 export default function Auth() {
-  const { user, loading } = useAuth();
+  const { user, loading, signIn, signUp } = useAuth();
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -30,30 +30,16 @@ export default function Auth() {
     e.preventDefault();
     setSubmitting(true);
 
-    const { signIn, signUp } = await import("@/hooks/useAuth").then(() => {
-      // We need the context version
-      return { signIn: null, signUp: null };
-    });
-
     try {
-      const { supabase } = await import("@/integrations/supabase/client");
-      
       if (mode === "login") {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { error } = await signIn(email, password);
         if (error) {
           toast.error(error.message);
         } else {
           toast.success("Welcome back!");
         }
       } else {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: { display_name: displayName || email.split("@")[0] },
-            emailRedirectTo: window.location.origin,
-          },
-        });
+        const { error } = await signUp(email, password, displayName);
         if (error) {
           toast.error(error.message);
         } else {

@@ -24,6 +24,7 @@ import { topicMasterySets } from "@/data/questionBank/paperSets";
 import { useExamBoard } from "@/hooks/useTopics";
 import { getTopicLibraryResources, isTopicResourceGroupEmpty } from "@/lib/contentLibrary";
 import { getTopicAugmentation } from "@/lib/topicAugmentation";
+import { getRelatedPythonTopics } from "@/lib/topicCrossLinks";
 
 const allTheory = [...paper1Theory, ...paper2Theory];
 
@@ -634,6 +635,8 @@ export default function TopicTheory() {
     return topicMasterySets.find(s => s.paper === topic.paper && s.topic === topic.title);
   }, [topic]);
 
+  const relatedPython = useMemo(() => getRelatedPythonTopics(slug || ""), [slug]);
+
   const [checkedSections, setCheckedSections] = useState<Set<string>>(new Set());
 
   if (!topic) {
@@ -765,6 +768,37 @@ export default function TopicTheory() {
               <Card className="rounded-2xl border-emerald-500/20">
                 <CardContent className="p-4">
                   <RevisionSummary bullets={topic.revisionSummary} />
+                </CardContent>
+              </Card>
+            )}
+
+            {relatedPython.length > 0 && (
+              <Card className="rounded-2xl border-primary/20 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5">
+                <CardContent className="p-4">
+                  <h3 className="font-display font-bold text-xs text-primary mb-2 flex items-center gap-1.5">
+                    <Code className="w-3.5 h-3.5" /> Practice This in Python
+                  </h3>
+                  <p className="text-[11px] text-muted-foreground mb-3">
+                    Jump into the hands-on coding lesson for this spec point.
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {relatedPython.map((item) => (
+                      <Link
+                        key={item.slug}
+                        to={`/topic/${item.slug}`}
+                        className="group flex items-center gap-2 px-3 py-2 rounded-lg border border-border/50 hover:border-primary/50 bg-background/50 hover:bg-primary/5 transition-colors"
+                      >
+                        <div className="w-7 h-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                          <Code className="w-3.5 h-3.5" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-medium text-foreground truncate">{item.title}</p>
+                          <p className="text-[10px] text-muted-foreground truncate">{item.category}</p>
+                        </div>
+                        <ArrowRight className="w-3.5 h-3.5 text-muted-foreground shrink-0 group-hover:text-primary transition-colors" />
+                      </Link>
+                    ))}
+                  </div>
                 </CardContent>
               </Card>
             )}

@@ -18,8 +18,79 @@ export interface OpenRouterModel {
   deprecated?: string;
 }
 
+export type ModelsStatus = "loading" | "ready" | "fallback" | "error";
+
 const CACHE_KEY = "pylearn-openrouter-models-cache";
 const CACHE_TTL_MS = 6 * 60 * 60 * 1000;
+
+/**
+ * Hardcoded fallback free models. Ensures the AI model picker is never
+ * empty even when the OpenRouter catalog fetch fails. Keep this list short
+ * and conservative — models that have been reliably available on the free
+ * tier for months.
+ */
+const SAFE_DEFAULT_MODELS: OpenRouterModel[] = [
+  {
+    id: "google/gemma-3-4b-it:free",
+    name: "Gemma 3 4B (Free)",
+    provider: "google",
+    description: "Google's Gemma 3 4B instruct model on the free tier.",
+    contextWindow: 8192,
+    maxOutput: null,
+    inputPrice: "0",
+    outputPrice: "0",
+    tags: ["free"],
+    architecture: "text",
+    tokenizer: "gemma",
+    recommended: true,
+  },
+  {
+    id: "meta-llama/llama-3.3-70b-instruct:free",
+    name: "Llama 3.3 70B Instruct (Free)",
+    provider: "meta",
+    description: "Meta's Llama 3.3 70B instruct on the free tier.",
+    contextWindow: 131072,
+    maxOutput: null,
+    inputPrice: "0",
+    outputPrice: "0",
+    tags: ["free"],
+    architecture: "text",
+    tokenizer: "llama3",
+  },
+  {
+    id: "meta-llama/llama-3.2-3b-instruct:free",
+    name: "Llama 3.2 3B Instruct (Free)",
+    provider: "meta",
+    description: "Small, fast Llama 3.2 3B on the free tier.",
+    contextWindow: 131072,
+    maxOutput: null,
+    inputPrice: "0",
+    outputPrice: "0",
+    tags: ["free"],
+    architecture: "text",
+    tokenizer: "llama3",
+  },
+  {
+    id: "mistralai/mistral-7b-instruct:free",
+    name: "Mistral 7B Instruct (Free)",
+    provider: "mistralai",
+    description: "Mistral 7B instruct model on the free tier.",
+    contextWindow: 32768,
+    maxOutput: null,
+    inputPrice: "0",
+    outputPrice: "0",
+    tags: ["free"],
+    architecture: "text",
+    tokenizer: "mistral",
+  },
+];
+
+function mergeWithDefaults(models: OpenRouterModel[]): OpenRouterModel[] {
+  // Live list wins — only backfill defaults whose id isn't present.
+  const seen = new Set(models.map((m) => m.id));
+  const extras = SAFE_DEFAULT_MODELS.filter((m) => !seen.has(m.id));
+  return [...models, ...extras];
+}
 
 function loadCache(): OpenRouterModel[] {
   try {
@@ -63,6 +134,7 @@ export function useOpenRouterModels() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdatedAt, setLastUpdatedAt] = useState<number | null>(() => loadCacheUpdatedAt());
+  const [status, setStatus] = useState<ModelsStatus>(models.length > 0 ? "ready" : "loading");
 
   const fetchModels = async (forceRefresh = false): Promise<void> => {
     if (forceRefresh) setRefreshing(true);
@@ -80,6 +152,10 @@ export function useOpenRouterModels() {
         setModels(nextModels);
         saveCache(nextModels);
         setLastUpdatedAt(Date.now());
+        setStatus("ready");
+      } else {
+        // Server returned 200 with an empty list — fall back so picker isn't empty.
+        setStatus("fallback");
       }
     } catch (err: any) {
       void appLog({
@@ -90,6 +166,7 @@ export function useOpenRouterModels() {
         severity: "warning",
       });
       setError(err?.message || "Failed to load models");
+      setStatus(models.length > 0 ? "ready" : "fallback");
     } finally {
       if (forceRefresh) setRefreshing(false);
       else setLoading(false);
@@ -98,12 +175,29 @@ export function useOpenRouterModels() {
 
   useEffect(() => {
     void fetchModels(false);
+    // One silent retry after 4s — handles cold-start and transient network blips
+    // without making the user click refresh.
+    const retryTimer = window.setTimeout(() => {
+      if (models.length === 0) void fetchModels(false);
+    }, 4000);
+    return () => window.clearTimeout(retryTimer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const effectiveModels = useMemo(() => mergeWithDefaults(models), [models]);
   const freeModels = useMemo(
-    () => models.filter((m) => m.id.endsWith(":free")),
-    [models]
+    () => effectiveModels.filter((m) => m.id.endsWith(":free")),
+    [effectiveModels]
   );
 
-  return { models, freeModels, loading, refreshing, error, lastUpdatedAt, refreshModels: () => fetchModels(true) };
+  return {
+    models: effectiveModels,
+    freeModels,
+    loading,
+    refreshing,
+    error,
+    status,
+    lastUpdatedAt,
+    refreshModels: () => fetchModels(true),
+  };
 }

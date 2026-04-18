@@ -183,8 +183,24 @@ function main() {
 
     if (!board || !kindResult) continue;
 
-    const stem = path.basename(relativePath, path.extname(relativePath)).replace(/_set\d+$/, "");
-    const titleBase = TITLE_OVERRIDES[stem] || toTitleCase(stem);
+    const fileStem = path.basename(relativePath, path.extname(relativePath)).replace(/_set\d+$/, "");
+
+    let stem = fileStem;
+    let titleBase = TITLE_OVERRIDES[stem] || toTitleCase(stem);
+
+    if (kindResult.kind === "long-answer") {
+      const topicStem = path.basename(path.dirname(relativePath));
+      const tierLabel = fileStem.toLowerCase().startsWith("standard")
+        ? "Standard"
+        : fileStem.toLowerCase().startsWith("extension")
+          ? "Extension"
+          : toTitleCase(fileStem);
+
+      stem = topicStem;
+      const topicTitle = TITLE_OVERRIDES[topicStem] || toTitleCase(topicStem);
+      titleBase = `${topicTitle} - ${tierLabel} Long Answer`;
+    }
+
     const urls = buildUrls(relativePath);
 
     const slugs = STEM_TO_SLUGS[stem];

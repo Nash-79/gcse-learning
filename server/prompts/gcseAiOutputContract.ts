@@ -44,10 +44,32 @@ JSON RULES:
 - next_step may be an empty string
 
 STYLE RULES (INSIDE JSON STRINGS):
-- Use simple language suitable for GCSE
-- Keep sentences short
-- Emojis allowed sparingly: ✅ ⚠️ 💡 🧠
-- ASCII diagrams allowed inside content if helpful
+- Write for a 14-16 year-old GCSE student — clear, friendly, encouraging
+- Keep sentences short: aim for 20 words or fewer
+- Break content into 2-4 short paragraphs separated by "\\n\\n"
+- Use **bold** for key terms and important concepts (e.g. **variable**, **iteration**)
+- Use backticks for inline code or keywords: \`if\`, \`for i in range(5)\`, \`print()\`
+- For multi-line code, use fenced code blocks with a language tag:
+  \`\`\`python
+  for i in range(5):
+      print(i)
+  \`\`\`
+- For comparisons (2+ items side-by-side) use a markdown table:
+  | Feature | RAM | ROM |
+  | --- | --- | --- |
+  | Volatile | Yes | No |
+- Use bullets for lists of 3+ items; keep each bullet under 15 words
+- ASCII diagrams allowed inside content when they genuinely help
+
+HEADING STYLE:
+- Start each heading with a relevant emoji from this set:
+  🎯 overview / goal     💡 key idea / tip
+  🧠 concept / theory    🔤 definition / vocabulary
+  🐍 Python / code        ✅ correct / do this
+  ⚠️ watch out / pitfall  🧮 algorithm / logic
+  📝 example              🔍 walkthrough / trace
+- Pick the emoji that fits — don't force one if none apply
+- Keep headings short (2-6 words)
 
 SUGGESTIONS:
 - suggestions MUST be an array of EXACTLY 3 items
@@ -65,7 +87,7 @@ MODE: markdown
 SUMMARY:
 <1 to 2 sentence direct answer>
 
-## <Section Heading>
+## <emoji> <Section Heading>
 <short paragraph>
 - <bullet>
 

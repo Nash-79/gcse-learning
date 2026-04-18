@@ -39,6 +39,38 @@ function toMarkdownContent(content: string): string {
   return normalized;
 }
 
+/**
+ * If a section heading doesn't already begin with an emoji, pick a sensible
+ * default based on keywords. Keeps output feeling consistent with Claude's
+ * emoji-prefixed headings even when the model forgets.
+ */
+const HEADING_EMOJI_MAP: Array<{ match: RegExp; emoji: string }> = [
+  { match: /\b(overview|introduction|summary|what is|goal)\b/i, emoji: "🎯" },
+  { match: /\b(example|examples|walkthrough)\b/i, emoji: "📝" },
+  { match: /\b(trace|step.?by.?step|steps)\b/i, emoji: "🔍" },
+  { match: /\b(python|code|syntax|programming)\b/i, emoji: "🐍" },
+  { match: /\b(algorithm|logic|pseudocode)\b/i, emoji: "🧮" },
+  { match: /\b(definition|defined|vocabulary|key term)\b/i, emoji: "🔤" },
+  { match: /\b(tip|tips|idea|hint|remember)\b/i, emoji: "💡" },
+  { match: /\b(concept|theory|understand|explain)\b/i, emoji: "🧠" },
+  { match: /\b(pitfall|warning|watch out|common mistake|error|bug)\b/i, emoji: "⚠️" },
+  { match: /\b(correct|good practice|best practice|do this)\b/i, emoji: "✅" },
+];
+
+// Matches emojis at the start of a heading. Broad emoji range + common
+// symbol emojis (✅ ⚠️ 💡 etc.).
+const LEADING_EMOJI = /^[\s]*(?:\p{Extended_Pictographic}|\p{Emoji_Presentation})/u;
+
+function ensureHeadingEmoji(heading: string): string {
+  const trimmed = heading.trim();
+  if (!trimmed) return trimmed;
+  if (LEADING_EMOJI.test(trimmed)) return trimmed;
+  for (const { match, emoji } of HEADING_EMOJI_MAP) {
+    if (match.test(trimmed)) return `${emoji} ${trimmed}`;
+  }
+  return trimmed;
+}
+
 export type ParsedOutput =
   | { type: "json"; data: StructuredJson }
   | { type: "markdown"; data: string }
@@ -90,14 +122,14 @@ export function parseAssistantOutput(text: string): ParsedOutput {
 export function structuredJsonToMarkdown(data: StructuredJson): string {
   const parts: string[] = [];
 
-  // Summary as a highlighted callout
+  // Summary as a highlighted callout with a goal emoji
   if (data.summary) {
-    parts.push(`> ${data.summary}`);
+    parts.push(`> 🎯 **${data.summary.trim()}**`);
     parts.push("");
   }
 
   for (const section of data.sections) {
-    parts.push(`## ${section.heading}`);
+    parts.push(`## ${ensureHeadingEmoji(section.heading)}`);
     parts.push("");
     if (section.content) {
       parts.push(toMarkdownContent(section.content));
@@ -111,17 +143,17 @@ export function structuredJsonToMarkdown(data: StructuredJson): string {
     }
   }
 
-  if (data.next_step) {
+  if (data.next_step && data.next_step.trim()) {
     parts.push("---");
     parts.push("");
-    parts.push(`💡 **Next step:** ${data.next_step}`);
+    parts.push(`🚀 **Next step:** ${data.next_step.trim()}`);
     parts.push("");
   }
 
   if (Array.isArray(data.suggestions) && data.suggestions.length > 0) {
     parts.push("---");
     parts.push("");
-    parts.push("**Want to keep going?**");
+    parts.push("**🔗 Follow-up questions**");
     parts.push("");
     for (const suggestion of data.suggestions) {
       parts.push(`- ${suggestion}`);
@@ -135,8 +167,8 @@ export function structuredJsonToMarkdown(data: StructuredJson): string {
 export function structuredMarkdownToClean(text: string): string {
   return text
     .replace(/^MODE:\s*markdown\s*\n/, "")
-    .replace(/^SUMMARY:\s*\n/m, "> ")
-    .replace(/^NEXT STEP:\s*$/m, "💡 **Next step:**")
-    .replace(/^SUGGESTIONS:\s*$/m, "**Want to keep going?**")
+    .replace(/^SUMMARY:\s*\n/m, "> 🎯 ")
+    .replace(/^NEXT STEP:\s*$/m, "🚀 **Next step:**")
+    .replace(/^SUGGESTIONS:\s*$/m, "**🔗 Follow-up questions**")
     .trim();
 }

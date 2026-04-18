@@ -38,6 +38,7 @@ import { topicLearningSteps } from "@/data/learningSteps";
 import { topicData, type QuizQuestion } from "@/data/topicContent";
 import { useExamBoard, useGetTopicProgress, useListTopics, useUpdateTopicProgress } from "@/hooks/useTopics";
 import { getTopicAugmentation } from "@/lib/topicAugmentation";
+import { getRelatedTheory } from "@/lib/topicCrossLinks";
 
 const topicVideos: Record<string, string> = {
   "intro-to-python": "https://www.youtube.com/embed/kqtD5dpn9C8",
@@ -92,6 +93,7 @@ export default function TopicPage() {
   const libraryResources = getTopicLibraryResources(slug, board);
   const hasLibraryResources = !isTopicResourceGroupEmpty(libraryResources);
   const augmentation = getTopicAugmentation(slug, board);
+  const relatedTheory = getRelatedTheory(slug);
 
   useEffect(() => {
     if (!slug) return;
@@ -406,6 +408,33 @@ export default function TopicPage() {
               <div className="mt-10">
                 <TopicAugmentationPanel augmentation={augmentation} onUseAiPrompt={handleUseAiPrompt} />
               </div>
+            )}
+
+            {relatedTheory && (
+              <Link
+                to={`/topic-theory/${relatedTheory.slug}`}
+                className="block mt-10 group"
+                aria-label={`Open revision theory: ${relatedTheory.title}`}
+              >
+                <Card className="rounded-2xl border-secondary/30 bg-gradient-to-br from-secondary/5 via-transparent to-primary/5 transition-colors group-hover:border-secondary/60">
+                  <CardContent className="p-5 flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-secondary/10 flex items-center justify-center shrink-0 text-2xl">
+                      {relatedTheory.icon}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-wide text-secondary mb-1">
+                        <GraduationCap className="w-3 h-3" /> Revise the theory
+                        <span className="px-2 py-0.5 rounded-full bg-secondary/15">Paper {relatedTheory.paper}</span>
+                      </div>
+                      <h3 className="text-base font-display font-bold text-foreground">{relatedTheory.title}</h3>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        Spec-aligned revision notes, diagrams, and exam-style questions for this topic.
+                      </p>
+                    </div>
+                    <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0 group-hover:text-secondary transition-colors" />
+                  </CardContent>
+                </Card>
+              </Link>
             )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-10">

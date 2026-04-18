@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Bot, Send, Loader2, ChevronDown } from "lucide-react";
+import { Bot, Send, Loader2, ChevronDown, RefreshCw, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ChatMessage } from "@/components/chat/ChatMessage";
@@ -60,7 +60,12 @@ export function AiHelper({ topicSlug, topicTitle, seedPrompt }: AiHelperProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
   const { model: settingsModel, provider: settingsProvider } = useAiSettings();
-  const { freeModels } = useOpenRouterModels();
+  const {
+    freeModels,
+    status: modelsStatus,
+    refreshing: modelsRefreshing,
+    refreshModels,
+  } = useOpenRouterModels();
   const [chatModel, setChatModel] = useState(settingsModel);
   const [showModelPicker, setShowModelPicker] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -154,28 +159,52 @@ export function AiHelper({ topicSlug, topicTitle, seedPrompt }: AiHelperProps) {
       </div>
 
       {showModelPicker && (
-        <div className="px-4 py-2 border-b border-border/50 bg-muted/20">
-          <select
-            value={chatModel}
-            onChange={(e) => { setChatModel(e.target.value); setShowModelPicker(false); }}
-            className="w-full text-xs bg-background border border-border rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary/50"
-          >
-            <option value={settingsModel}>Settings Default ({settingsModel.split("/").pop()?.replace(":free", "")})</option>
-            <optgroup label="Lovable AI">
-              {LOVABLE_AI_MODELS.map((m) => (
-                <option key={m.id} value={m.id}>
-                  ✦ {m.name}
-                </option>
-              ))}
-            </optgroup>
-            <optgroup label="OpenRouter Free">
-              {freeModels.map((model) => (
-                <option key={model.id} value={model.id}>
-                  {model.name}
-                </option>
-              ))}
-            </optgroup>
-          </select>
+        <div className="px-4 py-2 border-b border-border/50 bg-muted/20 space-y-1.5">
+          <div className="flex items-center gap-2">
+            <select
+              aria-label="AI model"
+              title="AI model"
+              value={chatModel}
+              onChange={(e) => { setChatModel(e.target.value); setShowModelPicker(false); }}
+              className="flex-1 text-xs bg-background border border-border rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary/50"
+            >
+              <option value={settingsModel}>Settings Default ({settingsModel.split("/").pop()?.replace(":free", "")})</option>
+              <optgroup label="Lovable AI">
+                {LOVABLE_AI_MODELS.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    ✦ {m.name}
+                  </option>
+                ))}
+              </optgroup>
+              <optgroup label="OpenRouter Free">
+                {freeModels.map((model) => (
+                  <option key={model.id} value={model.id}>
+                    {model.name}
+                  </option>
+                ))}
+              </optgroup>
+            </select>
+            <button
+              type="button"
+              onClick={() => { void refreshModels(); }}
+              disabled={modelsRefreshing}
+              aria-label="Refresh model list"
+              title="Refresh model list"
+              className="flex h-7 w-7 items-center justify-center rounded-lg border border-border bg-background text-muted-foreground hover:text-foreground hover:border-secondary/50 transition-colors disabled:opacity-50"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${modelsRefreshing ? "animate-spin" : ""}`} />
+            </button>
+          </div>
+          {modelsStatus === "loading" && (
+            <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+              <Loader2 className="w-3 h-3 animate-spin" /> Loading OpenRouter catalog…
+            </p>
+          )}
+          {modelsStatus === "fallback" && (
+            <p className="text-[10px] text-amber-600 flex items-center gap-1">
+              <AlertTriangle className="w-3 h-3" /> Using built-in defaults — live catalog unavailable.
+            </p>
+          )}
         </div>
       )}
 

@@ -15,7 +15,9 @@
       "Bash(xargs grep *)",
       "Bash(npm install *)",
       "Bash(npx tsc *)",
-      "Bash(grep -n \"p1-ss-\" c:/repos/gcse-pylearn/src/data/questionBank/*.ts)"
+      "Bash(grep -n \"p1-ss-\" c:/repos/gcse-pylearn/src/data/questionBank/*.ts)",
+      "Bash(npx eslint *)",
+      "Bash(git stash *)"
     ]
   }
 }

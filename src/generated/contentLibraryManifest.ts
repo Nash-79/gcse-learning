@@ -4962,6 +4962,66 @@ export const topicLibraryResources: TopicLibraryResource[] = [
     "downloadUrl": "/api/content-library?file=ocr%2Ftextbook%2Falgorithms_searching_sorting.pdf&download=1"
   },
   {
+    "id": "ocr-algorithms-long-answer-ocr-longanswer-algorithms_searching_sorting-extension_full.pdf",
+    "board": "ocr",
+    "slug": "algorithms",
+    "stem": "algorithms_searching_sorting",
+    "title": "Algorithms: Searching and Sorting - Extension Long Answer",
+    "kind": "long-answer",
+    "relativePath": "ocr/longanswer/algorithms_searching_sorting/extension_full.pdf",
+    "printable": true,
+    "openUrl": "/api/content-library?file=ocr%2Flonganswer%2Falgorithms_searching_sorting%2Fextension_full.pdf",
+    "downloadUrl": "/api/content-library?file=ocr%2Flonganswer%2Falgorithms_searching_sorting%2Fextension_full.pdf&download=1"
+  },
+  {
+    "id": "ocr-searching-algorithms-long-answer-ocr-longanswer-algorithms_searching_sorting-extension_full.pdf",
+    "board": "ocr",
+    "slug": "searching-algorithms",
+    "stem": "algorithms_searching_sorting",
+    "title": "Algorithms: Searching and Sorting - Extension Long Answer",
+    "kind": "long-answer",
+    "relativePath": "ocr/longanswer/algorithms_searching_sorting/extension_full.pdf",
+    "printable": true,
+    "openUrl": "/api/content-library?file=ocr%2Flonganswer%2Falgorithms_searching_sorting%2Fextension_full.pdf",
+    "downloadUrl": "/api/content-library?file=ocr%2Flonganswer%2Falgorithms_searching_sorting%2Fextension_full.pdf&download=1"
+  },
+  {
+    "id": "ocr-sorting-algorithms-long-answer-ocr-longanswer-algorithms_searching_sorting-extension_full.pdf",
+    "board": "ocr",
+    "slug": "sorting-algorithms",
+    "stem": "algorithms_searching_sorting",
+    "title": "Algorithms: Searching and Sorting - Extension Long Answer",
+    "kind": "long-answer",
+    "relativePath": "ocr/longanswer/algorithms_searching_sorting/extension_full.pdf",
+    "printable": true,
+    "openUrl": "/api/content-library?file=ocr%2Flonganswer%2Falgorithms_searching_sorting%2Fextension_full.pdf",
+    "downloadUrl": "/api/content-library?file=ocr%2Flonganswer%2Falgorithms_searching_sorting%2Fextension_full.pdf&download=1"
+  },
+  {
+    "id": "ocr-searching-sorting-long-answer-ocr-longanswer-algorithms_searching_sorting-extension_full.pdf",
+    "board": "ocr",
+    "slug": "searching-sorting",
+    "stem": "algorithms_searching_sorting",
+    "title": "Algorithms: Searching and Sorting - Extension Long Answer",
+    "kind": "long-answer",
+    "relativePath": "ocr/longanswer/algorithms_searching_sorting/extension_full.pdf",
+    "printable": true,
+    "openUrl": "/api/content-library?file=ocr%2Flonganswer%2Falgorithms_searching_sorting%2Fextension_full.pdf",
+    "downloadUrl": "/api/content-library?file=ocr%2Flonganswer%2Falgorithms_searching_sorting%2Fextension_full.pdf&download=1"
+  },
+  {
+    "id": "ocr-insertion-sort-long-answer-ocr-longanswer-algorithms_searching_sorting-extension_full.pdf",
+    "board": "ocr",
+    "slug": "insertion-sort",
+    "stem": "algorithms_searching_sorting",
+    "title": "Algorithms: Searching and Sorting - Extension Long Answer",
+    "kind": "long-answer",
+    "relativePath": "ocr/longanswer/algorithms_searching_sorting/extension_full.pdf",
+    "printable": true,
+    "openUrl": "/api/content-library?file=ocr%2Flonganswer%2Falgorithms_searching_sorting%2Fextension_full.pdf",
+    "downloadUrl": "/api/content-library?file=ocr%2Flonganswer%2Falgorithms_searching_sorting%2Fextension_full.pdf&download=1"
+  },
+  {
     "id": "ocr-algorithms-assessment-set-ocr-assessments-algorithms_searching_sorting_set1.pdf",
     "board": "ocr",
     "slug": "algorithms",
@@ -5155,6 +5215,66 @@ export const topicLibraryResources: TopicLibraryResource[] = [
     "setNumber": 3,
     "openUrl": "/api/content-library?file=ocr%2Fassessments%2Falgorithms_searching_sorting_set3.pdf",
     "downloadUrl": "/api/content-library?file=ocr%2Fassessments%2Falgorithms_searching_sorting_set3.pdf&download=1"
+  },
+  {
+    "id": "ocr-algorithms-long-answer-ocr-longanswer-algorithms_searching_sorting-standard_full.pdf",
+    "board": "ocr",
+    "slug": "algorithms",
+    "stem": "algorithms_searching_sorting",
+    "title": "Algorithms: Searching and Sorting - Standard Long Answer",
+    "kind": "long-answer",
+    "relativePath": "ocr/longanswer/algorithms_searching_sorting/standard_full.pdf",
+    "printable": true,
+    "openUrl": "/api/content-library?file=ocr%2Flonganswer%2Falgorithms_searching_sorting%2Fstandard_full.pdf",
+    "downloadUrl": "/api/content-library?file=ocr%2Flonganswer%2Falgorithms_searching_sorting%2Fstandard_full.pdf&download=1"
+  },
+  {
+    "id": "ocr-searching-algorithms-long-answer-ocr-longanswer-algorithms_searching_sorting-standard_full.pdf",
+    "board": "ocr",
+    "slug": "searching-algorithms",
+    "stem": "algorithms_searching_sorting",
+    "title": "Algorithms: Searching and Sorting - Standard Long Answer",
+    "kind": "long-answer",
+    "relativePath": "ocr/longanswer/algorithms_searching_sorting/standard_full.pdf",
+    "printable": true,
+    "openUrl": "/api/content-library?file=ocr%2Flonganswer%2Falgorithms_searching_sorting%2Fstandard_full.pdf",
+    "downloadUrl": "/api/content-library?file=ocr%2Flonganswer%2Falgorithms_searching_sorting%2Fstandard_full.pdf&download=1"
+  },
+  {
+    "id": "ocr-sorting-algorithms-long-answer-ocr-longanswer-algorithms_searching_sorting-standard_full.pdf",
+    "board": "ocr",
+    "slug": "sorting-algorithms",
+    "stem": "algorithms_searching_sorting",
+    "title": "Algorithms: Searching and Sorting - Standard Long Answer",
+    "kind": "long-answer",
+    "relativePath": "ocr/longanswer/algorithms_searching_sorting/standard_full.pdf",
+    "printable": true,
+    "openUrl": "/api/content-library?file=ocr%2Flonganswer%2Falgorithms_searching_sorting%2Fstandard_full.pdf",
+    "downloadUrl": "/api/content-library?file=ocr%2Flonganswer%2Falgorithms_searching_sorting%2Fstandard_full.pdf&download=1"
+  },
+  {
+    "id": "ocr-searching-sorting-long-answer-ocr-longanswer-algorithms_searching_sorting-standard_full.pdf",
+    "board": "ocr",
+    "slug": "searching-sorting",
+    "stem": "algorithms_searching_sorting",
+    "title": "Algorithms: Searching and Sorting - Standard Long Answer",
+    "kind": "long-answer",
+    "relativePath": "ocr/longanswer/algorithms_searching_sorting/standard_full.pdf",
+    "printable": true,
+    "openUrl": "/api/content-library?file=ocr%2Flonganswer%2Falgorithms_searching_sorting%2Fstandard_full.pdf",
+    "downloadUrl": "/api/content-library?file=ocr%2Flonganswer%2Falgorithms_searching_sorting%2Fstandard_full.pdf&download=1"
+  },
+  {
+    "id": "ocr-insertion-sort-long-answer-ocr-longanswer-algorithms_searching_sorting-standard_full.pdf",
+    "board": "ocr",
+    "slug": "insertion-sort",
+    "stem": "algorithms_searching_sorting",
+    "title": "Algorithms: Searching and Sorting - Standard Long Answer",
+    "kind": "long-answer",
+    "relativePath": "ocr/longanswer/algorithms_searching_sorting/standard_full.pdf",
+    "printable": true,
+    "openUrl": "/api/content-library?file=ocr%2Flonganswer%2Falgorithms_searching_sorting%2Fstandard_full.pdf",
+    "downloadUrl": "/api/content-library?file=ocr%2Flonganswer%2Falgorithms_searching_sorting%2Fstandard_full.pdf&download=1"
   },
   {
     "id": "ocr-algorithms-assessment-overview-ocr-assessments-algorithms_trace_tables.pdf",
@@ -7219,6 +7339,45 @@ export const topicLibraryResources: TopicLibraryResource[] = [
     "setNumber": 2,
     "openUrl": "/api/content-library?file=ocr%2Fassessments%2Fprogramming_testing_and_robustness_set2.pdf",
     "downloadUrl": "/api/content-library?file=ocr%2Fassessments%2Fprogramming_testing_and_robustness_set2.pdf&download=1"
+  },
+  {
+    "id": "ocr-producing-robust-programs-assessment-set-ocr-assessments-programming_testing_and_robustness_set3.pdf",
+    "board": "ocr",
+    "slug": "producing-robust-programs",
+    "stem": "programming_testing_and_robustness",
+    "title": "Programming Testing and Robustness - Set 3",
+    "kind": "assessment-set",
+    "relativePath": "ocr/assessments/programming_testing_and_robustness_set3.pdf",
+    "printable": true,
+    "setNumber": 3,
+    "openUrl": "/api/content-library?file=ocr%2Fassessments%2Fprogramming_testing_and_robustness_set3.pdf",
+    "downloadUrl": "/api/content-library?file=ocr%2Fassessments%2Fprogramming_testing_and_robustness_set3.pdf&download=1"
+  },
+  {
+    "id": "ocr-error-handling-assessment-set-ocr-assessments-programming_testing_and_robustness_set3.pdf",
+    "board": "ocr",
+    "slug": "error-handling",
+    "stem": "programming_testing_and_robustness",
+    "title": "Programming Testing and Robustness - Set 3",
+    "kind": "assessment-set",
+    "relativePath": "ocr/assessments/programming_testing_and_robustness_set3.pdf",
+    "printable": true,
+    "setNumber": 3,
+    "openUrl": "/api/content-library?file=ocr%2Fassessments%2Fprogramming_testing_and_robustness_set3.pdf",
+    "downloadUrl": "/api/content-library?file=ocr%2Fassessments%2Fprogramming_testing_and_robustness_set3.pdf&download=1"
+  },
+  {
+    "id": "ocr-robust-programming-assessment-set-ocr-assessments-programming_testing_and_robustness_set3.pdf",
+    "board": "ocr",
+    "slug": "robust-programming",
+    "stem": "programming_testing_and_robustness",
+    "title": "Programming Testing and Robustness - Set 3",
+    "kind": "assessment-set",
+    "relativePath": "ocr/assessments/programming_testing_and_robustness_set3.pdf",
+    "printable": true,
+    "setNumber": 3,
+    "openUrl": "/api/content-library?file=ocr%2Fassessments%2Fprogramming_testing_and_robustness_set3.pdf",
+    "downloadUrl": "/api/content-library?file=ocr%2Fassessments%2Fprogramming_testing_and_robustness_set3.pdf&download=1"
   }
 ] as TopicLibraryResource[];
 
