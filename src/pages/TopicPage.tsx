@@ -120,10 +120,11 @@ export default function TopicPage() {
         body: JSON.stringify({
           mode: "generate",
           topicTitle: topicMeta?.title || slug,
+          provider: settingsProvider,
           systemPromptOverride:
             `You are a GCSE Computer Science quiz generator. Generate exactly 5 multiple-choice questions about "${topicMeta?.title || slug}" for Python programming. ` +
             `Return ONLY a JSON object with a "questions" array of objects with these fields: question (string), options (array of 4 strings), correctIndex (0-3), explanation (string), hint (string), difficulty ("easy"|"medium"|"hard"). Do not include any other text.`,
-          userPromptOverride: `Generate 5 new quiz questions about ${topicMeta?.title || slug}. Existing questions to avoid repeating: ${content.quiz.map((question) => question.question).join("; ")}`,
+          userPromptOverride: `Generate 5 new quiz questions about ${topicMeta?.title || slug}. Existing questions to avoid repeating: ${content.quiz.map(q => q.question).join("; ")}`,
           maxTokens: 2000,
         }),
       });
