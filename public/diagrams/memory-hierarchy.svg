@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 480" role="img" aria-labelledby="mh-title mh-desc">
+  <title id="mh-title">Memory Hierarchy Pyramid</title>
+  <desc id="mh-desc">Pyramid diagram showing memory hierarchy from fastest/smallest at top to slowest/largest at bottom: Registers, Cache, RAM, Secondary Storage.</desc>
+  <rect width="700" height="480" fill="#F8FAFC" rx="12"/>
+  <text x="350" y="34" font-family="Arial, sans-serif" font-size="17" font-weight="bold" fill="#1E293B" text-anchor="middle">Memory Hierarchy</text>
+  <!-- Registers (top) -->
+  <polygon points="350,60 240,130 460,130" fill="#DBEAFE" stroke="#3B82F6" stroke-width="2"/>
+  <text x="350" y="103" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#1D4ED8" text-anchor="middle">Registers</text>
+  <text x="545" y="98" font-family="Arial, sans-serif" font-size="10" fill="#6B7280">Fastest / Smallest</text>
+  <text x="545" y="112" font-family="Arial, sans-serif" font-size="10" fill="#6B7280">Inside CPU · Bytes</text>
+  <!-- Cache -->
+  <polygon points="240,130 185,205 515,205 460,130" fill="#EDE9FE" stroke="#8B5CF6" stroke-width="2"/>
+  <text x="350" y="174" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#6D28D9" text-anchor="middle">Cache</text>
+  <text x="545" y="170" font-family="Arial, sans-serif" font-size="10" fill="#6B7280">Very Fast · Built into CPU</text>
+  <text x="545" y="184" font-family="Arial, sans-serif" font-size="10" fill="#6B7280">Megabytes · Expensive</text>
+  <!-- RAM -->
+  <polygon points="185,205 120,290 580,290 515,205" fill="#ECFDF5" stroke="#10B981" stroke-width="2"/>
+  <text x="350" y="254" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#065F46" text-anchor="middle">RAM (Main Memory)</text>
+  <text x="620" y="250" font-family="Arial, sans-serif" font-size="10" fill="#6B7280">Fast · Volatile</text>
+  <text x="620" y="264" font-family="Arial, sans-serif" font-size="10" fill="#6B7280">GB range</text>
+  <!-- Secondary Storage -->
+  <polygon points="120,290 60,375 640,375 580,290" fill="#FEF3C7" stroke="#F59E0B" stroke-width="2"/>
+  <text x="350" y="334" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#92400E" text-anchor="middle">Secondary Storage</text>
+  <text x="350" y="352" font-family="Arial, sans-serif" font-size="10" fill="#92400E" text-anchor="middle">HDD · SSD · Optical</text>
+  <!-- Bottom labels -->
+  <text x="100" y="415" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#3B82F6" text-anchor="middle">↑ Faster</text>
+  <text x="600" y="415" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#F59E0B" text-anchor="middle">↑ More</text>
+  <text x="100" y="430" font-family="Arial, sans-serif" font-size="10" fill="#6B7280" text-anchor="middle">↑ More Expensive</text>
+  <text x="600" y="430" font-family="Arial, sans-serif" font-size="10" fill="#6B7280" text-anchor="middle">↑ Capacity</text>
+  <text x="100" y="445" font-family="Arial, sans-serif" font-size="10" fill="#6B7280" text-anchor="middle">↑ Smaller</text>
+  <text x="600" y="445" font-family="Arial, sans-serif" font-size="10" fill="#6B7280" text-anchor="middle">↑ Slower</text>
+  <text x="350" y="470" font-family="Arial, sans-serif" font-size="10" fill="#9CA3AF" text-anchor="middle">OCR J277 1.2 — Memory types and the hierarchy</text>
+</svg>

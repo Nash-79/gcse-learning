@@ -1,0 +1,129 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 460" role="img" aria-labelledby="st-title st-desc">
+  <title id="st-title">Storage Types Comparison</title>
+  <desc id="st-desc">Comparison table and hierarchy showing primary storage (RAM, ROM, Cache) versus secondary storage (HDD, SSD, optical, flash), with key properties speed, capacity, volatility and cost.</desc>
+  <rect width="760" height="460" fill="#F8FAFC" rx="12"/>
+  <text x="380" y="34" font-family="Arial, sans-serif" font-size="17" font-weight="bold" fill="#1E293B" text-anchor="middle">Storage Types — Primary vs Secondary</text>
+
+  <!-- Primary Storage header -->
+  <rect x="30" y="50" width="330" height="36" rx="8" fill="#DBEAFE" stroke="#3B82F6" stroke-width="2"/>
+  <text x="195" y="73" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#1D4ED8" text-anchor="middle">Primary Storage (inside CPU/motherboard)</text>
+
+  <!-- RAM card -->
+  <rect x="30" y="96" width="155" height="110" rx="8" fill="#EFF6FF" stroke="#3B82F6" stroke-width="1.5"/>
+  <text x="107" y="116" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#1D4ED8" text-anchor="middle">RAM</text>
+  <text x="107" y="132" font-family="Arial, sans-serif" font-size="9" fill="#374151" text-anchor="middle">Random Access Memory</text>
+  <text x="40" y="150" font-family="Arial, sans-serif" font-size="9" fill="#374151">• Volatile (lost on power off)</text>
+  <text x="40" y="165" font-family="Arial, sans-serif" font-size="9" fill="#374151">• Holds current program &amp; data</text>
+  <text x="40" y="180" font-family="Arial, sans-serif" font-size="9" fill="#374151">• Fast — CPU reads directly</text>
+  <text x="40" y="195" font-family="Arial, sans-serif" font-size="9" fill="#374151">• Typical: 8–32 GB</text>
+
+  <!-- ROM card -->
+  <rect x="205" y="96" width="155" height="110" rx="8" fill="#EFF6FF" stroke="#3B82F6" stroke-width="1.5"/>
+  <text x="282" y="116" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#1D4ED8" text-anchor="middle">ROM</text>
+  <text x="282" y="132" font-family="Arial, sans-serif" font-size="9" fill="#374151" text-anchor="middle">Read Only Memory</text>
+  <text x="215" y="150" font-family="Arial, sans-serif" font-size="9" fill="#374151">• Non-volatile (permanent)</text>
+  <text x="215" y="165" font-family="Arial, sans-serif" font-size="9" fill="#374151">• Stores BIOS / boot firmware</text>
+  <text x="215" y="180" font-family="Arial, sans-serif" font-size="9" fill="#374151">• Cannot be overwritten easily</text>
+  <text x="215" y="195" font-family="Arial, sans-serif" font-size="9" fill="#374151">• Small — KB range</text>
+
+  <!-- Cache note -->
+  <rect x="30" y="216" width="330" height="36" rx="6" fill="#FEF3C7" stroke="#F59E0B" stroke-width="1.5"/>
+  <text x="195" y="239" font-family="Arial, sans-serif" font-size="10" fill="#92400E" text-anchor="middle">Cache — fastest primary storage, built into CPU, tiny (KB–MB), very expensive</text>
+
+  <!-- Secondary Storage header -->
+  <rect x="30" y="264" width="330" height="36" rx="8" fill="#ECFDF5" stroke="#10B981" stroke-width="2"/>
+  <text x="195" y="287" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#065F46" text-anchor="middle">Secondary Storage (persistent, external)</text>
+
+  <!-- HDD -->
+  <rect x="30" y="310" width="155" height="110" rx="8" fill="#F0FDF4" stroke="#10B981" stroke-width="1.5"/>
+  <text x="107" y="330" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#065F46" text-anchor="middle">HDD</text>
+  <text x="107" y="344" font-family="Arial, sans-serif" font-size="9" fill="#374151" text-anchor="middle">Hard Disk Drive</text>
+  <text x="40" y="362" font-family="Arial, sans-serif" font-size="9" fill="#374151">• Magnetic platters, moving parts</text>
+  <text x="40" y="377" font-family="Arial, sans-serif" font-size="9" fill="#374151">• Large capacity (1–20 TB)</text>
+  <text x="40" y="392" font-family="Arial, sans-serif" font-size="9" fill="#374151">• Cheaper per GB</text>
+  <text x="40" y="407" font-family="Arial, sans-serif" font-size="9" fill="#374151">• Slower, fragile (spinning)</text>
+
+  <!-- SSD -->
+  <rect x="205" y="310" width="155" height="110" rx="8" fill="#F0FDF4" stroke="#10B981" stroke-width="1.5"/>
+  <text x="282" y="330" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#065F46" text-anchor="middle">SSD</text>
+  <text x="282" y="344" font-family="Arial, sans-serif" font-size="9" fill="#374151" text-anchor="middle">Solid State Drive</text>
+  <text x="215" y="362" font-family="Arial, sans-serif" font-size="9" fill="#374151">• Flash memory, no moving parts</text>
+  <text x="215" y="377" font-family="Arial, sans-serif" font-size="9" fill="#374151">• Faster, quieter, lighter</text>
+  <text x="215" y="392" font-family="Arial, sans-serif" font-size="9" fill="#374151">• More expensive per GB</text>
+  <text x="215" y="407" font-family="Arial, sans-serif" font-size="9" fill="#374151">• Common in laptops/phones</text>
+
+  <!-- Comparison table (right) -->
+  <rect x="380" y="50" width="360" height="360" rx="10" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5"/>
+  <text x="560" y="72" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#1E293B" text-anchor="middle">Storage Properties Comparison</text>
+  <!-- table headers -->
+  <rect x="380" y="80" width="360" height="28" rx="0" fill="#E2E8F0"/>
+  <text x="450" y="99" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#475569" text-anchor="middle">Type</text>
+  <text x="520" y="99" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#475569" text-anchor="middle">Speed</text>
+  <text x="580" y="99" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#475569" text-anchor="middle">Capacity</text>
+  <text x="643" y="99" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#475569" text-anchor="middle">Volatile?</text>
+  <text x="710" y="99" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#475569" text-anchor="middle">Cost/GB</text>
+  <!-- row 1: Cache -->
+  <text x="450" y="122" font-family="Arial, sans-serif" font-size="9.5" fill="#374151" text-anchor="middle">Cache</text>
+  <text x="520" y="122" font-family="Arial, sans-serif" font-size="9.5" fill="#065F46" font-weight="bold" text-anchor="middle">Fastest</text>
+  <text x="580" y="122" font-family="Arial, sans-serif" font-size="9.5" fill="#374151" text-anchor="middle">KB–MB</text>
+  <text x="643" y="122" font-family="Arial, sans-serif" font-size="9.5" fill="#B91C1C" text-anchor="middle">Yes</text>
+  <text x="710" y="122" font-family="Arial, sans-serif" font-size="9.5" fill="#B91C1C" text-anchor="middle">Highest</text>
+  <!-- row 2: RAM -->
+  <rect x="380" y="130" width="360" height="26" fill="#F8FAFC"/>
+  <text x="450" y="148" font-family="Arial, sans-serif" font-size="9.5" fill="#374151" text-anchor="middle">RAM</text>
+  <text x="520" y="148" font-family="Arial, sans-serif" font-size="9.5" fill="#374151" text-anchor="middle">Very fast</text>
+  <text x="580" y="148" font-family="Arial, sans-serif" font-size="9.5" fill="#374151" text-anchor="middle">4–64 GB</text>
+  <text x="643" y="148" font-family="Arial, sans-serif" font-size="9.5" fill="#B91C1C" text-anchor="middle">Yes</text>
+  <text x="710" y="148" font-family="Arial, sans-serif" font-size="9.5" fill="#374151" text-anchor="middle">High</text>
+  <!-- row 3: ROM -->
+  <text x="450" y="174" font-family="Arial, sans-serif" font-size="9.5" fill="#374151" text-anchor="middle">ROM</text>
+  <text x="520" y="174" font-family="Arial, sans-serif" font-size="9.5" fill="#374151" text-anchor="middle">Fast</text>
+  <text x="580" y="174" font-family="Arial, sans-serif" font-size="9.5" fill="#374151" text-anchor="middle">KB</text>
+  <text x="643" y="174" font-family="Arial, sans-serif" font-size="9.5" fill="#065F46" text-anchor="middle">No</text>
+  <text x="710" y="174" font-family="Arial, sans-serif" font-size="9.5" fill="#374151" text-anchor="middle">High</text>
+  <!-- row 4: SSD -->
+  <rect x="380" y="182" width="360" height="26" fill="#F8FAFC"/>
+  <text x="450" y="200" font-family="Arial, sans-serif" font-size="9.5" fill="#374151" text-anchor="middle">SSD</text>
+  <text x="520" y="200" font-family="Arial, sans-serif" font-size="9.5" fill="#374151" text-anchor="middle">Fast</text>
+  <text x="580" y="200" font-family="Arial, sans-serif" font-size="9.5" fill="#374151" text-anchor="middle">256 GB–4 TB</text>
+  <text x="643" y="200" font-family="Arial, sans-serif" font-size="9.5" fill="#065F46" text-anchor="middle">No</text>
+  <text x="710" y="200" font-family="Arial, sans-serif" font-size="9.5" fill="#374151" text-anchor="middle">Medium</text>
+  <!-- row 5: HDD -->
+  <text x="450" y="226" font-family="Arial, sans-serif" font-size="9.5" fill="#374151" text-anchor="middle">HDD</text>
+  <text x="520" y="226" font-family="Arial, sans-serif" font-size="9.5" fill="#374151" text-anchor="middle">Slow</text>
+  <text x="580" y="226" font-family="Arial, sans-serif" font-size="9.5" fill="#374151" text-anchor="middle">500 GB–20 TB</text>
+  <text x="643" y="226" font-family="Arial, sans-serif" font-size="9.5" fill="#065F46" text-anchor="middle">No</text>
+  <text x="710" y="226" font-family="Arial, sans-serif" font-size="9.5" fill="#374151" text-anchor="middle">Lowest</text>
+  <!-- row 6: Optical -->
+  <rect x="380" y="234" width="360" height="26" fill="#F8FAFC"/>
+  <text x="450" y="252" font-family="Arial, sans-serif" font-size="9.5" fill="#374151" text-anchor="middle">Optical</text>
+  <text x="520" y="252" font-family="Arial, sans-serif" font-size="9.5" fill="#374151" text-anchor="middle">Slowest</text>
+  <text x="580" y="252" font-family="Arial, sans-serif" font-size="9.5" fill="#374151" text-anchor="middle">Up to 100 GB</text>
+  <text x="643" y="252" font-family="Arial, sans-serif" font-size="9.5" fill="#065F46" text-anchor="middle">No</text>
+  <text x="710" y="252" font-family="Arial, sans-serif" font-size="9.5" fill="#374151" text-anchor="middle">Low</text>
+  <!-- row 7: Flash/USB -->
+  <text x="450" y="278" font-family="Arial, sans-serif" font-size="9.5" fill="#374151" text-anchor="middle">Flash/USB</text>
+  <text x="520" y="278" font-family="Arial, sans-serif" font-size="9.5" fill="#374151" text-anchor="middle">Medium</text>
+  <text x="580" y="278" font-family="Arial, sans-serif" font-size="9.5" fill="#374151" text-anchor="middle">4 GB–2 TB</text>
+  <text x="643" y="278" font-family="Arial, sans-serif" font-size="9.5" fill="#065F46" text-anchor="middle">No</text>
+  <text x="710" y="278" font-family="Arial, sans-serif" font-size="9.5" fill="#374151" text-anchor="middle">Medium</text>
+  <!-- divider -->
+  <line x1="380" y1="108" x2="740" y2="108" stroke="#CBD5E1" stroke-width="1"/>
+  <line x1="380" y1="130" x2="740" y2="130" stroke="#E2E8F0" stroke-width="0.5"/>
+  <line x1="380" y1="156" x2="740" y2="156" stroke="#E2E8F0" stroke-width="0.5"/>
+  <line x1="380" y1="182" x2="740" y2="182" stroke="#E2E8F0" stroke-width="0.5"/>
+  <line x1="380" y1="208" x2="740" y2="208" stroke="#E2E8F0" stroke-width="0.5"/>
+  <line x1="380" y1="234" x2="740" y2="234" stroke="#E2E8F0" stroke-width="0.5"/>
+  <line x1="380" y1="260" x2="740" y2="260" stroke="#E2E8F0" stroke-width="0.5"/>
+
+  <!-- Exam tips -->
+  <rect x="380" y="296" width="360" height="114" rx="8" fill="#FEE2E2" stroke="#F43F5E" stroke-width="1.5"/>
+  <text x="560" y="316" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#9F1239" text-anchor="middle">Common Exam Mistakes</text>
+  <text x="390" y="334" font-family="Arial, sans-serif" font-size="9.5" fill="#374151">✗ "RAM stores the OS permanently" — No! RAM is volatile; OS is on secondary storage</text>
+  <text x="390" y="352" font-family="Arial, sans-serif" font-size="9.5" fill="#374151">✗ "ROM can be rewritten" — Standard ROM cannot; EEPROM can be erased electrically</text>
+  <text x="390" y="370" font-family="Arial, sans-serif" font-size="9.5" fill="#374151">✗ Confusing primary (inside system) with secondary (external persistent)</text>
+  <text x="390" y="388" font-family="Arial, sans-serif" font-size="9.5" fill="#374151">✓ "More RAM = run more/bigger programs simultaneously"</text>
+  <text x="390" y="402" font-family="Arial, sans-serif" font-size="9.5" fill="#374151">✓ SSD vs HDD: SSD faster, more durable, quieter; HDD cheaper per GB</text>
+
+  <text x="380" y="452" font-family="Arial, sans-serif" font-size="10" fill="#9CA3AF" text-anchor="middle">OCR J277 1.1 / AQA 8525 — Primary and secondary storage types and properties</text>
+</svg>

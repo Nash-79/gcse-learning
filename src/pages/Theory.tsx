@@ -2,8 +2,11 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
-  BookOpen, ArrowRight, Search,
-  Layers, Sparkles
+  ArrowRight,
+  BookOpen,
+  Layers,
+  Search,
+  Sparkles,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -12,11 +15,13 @@ import { useExamBoard } from "@/hooks/useTopics";
 import { paper1Theory } from "@/data/questionBank/paper1Theory";
 import { paper2Theory } from "@/data/questionBank/paper2Theory";
 import { TopicTheoryData } from "@/data/questionBank/theoryTypes";
+import { getTopicLibraryResources } from "@/lib/contentLibrary";
 
 const container = {
   hidden: { opacity: 0 },
   show: { opacity: 1, transition: { staggerChildren: 0.05 } },
 };
+
 const item = {
   hidden: { opacity: 0, y: 14 },
   show: { opacity: 1, y: 0, transition: { duration: 0.3 } },
@@ -36,7 +41,26 @@ const iconColorMap: Record<string, string> = {
   destructive: "bg-destructive/15 text-destructive",
 };
 
+function getLinkedPdfCount(topic: TopicTheoryData, board: "ocr" | "aqa" | "all") {
+  const resources = getTopicLibraryResources(topic.slug, board);
+  return (
+    resources.textbook.length +
+    resources.assessmentOverview.length +
+    resources.assessmentSets.length +
+    resources.longAnswer.length
+  );
+}
+
+function hasValidationMetadata(topic: TopicTheoryData) {
+  return Boolean(topic.spec_code) &&
+    Boolean(topic.spec_version) &&
+    Boolean(topic.source_url) &&
+    Boolean(topic.last_reviewed_at);
+}
+
 function TheoryCard({ topic }: { topic: TopicTheoryData }) {
+  const linkedPdfCount = getLinkedPdfCount(topic, "all");
+
   return (
     <motion.div variants={item}>
       <Link to={`/topic-theory/${topic.slug}`}>
@@ -56,6 +80,11 @@ function TheoryCard({ topic }: { topic: TopicTheoryData }) {
                 <Badge variant="secondary" className="text-[10px] bg-background/60 border-none font-mono">
                   AQA {topic.aqaRef.join(", ")}
                 </Badge>
+                {linkedPdfCount > 0 && (
+                  <Badge variant="secondary" className="text-[10px] bg-primary/10 text-primary border-none">
+                    {linkedPdfCount} linked PDF{linkedPdfCount === 1 ? "" : "s"}
+                  </Badge>
+                )}
               </div>
             </div>
 
@@ -68,11 +97,18 @@ function TheoryCard({ topic }: { topic: TopicTheoryData }) {
               </p>
             </div>
 
-            <div className="flex items-center justify-between pt-1">
-              <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-                <Layers className="w-3 h-3" />
-                {topic.sections.length} sections
-              </span>
+            <div className="flex items-center justify-between pt-1 gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                  <Layers className="w-3 h-3" />
+                  {topic.sections.length} sections
+                </span>
+                {hasValidationMetadata(topic) && (
+                  <span className="text-[10px] text-emerald-600 font-medium">
+                    Reviewed {topic.last_reviewed_at}
+                  </span>
+                )}
+              </div>
               <span className="text-[10px] text-primary font-semibold flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
                 Study now <ArrowRight className="w-3 h-3" />
               </span>
@@ -90,19 +126,42 @@ export default function Theory() {
 
   const allTheory = [...paper1Theory, ...paper2Theory];
   const boardFiltered =
-    board === "all" ? allTheory : allTheory.filter((t) => t.examBoards.includes(board));
+    board === "all" ? allTheory : allTheory.filter((topic) => topic.examBoards.includes(board));
 
-  const filtered = boardFiltered.filter((t) => {
-    return (
-      !search ||
-      t.title.toLowerCase().includes(search.toLowerCase()) ||
-      t.description.toLowerCase().includes(search.toLowerCase())
-    );
+  const validatedCount = boardFiltered.filter(hasValidationMetadata).length;
+  const linkedPdfCount = boardFiltered.reduce(
+    (count, topic) => count + getLinkedPdfCount(topic, board === "all" ? "all" : board),
+    0
+  );
+
+  const filtered = boardFiltered.filter((topic) => {
+    const searchTerm = search.trim().toLowerCase();
+    if (!searchTerm) return true;
+
+    const searchableText = [
+      topic.title,
+      topic.description,
+      topic.ocrRef,
+      topic.aqaRef.join(" "),
+      topic.revisionSummary?.join(" "),
+      ...topic.sections.flatMap((section) => [
+        section.title,
+        section.content,
+        section.specPoint,
+        section.examTip,
+        section.revisionSummary?.join(" "),
+        section.keyTerms?.map((term) => `${term.term} ${term.definition}`).join(" "),
+      ]),
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+
+    return searchableText.includes(searchTerm);
   });
 
   return (
     <div className="flex flex-col min-h-full pb-20">
-      {/* Hero */}
       <div className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--primary))] via-[hsl(var(--secondary))] to-[hsl(var(--primary))] opacity-90" />
         <div className="absolute inset-0">
@@ -125,7 +184,7 @@ export default function Theory() {
                   Theory Revision
                 </h1>
                 <p className="text-white/70 text-sm md:text-base mt-1">
-                  Complete OCR J277 and AQA 8525 coverage
+                  Rich GCSE Computer Science notes, diagrams, and linked printable practice
                 </p>
               </div>
             </div>
@@ -157,21 +216,22 @@ export default function Theory() {
               </Button>
             </div>
 
-            <div className="grid grid-cols-3 gap-3 mt-8 max-w-lg">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-8 max-w-2xl">
               {[
                 { value: `${boardFiltered.length}`, label: "Topics" },
-                { value: `${boardFiltered.reduce((s, t) => s + t.sections.length, 0)}`, label: "Sections" },
-                { value: "100%", label: "Spec Coverage" },
-              ].map((s, i) => (
+                { value: `${boardFiltered.reduce((sum, topic) => sum + topic.sections.length, 0)}`, label: "Sections" },
+                { value: `${validatedCount}/${boardFiltered.length}`, label: "Reviewed Topics" },
+                { value: `${linkedPdfCount}`, label: "Linked PDFs" },
+              ].map((stat, index) => (
                 <motion.div
-                  key={s.label}
+                  key={stat.label}
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2 + i * 0.08 }}
+                  transition={{ delay: 0.2 + index * 0.08 }}
                   className="rounded-xl bg-white/15 backdrop-blur-sm px-4 py-3 text-center border border-white/10"
                 >
-                  <div className="text-2xl md:text-3xl font-display font-extrabold text-white">{s.value}</div>
-                  <div className="text-white/60 text-xs font-medium mt-0.5">{s.label}</div>
+                  <div className="text-2xl md:text-3xl font-display font-extrabold text-white">{stat.value}</div>
+                  <div className="text-white/60 text-xs font-medium mt-0.5">{stat.label}</div>
                 </motion.div>
               ))}
             </div>
@@ -179,27 +239,25 @@ export default function Theory() {
         </div>
       </div>
 
-      {/* Search */}
       <div className="container px-4 md:px-6 mx-auto max-w-6xl mt-8">
-        <div className="mb-8 max-w-sm">
+        <div className="mb-8 max-w-md">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <input
               type="text"
-              placeholder="Search theory topics..."
+              placeholder="Search topics, section names, keywords..."
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(event) => setSearch(event.target.value)}
               className="w-full rounded-xl border border-border bg-muted/40 py-2.5 pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50 focus:border-primary/50 transition-colors"
             />
           </div>
         </div>
 
-        {/* All Topics */}
         {filtered.length > 0 && (
           <motion.div variants={container} initial="hidden" animate="show">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filtered.map((t) => (
-                <TheoryCard key={t.slug} topic={t} />
+              {filtered.map((topic) => (
+                <TheoryCard key={topic.slug} topic={topic} />
               ))}
             </div>
           </motion.div>
@@ -212,7 +270,6 @@ export default function Theory() {
           </div>
         )}
 
-        {/* CTA */}
         <Card className="rounded-2xl border-primary/20 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5 mt-10">
           <CardContent className="p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4">
             <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">

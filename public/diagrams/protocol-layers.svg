@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 420" role="img" aria-labelledby="pl-title pl-desc">
+  <title id="pl-title">TCP/IP Protocol Layers</title>
+  <desc id="pl-desc">Stacked layer diagram showing the four TCP/IP layers: Application, Transport, Network, and Link, with examples of protocols at each layer.</desc>
+  <rect width="700" height="420" fill="#F8FAFC" rx="12"/>
+  <text x="350" y="34" font-family="Arial, sans-serif" font-size="17" font-weight="bold" fill="#1E293B" text-anchor="middle">TCP/IP Protocol Layers</text>
+  <!-- Layer 4: Application -->
+  <rect x="80" y="58" width="380" height="72" rx="10" fill="#DBEAFE" stroke="#3B82F6" stroke-width="2"/>
+  <text x="270" y="88" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#1D4ED8" text-anchor="middle">Application Layer</text>
+  <text x="270" y="108" font-family="Arial, sans-serif" font-size="11" fill="#3B82F6" text-anchor="middle">HTTP · HTTPS · FTP · SMTP · POP · IMAP · DNS</text>
+  <text x="270" y="124" font-family="Arial, sans-serif" font-size="10" fill="#6B7280" text-anchor="middle">User-facing protocols — what data is sent</text>
+  <!-- Layer 3: Transport -->
+  <rect x="80" y="142" width="380" height="72" rx="10" fill="#EDE9FE" stroke="#8B5CF6" stroke-width="2"/>
+  <text x="270" y="172" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#6D28D9" text-anchor="middle">Transport Layer</text>
+  <text x="270" y="192" font-family="Arial, sans-serif" font-size="11" fill="#8B5CF6" text-anchor="middle">TCP (reliable) · UDP (fast, no acknowledgement)</text>
+  <text x="270" y="208" font-family="Arial, sans-serif" font-size="10" fill="#6B7280" text-anchor="middle">End-to-end delivery · Breaks data into segments</text>
+  <!-- Layer 2: Network/Internet -->
+  <rect x="80" y="226" width="380" height="72" rx="10" fill="#ECFDF5" stroke="#10B981" stroke-width="2"/>
+  <text x="270" y="256" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#065F46" text-anchor="middle">Network / Internet Layer</text>
+  <text x="270" y="276" font-family="Arial, sans-serif" font-size="11" fill="#10B981" text-anchor="middle">IP (IPv4 · IPv6) — Routing between networks</text>
+  <text x="270" y="292" font-family="Arial, sans-serif" font-size="10" fill="#6B7280" text-anchor="middle">Adds source/destination IP addresses to packets</text>
+  <!-- Layer 1: Link -->
+  <rect x="80" y="310" width="380" height="72" rx="10" fill="#FEF3C7" stroke="#F59E0B" stroke-width="2"/>
+  <text x="270" y="340" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#92400E" text-anchor="middle">Link / Physical Layer</text>
+  <text x="270" y="360" font-family="Arial, sans-serif" font-size="11" fill="#F59E0B" text-anchor="middle">Ethernet · Wi-Fi · Physical cables/signals</text>
+  <text x="270" y="376" font-family="Arial, sans-serif" font-size="10" fill="#6B7280" text-anchor="middle">Actual transmission of bits across the medium</text>
+  <!-- Right side benefits -->
+  <rect x="480" y="58" width="200" height="324" rx="10" fill="#F1F5F9" stroke="#CBD5E1" stroke-width="1.5"/>
+  <text x="580" y="82" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#475569" text-anchor="middle">Why Layers?</text>
+  <text x="500" y="104" font-family="Arial, sans-serif" font-size="10" fill="#64748B">✓ Each layer is independent</text>
+  <text x="500" y="122" font-family="Arial, sans-serif" font-size="10" fill="#64748B">✓ Change one without affecting</text>
+  <text x="510" y="138" font-family="Arial, sans-serif" font-size="10" fill="#64748B">  others</text>
+  <text x="500" y="158" font-family="Arial, sans-serif" font-size="10" fill="#64748B">✓ Simpler to design &amp; test</text>
+  <text x="500" y="178" font-family="Arial, sans-serif" font-size="10" fill="#64748B">✓ Different hardware can</text>
+  <text x="510" y="194" font-family="Arial, sans-serif" font-size="10" fill="#64748B">  use the same protocol</text>
+  <text x="500" y="214" font-family="Arial, sans-serif" font-size="10" fill="#64748B">✓ Teams can work on</text>
+  <text x="510" y="230" font-family="Arial, sans-serif" font-size="10" fill="#64748B">  different layers in parallel</text>
+  <!-- Down arrow -->
+  <text x="580" y="280" font-family="Arial, sans-serif" font-size="28" fill="#94A3B8" text-anchor="middle">↕</text>
+  <text x="580" y="310" font-family="Arial, sans-serif" font-size="10" fill="#94A3B8" text-anchor="middle">Data flows down</text>
+  <text x="580" y="324" font-family="Arial, sans-serif" font-size="10" fill="#94A3B8" text-anchor="middle">when sending,</text>
+  <text x="580" y="338" font-family="Arial, sans-serif" font-size="10" fill="#94A3B8" text-anchor="middle">up when receiving</text>
+  <text x="350" y="410" font-family="Arial, sans-serif" font-size="10" fill="#9CA3AF" text-anchor="middle">OCR J277 1.3 — Protocol layers and why protocols are layered</text>
+</svg>

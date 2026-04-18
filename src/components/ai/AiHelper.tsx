@@ -21,6 +21,7 @@ interface Message {
 interface AiHelperProps {
   topicSlug: string;
   topicTitle: string;
+  seedPrompt?: string;
 }
 
 function extractFollowUps(content: string): { cleanContent: string; suggestions: string[] } {
@@ -53,7 +54,7 @@ function extractFollowUps(content: string): { cleanContent: string; suggestions:
   return { cleanContent: content, suggestions: [] };
 }
 
-export function AiHelper({ topicSlug, topicTitle }: AiHelperProps) {
+export function AiHelper({ topicSlug, topicTitle, seedPrompt }: AiHelperProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -67,6 +68,12 @@ export function AiHelper({ topicSlug, topicTitle }: AiHelperProps) {
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages]);
+
+  useEffect(() => {
+    if (seedPrompt) {
+      setInput(seedPrompt);
+    }
+  }, [seedPrompt]);
 
   const suggestedQuestions = [
     `Explain ${topicTitle} in simple terms`,

@@ -1,0 +1,19 @@
+title: Systems Architecture
+slug: systems-architecture
+board: ocr
+spec_code: J277
+spec_version: "2020"
+paper: "1"
+ocr_ref: "1.1"
+aqa_ref: []
+last_reviewed_at: "2026-04-14"
+reviewer: content-team
+source_urls:
+  - "https://www.ocr.org.uk/qualifications/gcse/computer-science-j277-from-2020/"
+  - "https://www.ocr.org.uk/Images/558027-specification-gcse-computer-science-j277.pdf"
+diagram_assets:
+  - cpu-components-block.svg
+  - fde-cycle-registers.svg
+  - von-neumann-architecture.svg
+requires_diagrams: true
+status: published

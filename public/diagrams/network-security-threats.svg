@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 480" role="img" aria-labelledby="ns-title ns-desc">
+  <title id="ns-title">Network Security Threats and Defences</title>
+  <desc id="ns-desc">Six threat cards showing Malware, Phishing, Brute Force, DDoS, Man-in-the-Middle and SQL Injection, each with a description, example and defence measure.</desc>
+  <rect width="760" height="480" fill="#F8FAFC" rx="12"/>
+  <text x="380" y="30" font-family="Arial, sans-serif" font-size="17" font-weight="bold" fill="#1E293B" text-anchor="middle">Network Security — Threats &amp; Defences</text>
+
+  <!-- Card 1: Malware -->
+  <rect x="20" y="46" width="224" height="130" rx="8" fill="#FEE2E2" stroke="#F43F5E" stroke-width="2"/>
+  <text x="132" y="66" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#9F1239" text-anchor="middle">Malware</text>
+  <text x="30" y="84" font-family="Arial, sans-serif" font-size="9.5" fill="#374151">Malicious software designed to</text>
+  <text x="30" y="98" font-family="Arial, sans-serif" font-size="9.5" fill="#374151">damage or gain access to a system.</text>
+  <text x="30" y="116" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#6B7280">Types: Virus · Worm · Trojan · Ransomware</text>
+  <text x="30" y="132" font-family="Arial, sans-serif" font-size="9" fill="#374151">Eg: ransomware encrypts your files</text>
+  <text x="30" y="148" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#065F46">Defence: Anti-malware, firewalls, updates</text>
+  <text x="30" y="164" font-family="Arial, sans-serif" font-size="9" fill="#374151">and avoid suspicious downloads</text>
+
+  <!-- Card 2: Phishing -->
+  <rect x="268" y="46" width="224" height="130" rx="8" fill="#FEE2E2" stroke="#F43F5E" stroke-width="2"/>
+  <text x="380" y="66" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#9F1239" text-anchor="middle">Phishing</text>
+  <text x="278" y="84" font-family="Arial, sans-serif" font-size="9.5" fill="#374151">Fake emails/websites that trick users</text>
+  <text x="278" y="98" font-family="Arial, sans-serif" font-size="9.5" fill="#374151">into revealing sensitive information.</text>
+  <text x="278" y="116" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#6B7280">Spear-phishing = targeted at specific person</text>
+  <text x="278" y="132" font-family="Arial, sans-serif" font-size="9" fill="#374151">Eg: fake bank email to steal password</text>
+  <text x="278" y="148" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#065F46">Defence: Verify sender, check URLs,</text>
+  <text x="278" y="164" font-family="Arial, sans-serif" font-size="9" fill="#374151">2FA, staff training</text>
+
+  <!-- Card 3: Brute Force -->
+  <rect x="516" y="46" width="224" height="130" rx="8" fill="#FEF3C7" stroke="#F59E0B" stroke-width="2"/>
+  <text x="628" y="66" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#92400E" text-anchor="middle">Brute Force Attack</text>
+  <text x="526" y="84" font-family="Arial, sans-serif" font-size="9.5" fill="#374151">Automated trial of every possible</text>
+  <text x="526" y="98" font-family="Arial, sans-serif" font-size="9.5" fill="#374151">password combination.</text>
+  <text x="526" y="116" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#6B7280">Dictionary attack = tries common words first</text>
+  <text x="526" y="132" font-family="Arial, sans-serif" font-size="9" fill="#374151">Eg: trying all 4-digit PINs: 0000–9999</text>
+  <text x="526" y="148" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#065F46">Defence: Long passwords, account</text>
+  <text x="526" y="164" font-family="Arial, sans-serif" font-size="9" fill="#374151">lockout after failed attempts, captcha</text>
+
+  <!-- Card 4: DDoS -->
+  <rect x="20" y="192" width="224" height="130" rx="8" fill="#EDE9FE" stroke="#8B5CF6" stroke-width="2"/>
+  <text x="132" y="212" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#5B21B6" text-anchor="middle">DDoS Attack</text>
+  <text x="30" y="230" font-family="Arial, sans-serif" font-size="9.5" fill="#374151">Distributed Denial of Service — floods</text>
+  <text x="30" y="244" font-family="Arial, sans-serif" font-size="9.5" fill="#374151">server with traffic until it crashes.</text>
+  <text x="30" y="262" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#6B7280">Uses a botnet: many hacked machines</text>
+  <text x="30" y="278" font-family="Arial, sans-serif" font-size="9" fill="#374151">Eg: millions of requests per second</text>
+  <text x="30" y="294" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#065F46">Defence: Rate limiting, CDN, traffic</text>
+  <text x="30" y="310" font-family="Arial, sans-serif" font-size="9" fill="#374151">filtering, auto-scaling</text>
+
+  <!-- Card 5: Man-in-the-Middle -->
+  <rect x="268" y="192" width="224" height="130" rx="8" fill="#EDE9FE" stroke="#8B5CF6" stroke-width="2"/>
+  <text x="380" y="212" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#5B21B6" text-anchor="middle">Man-in-the-Middle</text>
+  <text x="278" y="230" font-family="Arial, sans-serif" font-size="9.5" fill="#374151">Attacker intercepts communication</text>
+  <text x="278" y="244" font-family="Arial, sans-serif" font-size="9.5" fill="#374151">between two parties without detection.</text>
+  <text x="278" y="262" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#6B7280">Often on unsecured / public Wi-Fi</text>
+  <text x="278" y="278" font-family="Arial, sans-serif" font-size="9" fill="#374151">Eg: stealing login on coffee-shop WiFi</text>
+  <text x="278" y="294" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#065F46">Defence: HTTPS/TLS encryption,</text>
+  <text x="278" y="310" font-family="Arial, sans-serif" font-size="9" fill="#374151">certificate verification, avoid public WiFi</text>
+
+  <!-- Card 6: SQL Injection -->
+  <rect x="516" y="192" width="224" height="130" rx="8" fill="#EDE9FE" stroke="#8B5CF6" stroke-width="2"/>
+  <text x="628" y="212" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#5B21B6" text-anchor="middle">SQL Injection</text>
+  <text x="526" y="230" font-family="Arial, sans-serif" font-size="9.5" fill="#374151">Attacker inserts SQL code into an</text>
+  <text x="526" y="244" font-family="Arial, sans-serif" font-size="9.5" fill="#374151">input field to access/modify a database.</text>
+  <text x="526" y="262" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#6B7280">Input: ' OR '1'='1 — bypasses login!</text>
+  <text x="526" y="278" font-family="Arial, sans-serif" font-size="9" fill="#374151">Eg: dump entire user database</text>
+  <text x="526" y="294" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#065F46">Defence: Input validation / sanitisation,</text>
+  <text x="526" y="310" font-family="Arial, sans-serif" font-size="9" fill="#374151">parameterised queries</text>
+
+  <!-- Defence layers summary -->
+  <rect x="20" y="336" width="720" height="112" rx="10" fill="#ECFDF5" stroke="#10B981" stroke-width="2"/>
+  <text x="380" y="356" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#065F46" text-anchor="middle">Key Defences — Know These for the Exam</text>
+  <!-- 3 columns -->
+  <text x="50" y="376" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#374151">Technical:</text>
+  <text x="50" y="392" font-family="Arial, sans-serif" font-size="9.5" fill="#374151">• Firewall — filters traffic by rules</text>
+  <text x="50" y="407" font-family="Arial, sans-serif" font-size="9.5" fill="#374151">• Encryption — scrambles data in transit</text>
+  <text x="50" y="422" font-family="Arial, sans-serif" font-size="9.5" fill="#374151">• Anti-malware — detects/removes threats</text>
+  <text x="50" y="437" font-family="Arial, sans-serif" font-size="9.5" fill="#374151">• HTTPS/TLS — secure web connections</text>
+
+  <text x="280" y="376" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#374151">Policy:</text>
+  <text x="280" y="392" font-family="Arial, sans-serif" font-size="9.5" fill="#374151">• Strong password policies</text>
+  <text x="280" y="407" font-family="Arial, sans-serif" font-size="9.5" fill="#374151">• Two-factor authentication (2FA)</text>
+  <text x="280" y="422" font-family="Arial, sans-serif" font-size="9.5" fill="#374151">• Regular software updates/patches</text>
+  <text x="280" y="437" font-family="Arial, sans-serif" font-size="9.5" fill="#374151">• Access control — least privilege</text>
+
+  <text x="510" y="376" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#374151">Human:</text>
+  <text x="510" y="392" font-family="Arial, sans-serif" font-size="9.5" fill="#374151">• Staff cybersecurity training</text>
+  <text x="510" y="407" font-family="Arial, sans-serif" font-size="9.5" fill="#374151">• Verify email senders before clicking</text>
+  <text x="510" y="422" font-family="Arial, sans-serif" font-size="9.5" fill="#374151">• Physical security (locks, ID badges)</text>
+  <text x="510" y="437" font-family="Arial, sans-serif" font-size="9.5" fill="#374151">• Penetration testing / audits</text>
+
+  <text x="380" y="472" font-family="Arial, sans-serif" font-size="10" fill="#9CA3AF" text-anchor="middle">OCR J277 1.3 / AQA 8525 — Network threats, attacks and prevention methods</text>
+</svg>

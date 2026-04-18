@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 460" role="img" aria-labelledby="os-title os-desc">
+  <title id="os-title">Operating System — Layers and Roles</title>
+  <desc id="os-desc">Layered diagram showing hardware at the base, the Operating System in the middle (with its key sub-systems labelled), and user applications at the top.</desc>
+  <rect width="700" height="460" fill="#F8FAFC" rx="12"/>
+  <text x="350" y="34" font-family="Arial, sans-serif" font-size="17" font-weight="bold" fill="#1E293B" text-anchor="middle">Operating System — Layers and Roles</text>
+
+  <!-- Layer: User Applications (top) -->
+  <rect x="80" y="56" width="420" height="58" rx="10" fill="#EDE9FE" stroke="#8B5CF6" stroke-width="2"/>
+  <text x="290" y="80" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#5B21B6" text-anchor="middle">User Applications</text>
+  <text x="290" y="100" font-family="Arial, sans-serif" font-size="10" fill="#6B7280" text-anchor="middle">Word processor · Browser · Game · Compiler · IDE</text>
+
+  <!-- Arrow down -->
+  <text x="290" y="132" font-family="Arial, sans-serif" font-size="18" fill="#94A3B8" text-anchor="middle">↕</text>
+  <text x="360" y="134" font-family="Arial, sans-serif" font-size="9" fill="#94A3B8">system calls</text>
+
+  <!-- Layer: Operating System shell -->
+  <rect x="80" y="142" width="420" height="200" rx="10" fill="#DBEAFE" stroke="#3B82F6" stroke-width="2.5"/>
+  <text x="290" y="166" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#1D4ED8" text-anchor="middle">Operating System</text>
+
+  <!-- OS sub-systems -->
+  <rect x="96" y="176" width="180" height="46" rx="6" fill="#EFF6FF" stroke="#93C5FD" stroke-width="1.5"/>
+  <text x="186" y="196" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#1D4ED8" text-anchor="middle">Memory Management</text>
+  <text x="186" y="212" font-family="Arial, sans-serif" font-size="9" fill="#64748B" text-anchor="middle">RAM allocation, virtual memory</text>
+
+  <rect x="304" y="176" width="180" height="46" rx="6" fill="#EFF6FF" stroke="#93C5FD" stroke-width="1.5"/>
+  <text x="394" y="196" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#1D4ED8" text-anchor="middle">Process Management</text>
+  <text x="394" y="212" font-family="Arial, sans-serif" font-size="9" fill="#64748B" text-anchor="middle">Scheduling, multitasking</text>
+
+  <rect x="96" y="232" width="180" height="46" rx="6" fill="#EFF6FF" stroke="#93C5FD" stroke-width="1.5"/>
+  <text x="186" y="252" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#1D4ED8" text-anchor="middle">File System</text>
+  <text x="186" y="268" font-family="Arial, sans-serif" font-size="9" fill="#64748B" text-anchor="middle">Organise, read, write, delete files</text>
+
+  <rect x="304" y="232" width="180" height="46" rx="6" fill="#EFF6FF" stroke="#93C5FD" stroke-width="1.5"/>
+  <text x="394" y="252" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#1D4ED8" text-anchor="middle">Device Drivers</text>
+  <text x="394" y="268" font-family="Arial, sans-serif" font-size="9" fill="#64748B" text-anchor="middle">Interface with hardware devices</text>
+
+  <rect x="96" y="288" width="388" height="40" rx="6" fill="#EFF6FF" stroke="#93C5FD" stroke-width="1.5"/>
+  <text x="290" y="313" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#1D4ED8" text-anchor="middle">User Interface (CLI / GUI) — bridges user and OS kernel</text>
+
+  <!-- Arrow down -->
+  <text x="290" y="362" font-family="Arial, sans-serif" font-size="18" fill="#94A3B8" text-anchor="middle">↕</text>
+  <text x="355" y="364" font-family="Arial, sans-serif" font-size="9" fill="#94A3B8">hardware abstraction</text>
+
+  <!-- Layer: Hardware (bottom) -->
+  <rect x="80" y="372" width="420" height="58" rx="10" fill="#FEF3C7" stroke="#F59E0B" stroke-width="2"/>
+  <text x="290" y="396" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#92400E" text-anchor="middle">Hardware</text>
+  <text x="290" y="416" font-family="Arial, sans-serif" font-size="10" fill="#6B7280" text-anchor="middle">CPU · RAM · Storage · GPU · Keyboard · Monitor · NIC</text>
+
+  <!-- Right sidebar -->
+  <rect x="518" y="56" width="162" height="374" rx="10" fill="#F1F5F9" stroke="#CBD5E1" stroke-width="1.5"/>
+  <text x="599" y="78" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#475569" text-anchor="middle">OS Exam Points</text>
+  <text x="528" y="100" font-family="Arial, sans-serif" font-size="9.5" fill="#374151">• OS hides hardware complexity</text>
+  <text x="528" y="118" font-family="Arial, sans-serif" font-size="9.5" fill="#374151">• Apps use system calls — don't</text>
+  <text x="538" y="133" font-family="Arial, sans-serif" font-size="9.5" fill="#374151">  touch hardware directly</text>
+  <text x="528" y="153" font-family="Arial, sans-serif" font-size="9.5" fill="#374151">• Multitasking = CPU switching</text>
+  <text x="538" y="168" font-family="Arial, sans-serif" font-size="9.5" fill="#374151">  rapidly between processes</text>
+  <text x="528" y="188" font-family="Arial, sans-serif" font-size="9.5" fill="#374151">• Virtual memory uses disk as</text>
+  <text x="538" y="203" font-family="Arial, sans-serif" font-size="9.5" fill="#374151">  overflow RAM</text>
+  <text x="528" y="223" font-family="Arial, sans-serif" font-size="9.5" fill="#374151">• Drivers = translator between</text>
+  <text x="538" y="238" font-family="Arial, sans-serif" font-size="9.5" fill="#374151">  OS and specific hardware</text>
+  <text x="528" y="258" font-family="Arial, sans-serif" font-size="9.5" fill="#374151">• GUI vs CLI: GUI easier for</text>
+  <text x="538" y="273" font-family="Arial, sans-serif" font-size="9.5" fill="#374151">  users; CLI for experts/scripts</text>
+  <text x="528" y="293" font-family="Arial, sans-serif" font-size="9.5" fill="#374151">• File permissions control who</text>
+  <text x="538" y="308" font-family="Arial, sans-serif" font-size="9.5" fill="#374151">  can read/write/execute</text>
+  <text x="528" y="328" font-family="Arial, sans-serif" font-size="9.5" fill="#374151">• Interrupt handling: OS pauses</text>
+  <text x="538" y="343" font-family="Arial, sans-serif" font-size="9.5" fill="#374151">  process to service interrupt</text>
+  <text x="528" y="363" font-family="Arial, sans-serif" font-size="9.5" fill="#374151">• BIOS/UEFI: firmware that</text>
+  <text x="538" y="378" font-family="Arial, sans-serif" font-size="9.5" fill="#374151">  starts OS at boot</text>
+  <text x="528" y="398" font-family="Arial, sans-serif" font-size="9.5" fill="#374151">• Utility software ≠ OS (but</text>
+  <text x="538" y="413" font-family="Arial, sans-serif" font-size="9.5" fill="#374151">  part of systems software)</text>
+
+  <text x="350" y="452" font-family="Arial, sans-serif" font-size="10" fill="#9CA3AF" text-anchor="middle">OCR J277 1.4 / AQA 8525 3.6 — Operating system roles and layers</text>
+</svg>

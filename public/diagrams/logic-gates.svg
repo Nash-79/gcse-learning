@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 480" role="img" aria-labelledby="lg-title lg-desc">
+  <title id="lg-title">Logic Gates — AND, OR, NOT, NAND, NOR</title>
+  <desc id="lg-desc">Diagrams of standard logic gate symbols with truth table outputs for AND, OR, NOT, NAND, and NOR gates.</desc>
+  <rect width="760" height="480" fill="#F8FAFC" rx="12"/>
+  <text x="380" y="34" font-family="Arial, sans-serif" font-size="17" font-weight="bold" fill="#1E293B" text-anchor="middle">Logic Gates</text>
+  <!-- Helper: gate drawing using paths -->
+  <!-- AND Gate (top left) -->
+  <g transform="translate(60,60)">
+    <text x="80" y="18" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#1D4ED8" text-anchor="middle">AND Gate</text>
+    <line x1="0" y1="40" x2="30" y2="40" stroke="#3B82F6" stroke-width="2"/>
+    <line x1="0" y1="60" x2="30" y2="60" stroke="#3B82F6" stroke-width="2"/>
+    <rect x="30" y="30" width="40" height="40" rx="0" fill="none" stroke="none"/>
+    <path d="M30,30 L30,70 L55,70 Q85,70 85,50 Q85,30 55,30 Z" fill="#DBEAFE" stroke="#3B82F6" stroke-width="2.5"/>
+    <line x1="85" y1="50" x2="115" y2="50" stroke="#3B82F6" stroke-width="2"/>
+    <text x="15" y="38" font-family="Arial, sans-serif" font-size="10" fill="#1D4ED8">A</text>
+    <text x="15" y="64" font-family="Arial, sans-serif" font-size="10" fill="#1D4ED8">B</text>
+    <text x="120" y="54" font-family="Arial, sans-serif" font-size="10" fill="#1D4ED8">Out</text>
+    <!-- Mini truth table -->
+    <text x="0" y="98" font-family="Arial, sans-serif" font-size="9" fill="#6B7280">A B → Out</text>
+    <text x="0" y="112" font-family="Arial, sans-serif" font-size="9" fill="#6B7280">0 0 →  0</text>
+    <text x="0" y="125" font-family="Arial, sans-serif" font-size="9" fill="#6B7280">0 1 →  0</text>
+    <text x="0" y="138" font-family="Arial, sans-serif" font-size="9" fill="#6B7280">1 0 →  0</text>
+    <text x="0" y="151" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#065F46">1 1 →  1 ✓</text>
+  </g>
+  <!-- OR Gate -->
+  <g transform="translate(240,60)">
+    <text x="80" y="18" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#6D28D9" text-anchor="middle">OR Gate</text>
+    <line x1="0" y1="40" x2="30" y2="40" stroke="#8B5CF6" stroke-width="2"/>
+    <line x1="0" y1="60" x2="30" y2="60" stroke="#8B5CF6" stroke-width="2"/>
+    <path d="M30,30 Q40,50 30,70 L55,70 Q90,70 90,50 Q90,30 55,30 Z" fill="#EDE9FE" stroke="#8B5CF6" stroke-width="2.5"/>
+    <line x1="90" y1="50" x2="115" y2="50" stroke="#8B5CF6" stroke-width="2"/>
+    <text x="15" y="38" font-family="Arial, sans-serif" font-size="10" fill="#6D28D9">A</text>
+    <text x="15" y="64" font-family="Arial, sans-serif" font-size="10" fill="#6D28D9">B</text>
+    <text x="120" y="54" font-family="Arial, sans-serif" font-size="10" fill="#6D28D9">Out</text>
+    <text x="0" y="98" font-family="Arial, sans-serif" font-size="9" fill="#6B7280">A B → Out</text>
+    <text x="0" y="112" font-family="Arial, sans-serif" font-size="9" fill="#6B7280">0 0 →  0</text>
+    <text x="0" y="125" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#065F46">0 1 →  1 ✓</text>
+    <text x="0" y="138" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#065F46">1 0 →  1 ✓</text>
+    <text x="0" y="151" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#065F46">1 1 →  1 ✓</text>
+  </g>
+  <!-- NOT Gate -->
+  <g transform="translate(420,60)">
+    <text x="80" y="18" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#065F46" text-anchor="middle">NOT Gate</text>
+    <line x1="0" y1="50" x2="30" y2="50" stroke="#10B981" stroke-width="2"/>
+    <path d="M30,30 L30,70 L80,50 Z" fill="#ECFDF5" stroke="#10B981" stroke-width="2.5"/>
+    <circle cx="85" cy="50" r="6" fill="#ECFDF5" stroke="#10B981" stroke-width="2"/>
+    <line x1="91" y1="50" x2="115" y2="50" stroke="#10B981" stroke-width="2"/>
+    <text x="15" y="48" font-family="Arial, sans-serif" font-size="10" fill="#065F46">A</text>
+    <text x="120" y="54" font-family="Arial, sans-serif" font-size="10" fill="#065F46">Out</text>
+    <text x="0" y="98" font-family="Arial, sans-serif" font-size="9" fill="#6B7280">A → Out</text>
+    <text x="0" y="112" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#065F46">0 →  1 ✓</text>
+    <text x="0" y="126" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#065F46">1 →  0 ✓</text>
+    <text x="0" y="140" font-family="Arial, sans-serif" font-size="9" fill="#6B7280">(Inverts the input)</text>
+  </g>
+  <!-- NAND Gate (bottom left) -->
+  <g transform="translate(60,270)">
+    <text x="80" y="18" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#92400E" text-anchor="middle">NAND Gate</text>
+    <text x="80" y="32" font-family="Arial, sans-serif" font-size="10" fill="#92400E" text-anchor="middle">(NOT + AND)</text>
+    <line x1="0" y1="50" x2="30" y2="50" stroke="#F59E0B" stroke-width="2"/>
+    <line x1="0" y1="68" x2="30" y2="68" stroke="#F59E0B" stroke-width="2"/>
+    <path d="M30,38 L30,80 L55,80 Q85,80 85,59 Q85,38 55,38 Z" fill="#FEF3C7" stroke="#F59E0B" stroke-width="2.5"/>
+    <circle cx="90" cy="59" r="6" fill="#FEF3C7" stroke="#F59E0B" stroke-width="2"/>
+    <line x1="96" y1="59" x2="115" y2="59" stroke="#F59E0B" stroke-width="2"/>
+    <text x="0" y="108" font-family="Arial, sans-serif" font-size="9" fill="#6B7280">A B → Out</text>
+    <text x="0" y="122" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#065F46">0 0 →  1 ✓</text>
+    <text x="0" y="136" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#065F46">0 1 →  1 ✓</text>
+    <text x="0" y="150" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#065F46">1 0 →  1 ✓</text>
+    <text x="0" y="164" font-family="Arial, sans-serif" font-size="9" fill="#6B7280">1 1 →  0</text>
+  </g>
+  <!-- NOR Gate -->
+  <g transform="translate(260,270)">
+    <text x="80" y="18" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#9F1239" text-anchor="middle">NOR Gate</text>
+    <text x="80" y="32" font-family="Arial, sans-serif" font-size="10" fill="#9F1239" text-anchor="middle">(NOT + OR)</text>
+    <line x1="0" y1="50" x2="30" y2="50" stroke="#F43F5E" stroke-width="2"/>
+    <line x1="0" y1="68" x2="30" y2="68" stroke="#F43F5E" stroke-width="2"/>
+    <path d="M30,38 Q40,59 30,80 L55,80 Q90,80 90,59 Q90,38 55,38 Z" fill="#FFE4E6" stroke="#F43F5E" stroke-width="2.5"/>
+    <circle cx="95" cy="59" r="6" fill="#FFE4E6" stroke="#F43F5E" stroke-width="2"/>
+    <line x1="101" y1="59" x2="115" y2="59" stroke="#F43F5E" stroke-width="2"/>
+    <text x="0" y="108" font-family="Arial, sans-serif" font-size="9" fill="#6B7280">A B → Out</text>
+    <text x="0" y="122" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#065F46">0 0 →  1 ✓</text>
+    <text x="0" y="136" font-family="Arial, sans-serif" font-size="9" fill="#6B7280">0 1 →  0</text>
+    <text x="0" y="150" font-family="Arial, sans-serif" font-size="9" fill="#6B7280">1 0 →  0</text>
+    <text x="0" y="164" font-family="Arial, sans-serif" font-size="9" fill="#6B7280">1 1 →  0</text>
+  </g>
+  <!-- Key reminder box -->
+  <rect x="490" y="270" width="240" height="160" rx="10" fill="#F0FDF4" stroke="#10B981" stroke-width="1.5"/>
+  <text x="610" y="294" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#065F46" text-anchor="middle">Key Exam Tips</text>
+  <text x="504" y="316" font-family="Arial, sans-serif" font-size="10" fill="#374151">• AND: output 1 only when A=1 AND B=1</text>
+  <text x="504" y="334" font-family="Arial, sans-serif" font-size="10" fill="#374151">• OR: output 1 when A=1 OR B=1 (or both)</text>
+  <text x="504" y="352" font-family="Arial, sans-serif" font-size="10" fill="#374151">• NOT: output is always opposite of input</text>
+  <text x="504" y="370" font-family="Arial, sans-serif" font-size="10" fill="#374151">• NAND = NOT + AND (circle on output)</text>
+  <text x="504" y="388" font-family="Arial, sans-serif" font-size="10" fill="#374151">• NOR = NOT + OR (circle on output)</text>
+  <text x="504" y="408" font-family="Arial, sans-serif" font-size="10" fill="#374151">• 2 inputs = 4 rows in truth table (2²=4)</text>
+  <text x="380" y="468" font-family="Arial, sans-serif" font-size="10" fill="#9CA3AF" text-anchor="middle">OCR J277 2.4 / AQA 8525 — Boolean logic and logic gate symbols</text>
+</svg>
