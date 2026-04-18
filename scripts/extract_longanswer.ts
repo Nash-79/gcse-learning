@@ -155,4 +155,12 @@ async function run() {
               console.error(`    ERROR on attempt ${attempt}: ${e.message}`);
           } finally {
               await context.close();
-              await new Promise(r => setTimeout(
+              await new Promise(r => setTimeout(r, 15000)); // Cooldown
+          }
+      }
+    }
+  }
+  await browser.close();
+}
+
+run();
