@@ -16,6 +16,7 @@
     "diagrams": "tsx scripts/generate-diagrams.ts",
     "diagrams:dry-run": "tsx scripts/generate-diagrams.ts --dry-run",
     "ingest:pdf": "tsx scripts/ingest-pdf.ts",
+    "longanswer:extract": "tsx scripts/extract_longanswer.ts",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
