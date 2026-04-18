@@ -1,13 +1,4 @@
-function getUserApiKey(): string {
-  try {
-    const stored = localStorage.getItem("pylearn-ai-settings");
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      return parsed.apiKey || "";
-    }
-  } catch {}
-  return "";
-}
+import { getUserApiKey } from "@/lib/useAiSettings";
 
 function isAbsoluteUrl(url: string): boolean {
   return /^https?:\/\//i.test(url);

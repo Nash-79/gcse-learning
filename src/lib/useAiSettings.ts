@@ -18,29 +18,62 @@ interface AiSettings {
 }
 
 const STORAGE_KEY = "pylearn-ai-settings";
+const SESSION_API_KEY = "pylearn-ai-settings-api-key";
 
 const DEFAULT_MODEL = "meta-llama/llama-3.3-70b-instruct:free";
+
+function readSessionApiKey(): string {
+  try {
+    return sessionStorage.getItem(SESSION_API_KEY) || "";
+  } catch {
+    return "";
+  }
+}
+
+function writeSessionApiKey(apiKey: string) {
+  try {
+    if (apiKey) {
+      sessionStorage.setItem(SESSION_API_KEY, apiKey);
+    } else {
+      sessionStorage.removeItem(SESSION_API_KEY);
+    }
+  } catch {}
+}
 
 function loadSettings(): AiSettings {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
       const parsed = JSON.parse(stored);
+      const legacyApiKey = typeof parsed.apiKey === "string" ? parsed.apiKey : "";
+      if (legacyApiKey && !readSessionApiKey()) {
+        writeSessionApiKey(legacyApiKey);
+      }
       const provider = parsed.provider === "lovable" ? "lovable" : (parsed.provider || "openrouter");
+      if ("apiKey" in parsed) {
+        delete parsed.apiKey;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
+      }
       return {
-        apiKey: parsed.apiKey || "",
+        apiKey: readSessionApiKey(),
         model: parsed.model || DEFAULT_MODEL,
         provider,
         routePolicies: parsed.routePolicies || undefined,
       };
     }
   } catch {}
-  return { apiKey: "", model: DEFAULT_MODEL, provider: "openrouter" };
+  return { apiKey: readSessionApiKey(), model: DEFAULT_MODEL, provider: "openrouter" };
 }
 
 function saveSettings(s: AiSettings) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
+  const { apiKey, ...persistedSettings } = s;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(persistedSettings));
+  writeSessionApiKey(apiKey);
   window.dispatchEvent(new Event("pylearn-ai-settings-update"));
+}
+
+export function getUserApiKey(): string {
+  return readSessionApiKey();
 }
 
 export function getRoutePolicy(routeKey: RouteKey): RoutePolicy | undefined {

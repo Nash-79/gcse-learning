@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { requireAuthenticatedUser } from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -114,6 +115,14 @@ serve(async (req) => {
   }
 
   try {
+    const authResult = await requireAuthenticatedUser(req);
+    if (authResult instanceof Response) {
+      return new Response(await authResult.text(), {
+        status: authResult.status,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const { messages, mode, topicTitle, code, taskDescription, systemPromptOverride, userPromptOverride, maxTokens, model, provider } = await req.json();
 
     const OPENROUTER_API_KEY = Deno.env.get("OPENROUTER_API_KEY");

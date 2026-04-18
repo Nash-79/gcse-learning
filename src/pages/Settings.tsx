@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from "react";
 import { apiFetch } from "@/lib/apiFetch";
 import { appLog } from "@/lib/appLogger";
 import { motion, AnimatePresence } from "framer-motion";
-import { Settings as SettingsIcon, Key, Bot, Save, CheckCircle2, AlertCircle, Loader2, ExternalLink, Sparkles, Zap, Brain, Code2, Eye, Search, X, ChevronDown, Clock, AlertTriangle, Hash, Server, ShieldAlert, Lock, Users, Globe, RefreshCw } from "lucide-react";
+import { Settings as SettingsIcon, Key, Bot, Save, CheckCircle2, AlertCircle, Loader2, ExternalLink, Sparkles, Zap, Brain, Code2, Eye, Search, X, ChevronDown, Clock, AlertTriangle, Hash, Server, ShieldAlert, Lock, Users, Globe, RefreshCw, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAiSettings, type RouteKey, type RoutePolicy } from "@/lib/useAiSettings";
@@ -13,6 +13,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useAdminRole } from "@/hooks/useAdminRole";
 import AdminLogViewer from "@/components/admin/AdminLogViewer";
 import AdminUserRoles from "@/components/admin/AdminUserRoles";
+import AdminFeedbackViewer from "@/components/admin/AdminFeedbackViewer";
 import { Slider } from "@/components/ui/slider";
 
 interface FreeModel {
@@ -100,6 +101,7 @@ export default function Settings() {
   const [activeProviderFilter, setActiveProviderFilter] = useState<string | null>(null);
   const [showAdminPanel, setShowAdminPanel] = useState(false);
   const [showUserRoles, setShowUserRoles] = useState(false);
+  const [showFeedbackPanel, setShowFeedbackPanel] = useState(false);
   const [showRoutePolicies, setShowRoutePolicies] = useState(false);
   const availableModels = dynamicModels.length > 0 ? dynamicModels : freeModels;
 
@@ -139,7 +141,7 @@ export default function Settings() {
     setTimeout(() => {
       updateSettings({ apiKey: apiKey.trim(), model: selectedModel });
       setStatus("success");
-      setStatusMsg("Settings saved successfully!");
+      setStatusMsg("Settings saved for this browser session.");
       setApiKey("");
       setSaving(false);
     }, 400);
@@ -350,6 +352,9 @@ export default function Settings() {
                   openrouter.ai/keys <ExternalLink className="w-3 h-3" />
                 </a>
                 {" "}— no credit card needed
+              </p>
+              <p className="text-xs text-muted-foreground mb-4">
+                The key is kept only for the current browser session and is not persisted to local storage.
               </p>
 
               {hasAi && (
@@ -896,7 +901,7 @@ export default function Settings() {
                       Admin Panel
                     </h3>
                     <p className="text-xs text-muted-foreground mt-0.5">
-                      Manage users, roles, and view application logs
+                      Manage users, roles, logs, and feedback
                     </p>
                   </div>
                   <div className="flex gap-2">
@@ -915,6 +920,14 @@ export default function Settings() {
                     >
                       <Lock className="w-4 h-4" />
                       {showAdminPanel ? "Hide Logs" : "View Logs"}
+                    </Button>
+                    <Button
+                      variant={showFeedbackPanel ? "default" : "outline"}
+                      onClick={() => setShowFeedbackPanel(!showFeedbackPanel)}
+                      className="gap-2 rounded-xl"
+                    >
+                      <MessageSquare className="w-4 h-4" />
+                      {showFeedbackPanel ? "Hide Feedback" : "View Feedback"}
                     </Button>
                   </div>
                 </div>
@@ -941,6 +954,18 @@ export default function Settings() {
                   exit={{ opacity: 0, height: 0 }}
                 >
                   <AdminLogViewer />
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+              {showFeedbackPanel && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                >
+                  <AdminFeedbackViewer />
                 </motion.div>
               )}
             </AnimatePresence>

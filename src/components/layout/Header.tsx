@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { useTheme } from "@/lib/theme";
 import { PageBreadcrumb } from "./PageBreadcrumb";
+import { FeedbackDialog } from "@/components/feedback/FeedbackDialog";
 
 export function Header() {
   const { theme, setTheme } = useTheme();
@@ -74,6 +75,7 @@ export function Header() {
             <span>Sandbox</span>
           </Button>
         </Link>
+        <FeedbackDialog sectionKey="header" />
         <Link to="/settings">
           <Button
             variant="ghost"

@@ -25,13 +25,7 @@ interface LogEntry {
 
 export async function appLog(entry: LogEntry) {
   try {
-    const { data: { session } } = await supabase.auth.getSession();
-    const userId = session?.user?.id;
-    const userEmail = session?.user?.email;
-
     await supabase.from("app_logs").insert([{
-      user_id: userId ?? undefined,
-      user_email: userEmail ?? undefined,
       event_type: entry.event_type,
       origin: entry.origin,
       message: entry.message,

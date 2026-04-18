@@ -12,6 +12,7 @@ import type { AiResponseMeta } from "@/lib/aiResponseMeta";
 import { extractMeta } from "@/lib/aiResponseMeta";
 import { LOVABLE_AI_MODELS } from "@/lib/lovableModels";
 import { parseAssistantOutput, structuredJsonToMarkdown } from "@/lib/parseAssistantOutput";
+import { FeedbackDialog } from "@/components/feedback/FeedbackDialog";
 
 interface Message {
   role: "user" | "assistant";
@@ -132,19 +133,21 @@ export function AiHelper({ topicSlug, topicTitle, seedPrompt }: AiHelperProps) {
       const reply = data?.content || "Sorry, I couldn't generate a response.";
       const meta = extractMeta(data);
       setMessages(prev => [...prev, { role: "assistant", content: reply, meta }]);
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : String(err);
+      const errStack = err instanceof Error ? err.stack : undefined;
       void appLog({
         event_type: "api_error",
         origin: "AiHelper.sendMessage",
-        message: err?.message || "AI helper request failed",
+        message: errMsg || "AI helper request failed",
         details: { topicSlug, topicTitle, model: chatModel, provider: settingsProvider },
-        error_stack: err?.stack,
+        error_stack: errStack,
         severity: "error",
       });
       setHasError(true);
       setMessages(prev => [...prev, {
         role: "assistant",
-        content: `Sorry, something went wrong: ${err?.message || "Unknown error"}`
+        content: `Sorry, something went wrong: ${errMsg || "Unknown error"}`
       }]);
     } finally {
       setIsLoading(false);
@@ -163,13 +166,24 @@ export function AiHelper({ topicSlug, topicTitle, seedPrompt }: AiHelperProps) {
             {hasError ? "Error" : "Connected"}
           </span>
         </div>
-        <button
-          onClick={() => setShowModelPicker(!showModelPicker)}
-          className="text-[10px] text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors"
-        >
-          {modelLabel}
-          <ChevronDown className={`w-3 h-3 transition-transform ${showModelPicker ? "rotate-180" : ""}`} />
-        </button>
+        <div className="flex items-center gap-2">
+          <FeedbackDialog
+            sectionKey={`ai_helper:${topicSlug}`}
+            context={{ topicSlug, topicTitle, model: chatModel, provider: settingsProvider }}
+            trigger={(
+              <button type="button" className="text-[10px] text-muted-foreground hover:text-foreground transition-colors">
+                Feedback
+              </button>
+            )}
+          />
+          <button
+            onClick={() => setShowModelPicker(!showModelPicker)}
+            className="text-[10px] text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors"
+          >
+            {modelLabel}
+            <ChevronDown className={`w-3 h-3 transition-transform ${showModelPicker ? "rotate-180" : ""}`} />
+          </button>
+        </div>
       </div>
 
       {showModelPicker && (

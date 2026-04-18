@@ -1,28 +1,35 @@
 import { describe, it, expect, beforeEach } from "vitest";
 
 const STORAGE_KEY = "pylearn-ai-settings";
+const SESSION_API_KEY = "pylearn-ai-settings-api-key";
 
-// We test the pure functions by reimplementing the load logic
 function loadSettings() {
+  const readSessionApiKey = () => sessionStorage.getItem(SESSION_API_KEY) || "";
+
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
       const parsed = JSON.parse(stored);
-      const provider = parsed.provider === "lovable" ? "openrouter" : (parsed.provider || "openrouter");
+      const legacyApiKey = typeof parsed.apiKey === "string" ? parsed.apiKey : "";
+      if (legacyApiKey && !readSessionApiKey()) {
+        sessionStorage.setItem(SESSION_API_KEY, legacyApiKey);
+      }
+      const provider = parsed.provider === "lovable" ? "lovable" : (parsed.provider || "openrouter");
       return {
-        apiKey: parsed.apiKey || "",
+        apiKey: readSessionApiKey(),
         model: parsed.model || "meta-llama/llama-3.3-70b-instruct:free",
         provider,
         routePolicies: parsed.routePolicies || undefined,
       };
     }
   } catch {}
-  return { apiKey: "", model: "meta-llama/llama-3.3-70b-instruct:free", provider: "openrouter" };
+  return { apiKey: readSessionApiKey(), model: "meta-llama/llama-3.3-70b-instruct:free", provider: "openrouter" };
 }
 
 describe("AI Settings persistence", () => {
   beforeEach(() => {
     localStorage.clear();
+    sessionStorage.clear();
   });
 
   it("returns defaults when no stored settings", () => {
@@ -66,12 +73,22 @@ describe("AI Settings persistence", () => {
     expect(s.routePolicies!["ai-chat"]?.fallbackModelIds).toHaveLength(1);
   });
 
-  it("migrates lovable provider to openrouter", () => {
+  it("preserves lovable provider", () => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
       apiKey: "sk-test",
       provider: "lovable",
     }));
     const s = loadSettings();
-    expect(s.provider).toBe("openrouter");
+    expect(s.provider).toBe("lovable");
+  });
+
+  it("prefers session storage for api keys", () => {
+    sessionStorage.setItem(SESSION_API_KEY, "sk-session");
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      apiKey: "sk-legacy",
+      provider: "openrouter",
+    }));
+    const s = loadSettings();
+    expect(s.apiKey).toBe("sk-session");
   });
 });
