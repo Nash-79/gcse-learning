@@ -19,6 +19,7 @@ type RunOptions = {
   entry: 'landing' | 'direct';
   cfMaxWaitMs: number;
   cfStepMs: number;
+  userDataDir?: string;
 };
 
 function parseArgs(argv: string[]): RunOptions {
@@ -32,6 +33,7 @@ function parseArgs(argv: string[]): RunOptions {
   let entry: 'landing' | 'direct' = 'landing';
   let cfMaxWaitMs = 2 * 60 * 1000;
   let cfStepMs = 25 * 1000;
+  let userDataDir: string | undefined;
 
   for (let i = 3; i < argv.length; i++) {
     const arg = argv[i];
@@ -88,6 +90,11 @@ function parseArgs(argv: string[]): RunOptions {
       i++;
       continue;
     }
+    if (arg === '--user-data-dir' && argv[i + 1]) {
+      userDataDir = argv[i + 1];
+      i++;
+      continue;
+    }
   }
 
   return {
@@ -101,6 +108,7 @@ function parseArgs(argv: string[]): RunOptions {
     entry,
     cfMaxWaitMs,
     cfStepMs,
+    userDataDir,
   };
 }
 
@@ -138,6 +146,10 @@ async function bypassCloudflare(page: Page, url: string, opts: Pick<RunOptions, 
   const start = Date.now();
   let attempt = 0;
 
+  if (opts.interactive && (await isCloudflareChallenge(page))) {
+    await waitForEnter('Cloudflare challenge detected. Solve it in the browser window, then press Enter here to continue.');
+  }
+
   while (await isCloudflareChallenge(page)) {
     attempt++;
     const elapsed = Date.now() - start;
@@ -146,10 +158,6 @@ async function bypassCloudflare(page: Page, url: string, opts: Pick<RunOptions, 
     }
     console.log(`      Challenge detected (Attempt ${attempt}). Waiting ${Math.round(stepMs / 1000)}s...`);
     await page.waitForTimeout(stepMs);
-  }
-
-  if (opts.interactive && (await isCloudflareChallenge(page))) {
-    await waitForEnter('Cloudflare challenge still showing. Solve it in the browser window, then press Enter here to continue.');
   }
 }
 
@@ -218,10 +226,19 @@ async function run() {
   const outputDir = `content-library/${board}/longanswer`;
   if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir, { recursive: true });
 
-  const browser = await chromium.launch({
-    headless: opts.headful ? false : true,
-    args: ['--disable-blink-features=AutomationControlled'],
-  });
+  const launchArgs = ['--disable-blink-features=AutomationControlled'];
+  const persistentContext = opts.userDataDir
+    ? await chromium.launchPersistentContext(opts.userDataDir, {
+        headless: opts.headful ? false : true,
+        args: launchArgs,
+      })
+    : null;
+  const browser = persistentContext
+    ? null
+    : await chromium.launch({
+        headless: opts.headful ? false : true,
+        args: launchArgs,
+      });
 
   const topics = [
     'algorithms_searching_sorting',
@@ -269,10 +286,12 @@ async function run() {
 
       while (!success && attempt < opts.maxAttempts) {
         attempt++;
-        const context = await browser.newContext({
-          userAgent: userAgents[Math.floor(Math.random() * userAgents.length)],
-          locale: 'en-GB',
-        });
+        const context = persistentContext
+          ? persistentContext
+          : await browser!.newContext({
+              userAgent: userAgents[Math.floor(Math.random() * userAgents.length)],
+              locale: 'en-GB',
+            });
 
         await context.route('**/*', async (route) => {
           const type = route.request().resourceType();
@@ -404,14 +423,21 @@ async function run() {
         } catch (e) {
           console.error(`    ERROR on attempt ${attempt}: ${e.message}`);
         } finally {
-          await context.close();
+          await page.close().catch(() => undefined);
+          if (!persistentContext) {
+            await context.close();
+          }
           await new Promise(r => setTimeout(r, 15000)); // Cooldown
         }
       }
     }
   }
 
-  await browser.close();
+  if (persistentContext) {
+    await persistentContext.close();
+  } else {
+    await browser!.close();
+  }
 }
 
 run();
