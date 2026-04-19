@@ -29,6 +29,7 @@ import { CodeRunner } from "@/components/code/CodeRunner";
 import { AiHelper } from "@/components/ai/AiHelper";
 import { CodingChallengePanel } from "@/components/challenges/CodingChallengePanel";
 import { TopicAugmentationPanel } from "@/components/content/TopicAugmentationPanel";
+import { TopicNotes } from "@/components/content/TopicNotes";
 import { SteppedLearning } from "@/components/learning/SteppedLearning";
 import { ExamQuestionBank } from "@/components/quiz/ExamQuestionBank";
 import { QuizComponent } from "@/components/quiz/QuizComponent";
