@@ -150,13 +150,29 @@ export default function AiTutor() {
 
 
 
-  const send = useCallback(async (text: string) => {
+  const send = useCallback(async (text: string, opts: { bypass?: boolean } = {}) => {
     if (!text.trim() || isLoading) return;
     const userMsg: Message = { role: "user", content: text.trim() };
     const allMessages = [...messages, userMsg];
     setMessages(allMessages);
     setInput("");
     setIsLoading(true);
+
+    // Cache key: scoped to model + full conversation hash so context-dependent
+    // answers auto-miss when prior turns change.
+    const convoHash = djb2(allMessages.map((m) => `${m.role}:${m.content}`).join("\n"));
+    const cacheKey = buildKey(["ai-tutor", chatModel, convoHash]);
+    const cached = aiCache.get("ai-tutor", cacheKey, { bypass: opts.bypass });
+    if (cached) {
+      setMessages((prev) => [...prev, {
+        role: "assistant",
+        content: cached.content,
+        meta: cached.meta,
+        cachedAt: cached.createdAt,
+      }]);
+      setIsLoading(false);
+      return;
+    }
 
     let assistantSoFar = "";
     let streamMeta: AiResponseMeta | undefined;
@@ -180,11 +196,14 @@ export default function AiTutor() {
         provider: settingsProvider,
         onDelta: (chunk) => upsertAssistant(chunk),
         onDone: () => {
-          // Apply final meta to last message
+          // Apply final meta + cache the full assembled response.
           if (streamMeta) {
             setMessages(prev => prev.map((msg, i) =>
               i === prev.length - 1 && msg.role === "assistant" ? { ...msg, meta: streamMeta } : msg
             ));
+          }
+          if (assistantSoFar.trim()) {
+            aiCache.set("ai-tutor", cacheKey, { content: assistantSoFar, meta: streamMeta, model: chatModel });
           }
           setIsLoading(false);
         },
