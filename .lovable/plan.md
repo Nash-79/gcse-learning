@@ -1,58 +1,78 @@
 
 
-## Problem (from screenshot at 1300px viewport)
+## Problem
 
-The interactive task area is squeezed into **3 narrow columns** because layouts compound:
-- `TopicPage` content area + `SteppedLearning` sidebar (320px) → leaves ~700px for the task
-- `SteppedLearning` then splits that into `2fr | 1fr` (editor stack | TaskAssistant)
-- Inside the 2fr cell, `CodeRunner` ALSO splits horizontally `3/5 | 2/5` (editor | console)
+Three real issues from the screenshot at `/topic/variables-constants`:
 
-Result: at this width every column is ~250px, "Run Code" overlaps the editor edge, the console is a tiny strip, and the TaskAssistant card looks orphaned. The fixed `h-[420px]` height makes it look like a tall narrow chimney.
+1. **TaskAssistant output is messy** — raw JSON-shaped text or unstructured prose appears instead of the clean Claude-style markdown/sections used everywhere else in the app. The component is calling the AI but **not running the response through `parseAssistantOutput` + `structuredJsonToBlocks` + `<ChatMessage />`** like `AiHelper` does.
+
+2. **Look & feel inconsistent with AI Tutor** — `AiHelper` (used on Theory tab and via "Ask AI Tutor" button) has polished structured output with emoji headings, summary callout, follow-up suggestions. `TaskAssistant` reinvents its own renderer and looks foreign.
+
+3. **No task pre-loading** — the user wants the assistant to be **scoped to the specific task** so the AI always knows what's being asked, even on free-form questions. Right now task context is only injected for the three preset buttons, not for follow-ups.
+
+4. **Layout nit** — user is open to console-below-editor (already the case at <xl per last change, but worth confirming the experience on Variables & Constants specifically).
 
 ## Solution
 
-Stop forcing horizontal splits at medium widths. Stack thoughtfully and only go side-by-side when there's real room.
+Reuse the existing AI Tutor rendering pipeline instead of TaskAssistant having its own. Pre-load every request with the task context so the AI is task-locked.
 
-### 1. `CodeRunner.tsx` — stack editor over console until very wide
+### 1. Render TaskAssistant responses through the shared pipeline
 
-Change the split breakpoint from `md:flex-row` (768px) to `xl:flex-row` (1280px) AND only when the runner gets enough width via a container query feel (we'll just use xl). Below xl, editor sits on top (full width), console below at a shorter height. This kills the "two skinny panes" problem everywhere.
+In `src/components/learning/TaskAssistant.tsx`:
 
-Also: remove the duplicate `${height}` on the console div (it currently forces console = editor height even when stacked, which wastes vertical space). Console gets its own sensible `min-h-[160px]` instead.
+- Import `parseAssistantOutput`, `structuredJsonToBlocks`, `structuredJsonToMarkdown` from `@/lib/parseAssistantOutput`.
+- Import `<ChatMessage />` from `@/components/chat/ChatMessage` (the same one `AiHelper` uses).
+- Replace the current "raw text in a div" rendering with: parse → if JSON → render each `StructuredBlock` (markdown blocks via `<ChatMessage />`, trace blocks via `<TraceTable />`). Fallback: render markdown via `<ChatMessage />`.
+- Cache the **raw response text** (already does) — parsing happens at render time, so old cached entries upgrade automatically.
 
-### 2. `SteppedLearning.tsx` — TaskAssistant goes BELOW the editor at this width
+This gives identical look-and-feel to AI Tutor: emoji headings, summary callout, bulleted sections, syntax-highlighted code, follow-up suggestions chips.
 
-Switch the interactive-task grid from `lg:grid-cols-[2fr_1fr]` (kicks in at 1024px and is the main culprit) to `2xl:grid-cols-[minmax(0,1fr)_360px]` (only splits at ≥1536px when there's genuinely room).
+### 2. Task-lock every AI call
 
-Below 2xl: editor stacks on top full-width, TaskAssistant sits below as a slim horizontal bar (collapsed pill by default — already its default state). When expanded below the editor, it gets full width and looks like a proper panel rather than a cramped sidebar.
+Currently the system prompt only includes task context for the 3 preset buttons. Change it so **every** call (presets + free-form follow-ups) sends:
 
-Also reduce editor `height` from `h-[420px]` to a responsive `h-[340px] lg:h-[400px]` so it doesn't dominate the page on shorter screens.
+```
+You are helping a GCSE student with this SPECIFIC coding task on topic "${topicTitle}":
 
-### 3. `TaskAssistant.tsx` — make collapsed pill horizontal-friendly + expanded panel work full-width
+TASK:
+${taskInstruction}
 
-- Collapsed state already a horizontal pill — keep, but ensure it doesn't stretch awkwardly tall (already fine, just verify no `h-full` parent).
-- Expanded state: change preset-buttons grid from `grid-cols-1` to `sm:grid-cols-3` so when it's full-width below the editor, the three actions (Explain / Plan / Hint) sit side-by-side instead of stacked. On narrow viewports they stack.
-- Remove `h-full` from outer container so it sizes to content.
+STARTER CODE:
+${starterCode}
 
-### 4. Settings — add "Clear cached AI explanations" control
+STUDENT'S CURRENT CODE:
+${currentCode}
 
-New small card in `Settings.tsx` (place near AI Provider section) with one button. Wipes both localStorage keys:
-- `pylearn-quiz-ai-explain:v1` (Quick Quiz "Why?")
-- `pylearn-task-assistant:v1` (TaskAssistant)
+Stay focused on this task. Do not give the full solution unless explicitly asked.
+```
 
-Shows a toast/inline success message + count of entries cleared.
+Then append the student's question (preset or free-form). This makes the assistant a task-scoped tutor instead of a general chat.
+
+Also tighten the preset prompts to explicitly request the JSON contract so the renderer always gets structured output:
+- "Explain the task" → "Explain this task in 2-3 short sentences. What is being asked, and what concepts will they use? Do NOT give a solution."
+- "Step-by-step plan" → "Give a numbered step-by-step plan in pseudocode. No full Python solution."
+- "Hint on my code" → "Look at the student's current code and give ONE specific next-step hint. Do not write the full solution."
+
+The edge function (`supabase/functions/ai-chat`) already injects `STRUCTURED_OUTPUT_INSTRUCTION`, so the JSON contract is enforced server-side — we just need to render it properly client-side.
+
+### 3. Free-form box pre-fills with task pointer
+
+When the assistant is opened, seed the free-form input placeholder with `Ask anything about this task...` and prepend the task instruction silently to every user message via the system prompt (already covered in #2). No extra UI clutter, just guaranteed scope.
+
+### 4. Layout sanity check
+
+`CodeRunner` already stacks console under editor below `xl` (1280px) per last change — at the user's 1300px viewport this *just barely* triggers side-by-side. To match the user's stated preference ("console output below code"), bump the breakpoint from `xl:flex-row` → `2xl:flex-row` so console always sits below editor unless the viewport is genuinely wide (≥1536px). Single one-line change in `src/components/code/CodeRunner.tsx`.
 
 ## Files
 
-- **Edit** `src/components/code/CodeRunner.tsx` — stack until `xl`, drop forced equal-height on console
-- **Edit** `src/components/learning/SteppedLearning.tsx` — `2xl` split only, responsive editor height
-- **Edit** `src/components/learning/TaskAssistant.tsx` — `sm:grid-cols-3` preset buttons, drop `h-full`
-- **Edit** `src/pages/Settings.tsx` — add Clear-Cache card
+- **Edit** `src/components/learning/TaskAssistant.tsx` — render via `<ChatMessage />` + structured blocks; task-lock every call; tighten preset prompts
+- **Edit** `src/components/code/CodeRunner.tsx` — `xl:` → `2xl:` so console stacks below editor at most viewports
 
 ## Acceptance
 
-- At 1300px (current viewport): editor is full-width on top with comfortable height; console sits below it at readable width; TaskAssistant collapsed pill sits below console as a single neat row. No overlapping "Run Code" button. No empty left gutter.
-- At ≥1536px (`2xl`): TaskAssistant moves to right column at 360px wide; editor + console still stack inside the left column and look balanced.
-- Below 768px (mobile): same vertical stack, everything readable.
-- Settings page has a new "Cached AI explanations" card with a working Clear button.
-- No new dependencies; no DB / endpoint changes; reused across Playground and `RunnableCode` automatically.
+- Click any preset on `/topic/variables-constants` Learn tab → response renders with emoji headings, summary callout, clean sections, code blocks with syntax highlighting (matching AI Tutor look exactly).
+- Free-form question like "what's a constant?" → AI replies in same structured format, scoped to the current task (mentions the PI/gravity context).
+- Cached responses re-render the same way (no regression for old cached entries).
+- Console sits below editor at 1300px viewport.
+- No new dependencies, no DB changes, no edge function changes.
 
