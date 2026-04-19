@@ -1,52 +1,66 @@
 
-User wants admins to receive an email when a new user signs up requesting approval, so they don't have to manually check the admin panel. The email should ideally include a quick link to approve.
 
-## Approach
+## Goal
 
-Send a transactional email to all admin users whenever a new user signs up. Email contains the new user's name/email, signup time, and a link directly to the admin panel (Settings → User Roles section) where they can approve.
+Make every AI response in the app look as polished and well-structured as Claude/OpenAI — clear hierarchy, proper section breaks, consistent emoji headings, and breathing room between blocks. Apply consistently across **all** AI surfaces: AI Tutor (`/ai-tutor`), per-topic AI Helper, and any inline AI response.
 
-**No domain required to start the conversation, but**: sending branded emails from the user's domain requires email domain setup. The user previously chose to skip email setup. So step 1 of the plan is the domain setup dialog — once that's done, the rest happens automatically.
+## Root cause
 
-## What gets built
+Two problems compound to make output look flat (as in your screenshot):
 
-**1. Email domain + infrastructure** (one-time setup via dialog)
-- User completes the email domain setup dialog
-- Backend automatically provisions the queue, tables, dispatcher
+1. **Edge function prompts are weak.** `supabase/functions/ai-chat/index.ts` and `supabase/functions/gcse-chat/index.ts` use a stripped-down structured-output contract — no emoji rules, no style guidance, no `suggestions` field, no minimum-section guarantee. The good contract (`server/prompts/gcseAiOutputContract.ts`) only runs in the Express dev backend, which the published site doesn't use. So in production, Lovable AI returns short, single-section JSON with bolded inline labels mashed together → flat output.
+2. **Frontend headings are too subtle.** In `ChatMessage.tsx`, `h2` is `text-[15px]` with a barely-visible border, and `h3` blends into body text. Section spacing (`mt-7`) is fine but headings don't *feel* like headings.
 
-**2. Transactional email template**
-- New `new-user-approval-request.tsx` template in `_shared/transactional-email-templates/`
-- Branded with PyLearn dark theme accents (white body required)
-- Shows: new user's display name + email, signup timestamp, "Review in Admin Panel" button linking to `/settings` (admin section)
-- Registered in `registry.ts`
+## Plan
 
-**3. Trigger: notify admins on signup**
-- New edge function `notify-admins-new-signup` (or extend the `handle_new_user` trigger via a database webhook)
-- **Cleanest approach**: Add a Postgres trigger on `profiles` insert that calls a tiny edge function via `pg_net`, OR — simpler — fire from the client right after `signUp()` succeeds in `useAuth.signUp()`
-- Recommended: client-side invoke from `useAuth.signUp()` after successful signup. It:
-  1. Queries `user_roles` for all `admin` users (RLS-safe via a SECURITY DEFINER RPC `get_admin_emails()`)
-  2. Loops admin emails and invokes `send-transactional-email` once per admin with unique `idempotencyKey: signup-notify-${newUserId}-${adminId}`
-  3. Passes `templateData: { newUserName, newUserEmail, signupAt, adminPanelUrl }`
+### 1. Centralize the structured-output contract (one source of truth)
+- Create `supabase/functions/_shared/structuredContract.ts` exporting the **rich** contract (the one in `server/prompts/gcseAiOutputContract.ts`): emoji-prefixed headings, mandatory 2-4 sections, mandatory 3 progressive suggestions, table/code/bullet style rules, GCSE tone.
+- Replace the inline `STRUCTURED_OUTPUT_INSTRUCTION` in both `ai-chat/index.ts` and `gcse-chat/index.ts` with an import from this shared file. Keep the `STRUCTURED_USER_SUFFIX` consistent too.
+- Result: Lovable AI and OpenRouter models both get the same strict, emoji-aware, multi-section instructions.
 
-**4. Database helper**
-- New SECURITY DEFINER function `get_admin_emails()` returning `{ id, email }[]` for all users with `admin` role
-  - Joins `user_roles` → `auth.users` (allowed inside SECURITY DEFINER)
-  - Callable only by authenticated users (it's safe — only returns admin emails, used post-signup)
+### 2. Strengthen the JSON contract enforcement
+- In the contract, require: minimum **2 sections**, each section's `content` ≤ ~60 words, each section MUST start a new visual block (no inline `**Bold:**` mini-headings — promote those to their own section instead).
+- Explicitly ban: dumping multiple labelled subtopics into a single section's `content` (which is exactly what produced the screenshot).
 
-**5. Optional polish (skip for now unless requested)**
-- One-click approve link in the email (would require a signed-token approve endpoint — adds complexity). Plan keeps this OUT; admins click the link → land on `/settings` → approve with one click in the existing UI.
+### 3. Polish `ChatMessage.tsx` markdown rendering
+- Make `h2` larger and bolder: `text-[17px]`, stronger border, clear top margin.
+- Make `h3` distinct from body: `text-[14px]` uppercase tracked, accent color.
+- Add stronger paragraph spacing so the eye can rest between sections.
+- Improve summary callout: keep the 🎯 chip but give it a clearer card-like background.
+- Ensure bullets, tables, code blocks all have the same generous breathing room as Claude.
+- Promote any `**Label:**` patterns at the start of a paragraph into a small inline definition-list style (so models that still inline subtopics render cleanly).
 
-## Files to create / edit
+### 4. Improve the structured→markdown converter (`parseAssistantOutput.ts`)
+- When a section's `content` contains multiple `**Label:** value` patterns separated by line breaks, auto-split them into a definition list (`<dl>` style via markdown table or styled bullets) so they render as visually separated rows instead of a wall of text. This is a defensive fix for models that ignore the "no inline subheadings" rule.
+- Always add a blank line before/after fenced code blocks and tables when assembling markdown.
 
-- **Email domain setup** (user dialog → backend auto-provisions infra)
-- **Migration**: create `get_admin_emails()` SECURITY DEFINER function
-- **Create** `supabase/functions/_shared/transactional-email-templates/new-user-approval-request.tsx`
-- **Edit** `supabase/functions/_shared/transactional-email-templates/registry.ts` — register new template
-- **Edit** `src/hooks/useAuth.tsx` — after successful `signUp`, fetch admin list and invoke `send-transactional-email` for each
-- **Deploy** `send-transactional-email` (auto-handled by scaffold)
+### 5. Verify consistency across all AI surfaces
+Audit and confirm all three entry points use `ChatMessage`:
+- `src/pages/AiTutor.tsx` ✓ (already does)
+- `src/components/ai/AiHelper.tsx` ✓ (already does)
+- Anywhere else AI output is shown → confirm or migrate
 
-## Notes
+### 6. Out of scope
+- The `mark-answer` edge function (uses its own JSON schema for grading, not chat output)
+- Streaming behaviour in `gcse-chat` (already works; only the prompt changes)
+- Any model selection / settings UI (separate concern)
 
-- Sending fails silently won't break signup (wrapped in try/catch)
-- Each admin gets one email per signup (unique idempotency key per admin/signup pair)
-- Approve flow stays in the admin panel — email is a notification + deep link, not a one-click approver (safer; no token leakage risk)
-- One-click approve from the email itself can be added later if you want it
+## Files to change
+
+- `supabase/functions/_shared/structuredContract.ts` — **new**, central rich contract
+- `supabase/functions/ai-chat/index.ts` — import shared contract
+- `supabase/functions/gcse-chat/index.ts` — import shared contract
+- `src/components/chat/ChatMessage.tsx` — heading sizes, spacing, summary callout, inline-label promotion
+- `src/lib/parseAssistantOutput.ts` — split inline `**Label:**` patterns into clean rows; tighter markdown assembly
+
+No DB changes. No new dependencies.
+
+## Acceptance check
+
+After deploy, ask the AI a multi-part question (like the RAM vs Storage one in your screenshot). Expected:
+- 2-4 clearly separated sections, each with an emoji heading visible at a glance
+- "RAM" and "Storage" become their own sections (not bolded labels inside one paragraph)
+- Generous spacing between sections, comfortable line height
+- 3 follow-up suggestions appear as clickable chips
+- Looks consistent on `/ai-tutor` and inside any topic page's AI Helper
+
