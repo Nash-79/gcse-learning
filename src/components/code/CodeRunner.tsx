@@ -137,7 +137,7 @@ export function CodeRunner({
         <div className="px-4 py-3 border-b bg-muted/30 flex items-center gap-2 text-sm font-semibold text-foreground">
           Console Output
         </div>
-        <div className="flex-1 min-h-[160px] xl:min-h-0 p-4 bg-black/90 font-mono text-sm overflow-y-auto">
+        <div className="flex-1 min-h-[160px] 2xl:min-h-0 p-4 bg-black/90 font-mono text-sm overflow-y-auto">
           {isRunning && !output && !error && (
             <div className="text-muted-foreground animate-pulse">Running...</div>
           )}
