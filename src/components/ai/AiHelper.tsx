@@ -212,8 +212,6 @@ export function AiHelper({ topicSlug, topicTitle, seedPrompt }: AiHelperProps) {
         )}
 
         {messages.map((msg, i) => {
-          const isLastAssistant = msg.role === "assistant" && i === messages.length - 1 && !isLoading;
-
           const handleRegenerate = msg.role === "assistant" ? () => {
             let userMsgIndex = -1;
             for (let j = i - 1; j >= 0; j--) { if (messages[j].role === "user") { userMsgIndex = j; break; } }
