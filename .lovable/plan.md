@@ -1,107 +1,47 @@
 
 
-# Frontend "Best-of-Both Merge" — Plan
+## Diagnosis: signup is actually working backend-side
 
-## Summary
+I tested signup directly against the auth API — it succeeded (HTTP 200, profile auto-created via `on_auth_user_created` trigger). 3 real users exist in the database. So the issue you're seeing is **not** the auth backend.
 
-Fix the current build errors, then add three capabilities: per-route AI policy settings, response provenance display, and proper meta typing — all while keeping the app learner-focused.
+There are however **two real frontend problems** that explain why your UI feels broken:
 
----
+### Problem 1 — `src/integrations/supabase/client.ts` has wrong fallback values
+```ts
+const SUPABASE_URL = _rawUrl.startsWith("http") ? _rawUrl : "https://eneaikataseigolavizw.supabase.co";  // WRONG project ref
+const SUPABASE_PUBLISHABLE_KEY = _rawKey || "sb_publishable_TL1mLqQ1...";  // wrong format placeholder
+```
+If `.env` ever fails to load (cold preview start, prod build env miss), the client points at a non-existent project and every signup silently fails. The correct project ref is `eikcwvugoofralsrqjfs`.
 
-## Build Error Fixes (prerequisite)
+### Problem 2 — `FeedbackDialog.tsx` line 115 is a TypeScript build error
+```ts
+toast.error(`Failed to submit feedback: ${result.error}`);  // result is narrowed to {ok:true} on this branch — needs !result.ok guard fix
+```
+This blocks the production typecheck/build. In dev it still renders, but on the deployed site (`gcse-pylearn.lovable.app`) the build fails → users get a stale or broken bundle → signup form may not work.
 
-1. **`supabase/functions/ai-chat/index.ts` line 99-100**: The `delete lovableBody.response_format` fails because the spread `{ ...body, model: ... }` loses the type. Fix by typing `lovableBody` as `Record<string, unknown>` explicitly, or use destructuring with rest.
+### Problem 3 (related) — preview is throwing 404 on `/`
+Network logs show: `GET / → 404 "Not found"` at 15:40:48. The dev server is up but the published site is failing. This is consistent with the typecheck failure breaking the production build.
 
-2. **`src/pages/Settings.tsx` lines 493/499/501**: `recommended` and `deprecated` don't exist on `OpenRouterModel`. Add these optional fields to the `OpenRouterModel` interface in `src/lib/useOpenRouterModels.ts`, or cast via the local `FreeModel` type already defined in Settings.
-
----
-
-## 1. Per-Route Fallback Policy Settings
-
-**Files**: `src/lib/useAiSettings.ts`, `src/pages/Settings.tsx`
-
-- Extend `AiSettings` with an optional `routePolicies` map:
-  ```
-  routePolicies?: Record<RouteKey, {
-    primaryModel: string;
-    fallbackModelIds: string[];
-    maxAttempts: number;
-    retryOn: string[];
-  }>
-  ```
-  where `RouteKey = "ai-chat" | "gcse-chat" | "mark-answer"`.
-
-- Add a new collapsible "Advanced: Route Policies" section in Settings below the model picker. Each route gets: primary model dropdown, ordered fallback list (multi-select from available models), max attempts (1-4 slider), retry conditions (checkboxes: 429, 500, timeout).
-
-- Persist in the same `localStorage` key, backwards-compatible (missing `routePolicies` = use global defaults).
-
-- Export a `getRoutePolicy(routeKey)` helper from the hook.
-
-## 2. API Meta Typing & Plumbing
-
-**Files**: `src/lib/apiFetch.ts`, `src/pages/AiTutor.tsx`, `src/components/ai/AiHelper.tsx`
-
-- Define `AiResponseMeta` interface:
-  ```
-  interface AiResponseMeta {
-    finalModelId?: string;
-    finalModelLabel?: string;
-    usedFallback?: boolean;
-    degraded?: boolean;
-    attemptCount?: number;
-    elapsedMs?: number;
-  }
-  ```
-
-- In `AiTutor.tsx` `streamChat`: after stream completes, check for a final `event: meta` SSE event and extract metadata. Store meta per-message alongside content.
-
-- For non-streaming routes (`ai-chat`, `mark-answer`): extract `meta` from JSON response body. Pass through to components.
-
-- Include `policy` in request body when route policies are configured.
-
-## 3. Response Provenance Display
-
-**Files**: `src/components/chat/ChatMessage.tsx`
-
-- Add optional `meta?: AiResponseMeta` prop to `ChatMessage`.
-
-- Below `MessageActions`, render a subtle provenance line when meta exists:
-  - Show model label (e.g., "Answered by Llama 3.3 70B")
-  - If `usedFallback`, show a small info badge: "Fallback model used"
-  - If `degraded`, show amber indicator
-  - All styled as muted text, ~10px, non-intrusive
-
-- When `meta` is absent, render nothing (graceful degradation).
-
-## 4. Message Data Model Update
-
-**Files**: `src/pages/AiTutor.tsx`
-
-- Extend the `Message` interface to `{ role, content, meta?: AiResponseMeta }`.
-
-- Thread `meta` through to `ChatMessage` component renders.
-
-## 5. Tests
-
-**Files**: `src/test/`
-
-- **`aiSettings.test.ts`**: Test `loadSettings` with/without `routePolicies`, verify backwards compat, test `getRoutePolicy` returns defaults when no policy set.
-
-- **`ChatMessage.test.tsx`**: Test provenance renders when meta provided, doesn't render when absent, shows fallback badge correctly.
-
-- **`provenanceParsing.test.ts`**: Test meta extraction from SSE stream and JSON response.
-
-## 6. Scope Guardrails
-
-- No teacher/classroom features added.
-- No compliance copy beyond the provenance line.
-- Mobile-responsive: provenance line wraps gracefully on small screens.
+There are also unrelated existing TS errors in `paper1Theory.ts`, `paper2Theory.ts`, and `useTopics.ts` (`string` vs `string[]` and `ExamBoard` enum mismatches) — these have been there a while and also block the production build.
 
 ---
 
-## Technical Notes
+## Fix plan
 
-- The `OpenRouterModel` interface needs `recommended?: boolean` and `deprecated?: string` added to fix existing build errors.
-- The `callAI` function in `ai-chat/index.ts` needs `lovableBody` typed as `Record<string, unknown>` to fix the `delete` TS error.
-- Route policy is sent as `policy` field in request JSON; backend already accepts this per the contracts spec.
+| # | File | Change |
+|---|---|---|
+| 1 | `src/integrations/supabase/client.ts` | Replace bad fallback URL `eneaikataseigolavizw` → `eikcwvugoofralsrqjfs` and fallback publishable key with the real anon JWT, so signup works even if `.env` is missed. |
+| 2 | `src/components/feedback/FeedbackDialog.tsx` line 113-117 | Narrow correctly: `if (!result.ok) { toast.error(\`Failed to submit feedback: ${result.error}\`); return; }` — the `!result.ok` guard already exists; just make TS happy by reading `result.error` *inside* the narrowed branch (it currently is, but TS can't infer because of how the early return is structured — small refactor). |
+| 3 | `src/data/questionBank/paper1Theory.ts` (8 spots) and `paper2Theory.ts` (5 spots) | Wrap bare `examBoards: "OCR"` strings as arrays: `examBoards: ["OCR"]`. |
+| 4 | `src/hooks/useTopics.ts` line ~86 | Cast/narrow the produced array items so `examBoards: string[]` becomes `examBoards: ExamBoard[]` (e.g. `as Topic[]` after filtering, or use `satisfies`). |
+| 5 | After fixes — quick sanity: re-run a signup against the live app (you, in the browser) and confirm "Check your email" toast appears. |
+
+### Out of scope (not touching)
+- Auth flow itself (works), `useAuth.tsx`, `Auth.tsx`, the `handle_new_user` trigger — all correct.
+- AI reliability / provenance work from prior plan.
+
+### Acceptance
+- `npm run build` (typecheck) passes with zero errors.
+- Published site at `gcse-pylearn.lovable.app` returns 200 on `/`.
+- A new user can complete the signup form on the Auth page and receive the confirmation email.
 
