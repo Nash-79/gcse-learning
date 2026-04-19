@@ -134,6 +134,28 @@ export function parseAssistantOutput(text: string): ParsedOutput {
   return { type: "raw", data: text };
 }
 
+/**
+ * If a section's `content` is a single paragraph crammed with multiple
+ * "**Label:** value" patterns separated by line breaks (or sentences),
+ * split each one onto its own line so the renderer can promote them to
+ * definition-list rows. Defensive against models that ignore the
+ * "no inline mini-headings" instruction.
+ */
+function splitInlineLabels(content: string): string {
+  if (!content) return content;
+  // Already multi-line with each label on its own line? Leave it.
+  // Find inline patterns like "**Word:** value **Other:** value"
+  const pattern = /\*\*([A-Z][A-Za-z0-9 /-]{1,30}):\*\*/g;
+  const matches = content.match(pattern);
+  if (!matches || matches.length < 2) return content;
+  // Insert a blank line before each "**Label:**" occurrence (except the first
+  // when at start) so each becomes its own paragraph and triggers the
+  // definition-list renderer in ChatMessage.
+  return content
+    .replace(/\s*\*\*([A-Z][A-Za-z0-9 /-]{1,30}):\*\*/g, "\n\n**$1:**")
+    .trim();
+}
+
 /** Convert structured JSON output to clean, well-formatted markdown */
 export function structuredJsonToMarkdown(data: StructuredJson): string {
   const parts: string[] = [];
@@ -148,7 +170,9 @@ export function structuredJsonToMarkdown(data: StructuredJson): string {
     parts.push(`## ${ensureHeadingEmoji(section.heading)}`);
     parts.push("");
     if (section.content) {
-      parts.push(toMarkdownContent(section.content));
+      const md = toMarkdownContent(splitInlineLabels(section.content));
+      // Ensure blank line padding around fenced code blocks / tables
+      parts.push(md);
       parts.push("");
     }
     if (section.bullets && section.bullets.length > 0) {
