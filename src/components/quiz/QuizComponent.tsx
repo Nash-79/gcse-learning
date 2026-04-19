@@ -74,7 +74,7 @@ const difficultyConfig = {
   hard: { label: "Hard", icon: Target, color: "text-red-400", bg: "bg-red-500/10 border-red-500/30 hover:bg-red-500/20", activeBg: "bg-red-500 text-white" },
 };
 
-export function QuizComponent({ topicSlug, questions, onGenerateMore, isGenerating }: QuizComponentProps) {
+export function QuizComponent({ topicSlug, questions, onGenerateMore, isGenerating, onSendToAiTutor }: QuizComponentProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [isAnswered, setIsAnswered] = useState(false);
@@ -87,6 +87,7 @@ export function QuizComponent({ topicSlug, questions, onGenerateMore, isGenerati
   const [aiExplanation, setAiExplanation] = useState<string>("");
   const [aiExplaining, setAiExplaining] = useState(false);
   const [aiError, setAiError] = useState<string>("");
+  const [aiFromCache, setAiFromCache] = useState(false);
 
   const submitQuiz = useSubmitQuizResult();
   const { model: aiModel, provider: aiProvider } = useAiSettings();
@@ -110,6 +111,7 @@ export function QuizComponent({ topicSlug, questions, onGenerateMore, isGenerati
     setAiExplanation("");
     setAiError("");
     setAiExplaining(false);
+    setAiFromCache(false);
   };
 
   const handleNext = () => {
@@ -133,9 +135,21 @@ export function QuizComponent({ topicSlug, questions, onGenerateMore, isGenerati
     setAiExplaining(true);
     setAiError("");
     setAiExplanation("");
+    setAiFromCache(false);
 
     const studentChoice = currentQ.options[selectedOption];
     const correctChoice = currentQ.options[currentQ.correctIndex];
+    const cacheKey = `${topicSlug}::${djb2(currentQ.question)}::${selectedOption}`;
+
+    // Cache hit: skip network
+    const cache = readExplainCache();
+    if (cache[cacheKey]) {
+      setAiExplanation(cache[cacheKey]);
+      setAiFromCache(true);
+      setAiExplaining(false);
+      return;
+    }
+
     const prompt =
       `I got this OCR GCSE Computer Science quick-quiz question wrong. Please explain in 2-3 short paragraphs why my answer is incorrect and why the correct one is right. Use simple GCSE-level language.\n\n` +
       `Question: ${currentQ.question}\n` +
@@ -157,7 +171,9 @@ export function QuizComponent({ topicSlug, questions, onGenerateMore, isGenerati
       });
       const data = await response.json();
       if (!response.ok || data?.error) throw new Error(data?.error || "Request failed");
-      setAiExplanation(data?.content || "No explanation returned.");
+      const explanation = data?.content || "No explanation returned.";
+      setAiExplanation(explanation);
+      if (data?.content) writeExplainCache(cacheKey, explanation);
     } catch (err: unknown) {
       const errMsg = err instanceof Error ? err.message : String(err);
       void appLog({
@@ -171,6 +187,18 @@ export function QuizComponent({ topicSlug, questions, onGenerateMore, isGenerati
     } finally {
       setAiExplaining(false);
     }
+  };
+
+  const sendToAiTutor = () => {
+    if (!onSendToAiTutor || !currentQ) return;
+    const studentChoice = selectedOption !== null ? currentQ.options[selectedOption] : "(no answer)";
+    const correctChoice = currentQ.options[currentQ.correctIndex];
+    const seed =
+      `I just got this quiz question wrong: "${currentQ.question}"\n\n` +
+      `My answer: ${studentChoice}\n` +
+      `Correct answer: ${correctChoice}\n\n` +
+      `Can you walk me through it in more detail and ask me a similar follow-up question to check my understanding?`;
+    onSendToAiTutor(seed);
   };
 
 
