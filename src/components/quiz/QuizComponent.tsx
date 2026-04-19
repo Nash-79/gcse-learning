@@ -156,6 +156,7 @@ export function QuizComponent({ topicSlug, questions, onGenerateMore, isGenerati
     setIsFinished(false);
     setShowHint(false);
     setUsedHintThisAttempt(false);
+    resetPerQuestionAi();
   };
 
   const switchDifficulty = (d: Difficulty | "all") => {
