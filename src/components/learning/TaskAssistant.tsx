@@ -10,6 +10,7 @@ import { LOVABLE_AI_MODELS } from "@/lib/lovableModels";
 import { appLog } from "@/lib/appLogger";
 import { extractMeta } from "@/lib/aiResponseMeta";
 import type { AiResponseMeta } from "@/lib/aiResponseMeta";
+import { aiCache, djb2, migrateLegacyCaches } from "@/lib/aiResponseCache";
 
 export interface TaskAssistantProps {
   taskId: string;
@@ -22,44 +23,7 @@ export interface TaskAssistantProps {
 
 type PromptKind = "explain" | "plan" | "hint" | "freeform" | "explain_output";
 
-const CACHE_KEY = "pylearn-task-assistant:v1";
-const CACHE_LIMIT = 200;
 const MODEL_KEY = "pylearn-task-assistant-model:v1";
-
-const djb2 = (str: string): string => {
-  let hash = 5381;
-  for (let i = 0; i < str.length; i++) {
-    hash = ((hash << 5) + hash) + str.charCodeAt(i);
-    hash = hash & 0xffffffff;
-  }
-  return (hash >>> 0).toString(36);
-};
-
-const readCache = (): Record<string, string> => {
-  try {
-    const raw = localStorage.getItem(CACHE_KEY);
-    if (!raw) return {};
-    const parsed = JSON.parse(raw);
-    return parsed && typeof parsed === "object" ? parsed : {};
-  } catch {
-    return {};
-  }
-};
-
-const writeCache = (key: string, value: string) => {
-  try {
-    const cache = readCache();
-    const keys = Object.keys(cache);
-    if (keys.length >= CACHE_LIMIT && !(key in cache)) {
-      const toDrop = keys.slice(0, keys.length - CACHE_LIMIT + 1);
-      toDrop.forEach(k => delete cache[k]);
-    }
-    cache[key] = value;
-    localStorage.setItem(CACHE_KEY, JSON.stringify(cache));
-  } catch {
-    /* ignore */
-  }
-};
 
 export function TaskAssistant({ taskId, taskInstruction, starterCode, currentCode, topicTitle, lastOutput }: TaskAssistantProps) {
   const [expanded, setExpanded] = useState(false);
