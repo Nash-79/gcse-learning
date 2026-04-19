@@ -1,10 +1,12 @@
-import { useState } from "react";
-import { Bot, ChevronDown, ChevronUp, Sparkles, ListOrdered, Lightbulb, Send } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Bot, ChevronDown, ChevronUp, Sparkles, ListOrdered, Lightbulb, Send, RefreshCw, AlertTriangle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ChatMessage } from "@/components/chat/ChatMessage";
+import { StructuredAiResponse } from "@/lib/structuredAiRenderer";
 import { apiFetch } from "@/lib/apiFetch";
 import { useAiSettings } from "@/lib/useAiSettings";
+import { useOpenRouterModels } from "@/lib/useOpenRouterModels";
+import { LOVABLE_AI_MODELS } from "@/lib/lovableModels";
 import { appLog } from "@/lib/appLogger";
 import { extractMeta } from "@/lib/aiResponseMeta";
 import type { AiResponseMeta } from "@/lib/aiResponseMeta";
@@ -22,6 +24,7 @@ type PromptKind = "explain" | "plan" | "hint" | "freeform" | "explain_output";
 
 const CACHE_KEY = "pylearn-task-assistant:v1";
 const CACHE_LIMIT = 200;
+const MODEL_KEY = "pylearn-task-assistant-model:v1";
 
 const djb2 = (str: string): string => {
   let hash = 5381;
@@ -67,10 +70,23 @@ export function TaskAssistant({ taskId, taskInstruction, starterCode, currentCod
   const [error, setError] = useState("");
   const [fromCache, setFromCache] = useState(false);
   const [freeformInput, setFreeformInput] = useState("");
-  const { model: aiModel, provider: aiProvider } = useAiSettings();
+  const { model: settingsModel, provider: settingsProvider } = useAiSettings();
+  const { freeModels, status: modelsStatus, refreshing: modelsRefreshing, refreshModels } = useOpenRouterModels();
 
-  // Task-locked system prompt — every call (preset OR free-form) carries
-  // the full task context so the AI never drifts off the current exercise.
+  // Initialise from persisted choice → fall back to global settings model.
+  const [chatModel, setChatModel] = useState<string>(() => {
+    try {
+      const saved = localStorage.getItem(MODEL_KEY);
+      if (saved && saved.trim()) return saved;
+    } catch { /* ignore */ }
+    return settingsModel;
+  });
+  const [showModelPicker, setShowModelPicker] = useState(false);
+
+  useEffect(() => {
+    try { localStorage.setItem(MODEL_KEY, chatModel); } catch { /* ignore */ }
+  }, [chatModel]);
+
   const buildSystemPrompt = (): string =>
     "You are a patient OCR GCSE Computer Science (J277) Python tutor helping a student with a SPECIFIC coding task. " +
     "Use ONLY strict GCSE-level Python: no f-strings (use + for concatenation), no try/except, no classes, no list comprehensions, no walrus operator. " +
@@ -106,12 +122,12 @@ export function TaskAssistant({ taskId, taskInstruction, starterCode, currentCod
 
     const cacheKeyInput =
       kind === "freeform"
-        ? `${taskId}::freeform::${djb2(freeform || "")}::${djb2(currentCode || "")}`
+        ? `${taskId}::freeform::${djb2(freeform || "")}::${djb2(currentCode || "")}::${chatModel}`
         : kind === "hint"
-          ? `${taskId}::hint::${djb2(currentCode || "")}`
+          ? `${taskId}::hint::${djb2(currentCode || "")}::${chatModel}`
           : kind === "explain_output"
-            ? `${taskId}::explain_output::${djb2(lastOutput || "")}`
-            : `${taskId}::${kind}`;
+            ? `${taskId}::explain_output::${djb2(lastOutput || "")}::${chatModel}`
+            : `${taskId}::${kind}::${chatModel}`;
 
     const cache = readCache();
     if (cache[cacheKeyInput]) {
@@ -128,8 +144,8 @@ export function TaskAssistant({ taskId, taskInstruction, starterCode, currentCod
         body: JSON.stringify({
           mode: "generate",
           topicTitle,
-          model: aiModel,
-          provider: aiProvider,
+          model: chatModel,
+          provider: settingsProvider,
           systemPromptOverride: buildSystemPrompt(),
           userPromptOverride: buildUserPrompt(kind, freeform),
         }),
@@ -146,7 +162,7 @@ export function TaskAssistant({ taskId, taskInstruction, starterCode, currentCod
         event_type: "api_error",
         origin: "TaskAssistant.ask",
         message: msg || "TaskAssistant request failed",
-        details: { taskId, kind },
+        details: { taskId, kind, model: chatModel },
         severity: "error",
       });
       setError(msg || "Couldn't reach AI tutor.");
@@ -162,6 +178,12 @@ export function TaskAssistant({ taskId, taskInstruction, starterCode, currentCod
     void ask("freeform", q);
     setFreeformInput("");
   };
+
+  const handleSuggestionClick = (prompt: string) => {
+    void ask("freeform", prompt);
+  };
+
+  const modelLabel = chatModel.split("/").pop()?.replace(":free", "") || chatModel;
 
   if (!expanded) {
     return (
@@ -186,21 +208,77 @@ export function TaskAssistant({ taskId, taskInstruction, starterCode, currentCod
   return (
     <div className="rounded-2xl border-2 border-primary/30 bg-card shadow-lg overflow-hidden flex flex-col">
       <div className="px-4 py-3 border-b border-border/50 bg-primary/5 flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <Bot className="w-4 h-4 text-primary" />
+        <div className="flex items-center gap-2 min-w-0">
+          <Bot className="w-4 h-4 text-primary shrink-0" />
           <span className="text-sm font-bold text-foreground">Task Assistant</span>
           {fromCache && (
             <Badge variant="outline" className="text-[10px] h-5 border-primary/30 text-primary">Cached</Badge>
           )}
         </div>
-        <button
-          onClick={() => setExpanded(false)}
-          className="text-muted-foreground hover:text-foreground transition-colors"
-          aria-label="Collapse assistant"
-        >
-          <ChevronUp className="w-4 h-4" />
-        </button>
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            onClick={() => setShowModelPicker((v) => !v)}
+            className="text-[10px] text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors"
+            title="Choose AI model"
+          >
+            {modelLabel}
+            <ChevronDown className={`w-3 h-3 transition-transform ${showModelPicker ? "rotate-180" : ""}`} />
+          </button>
+          <button
+            onClick={() => setExpanded(false)}
+            className="text-muted-foreground hover:text-foreground transition-colors"
+            aria-label="Collapse assistant"
+          >
+            <ChevronUp className="w-4 h-4" />
+          </button>
+        </div>
       </div>
+
+      {showModelPicker && (
+        <div className="px-4 py-2 border-b border-border/50 bg-muted/20 space-y-1.5">
+          <div className="flex items-center gap-2">
+            <select
+              aria-label="AI model"
+              title="AI model"
+              value={chatModel}
+              onChange={(e) => { setChatModel(e.target.value); setShowModelPicker(false); }}
+              className="flex-1 text-xs bg-background border border-border rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary/50"
+            >
+              <option value={settingsModel}>Settings Default ({settingsModel.split("/").pop()?.replace(":free", "")})</option>
+              <optgroup label="Lovable AI">
+                {LOVABLE_AI_MODELS.map((m) => (
+                  <option key={m.id} value={m.id}>✦ {m.name}</option>
+                ))}
+              </optgroup>
+              <optgroup label="OpenRouter Free">
+                {freeModels.map((m) => (
+                  <option key={m.id} value={m.id}>{m.name}</option>
+                ))}
+              </optgroup>
+            </select>
+            <button
+              type="button"
+              onClick={() => { void refreshModels(); }}
+              disabled={modelsRefreshing}
+              aria-label="Refresh model list"
+              title="Refresh model list"
+              className="flex h-7 w-7 items-center justify-center rounded-lg border border-border bg-background text-muted-foreground hover:text-foreground hover:border-primary/50 transition-colors disabled:opacity-50"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${modelsRefreshing ? "animate-spin" : ""}`} />
+            </button>
+          </div>
+          {modelsStatus === "loading" && (
+            <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+              <Loader2 className="w-3 h-3 animate-spin" /> Loading OpenRouter catalog…
+            </p>
+          )}
+          {modelsStatus === "fallback" && (
+            <p className="text-[10px] text-amber-600 flex items-center gap-1">
+              <AlertTriangle className="w-3 h-3" /> Using built-in defaults — live catalog unavailable.
+            </p>
+          )}
+        </div>
+      )}
 
       <div className="p-3 grid grid-cols-1 sm:grid-cols-3 2xl:grid-cols-1 gap-2 border-b border-border/50">
         <Button
@@ -243,7 +321,7 @@ export function TaskAssistant({ taskId, taskInstruction, starterCode, currentCod
       </div>
 
       <div className="flex-1 min-h-[200px] max-h-[640px] overflow-y-auto p-4">
-        {loading && (
+        {loading && !response && (
           <div className="space-y-2 py-1">
             {(["w-4/5", "w-3/5", "w-2/5"] as const).map((wCls, i) => (
               <div
@@ -265,22 +343,14 @@ export function TaskAssistant({ taskId, taskInstruction, starterCode, currentCod
             Pick an option above, or ask your own question below — the assistant already knows about this task.
           </p>
         )}
-        {!loading && response && (
-          <ChatMessage
-            role="assistant"
+        {response && (
+          <StructuredAiResponse
             content={response}
             meta={responseMeta}
-            onSuggestionClick={(p) => { void ask("freeform", p); }}
+            onSuggestionClick={handleSuggestionClick}
             showHomeLink={false}
-          />
-        )}
-        {loading && response && (
-          <ChatMessage
-            role="assistant"
-            content={response}
-            meta={responseMeta}
-            isSuggestionsLoading
-            showHomeLink={false}
+            isSuggestionsLoading={loading}
+            suggestionOrigin={`task_assistant:${taskId}`}
           />
         )}
       </div>
