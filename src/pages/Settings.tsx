@@ -307,45 +307,8 @@ export default function Settings() {
           </CardContent>
         </Card>
 
-        {/* Cached AI explanations */}
-        <Card className="rounded-2xl overflow-hidden">
-          <CardContent className="p-6">
-            <h3 className="text-lg font-display font-bold mb-1 flex items-center gap-2">
-              <RefreshCw className="w-5 h-5 text-primary" />
-              Cached AI explanations
-            </h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              We cache AI responses for Quick Quiz "Why?" hints and Task Assistant prompts in your browser so re-attempts don't burn tokens. Clear them if responses look stale or you want fresh explanations.
-            </p>
-            <Button
-              variant="outline"
-              className="gap-2 rounded-xl"
-              onClick={() => {
-                let cleared = 0;
-                try {
-                  for (const key of ["pylearn-quiz-ai-explain:v1", "pylearn-task-assistant:v1"]) {
-                    const raw = localStorage.getItem(key);
-                    if (raw) {
-                      try {
-                        const parsed = JSON.parse(raw);
-                        if (parsed && typeof parsed === "object") cleared += Object.keys(parsed).length;
-                      } catch { /* ignore */ }
-                      localStorage.removeItem(key);
-                    }
-                  }
-                  import("sonner").then(({ toast }) => {
-                    toast.success(cleared > 0 ? `Cleared ${cleared} cached explanation${cleared === 1 ? "" : "s"}.` : "Cache was already empty.");
-                  });
-                } catch {
-                  import("sonner").then(({ toast }) => toast.error("Couldn't clear cache."));
-                }
-              }}
-            >
-              <RefreshCw className="w-4 h-4" />
-              Clear cached AI explanations
-            </Button>
-          </CardContent>
-        </Card>
+        {/* Cached AI responses */}
+        <CachedResponsesCard />
 
         {/* Test Connection for Lovable AI */}
         {currentProvider === "lovable" && (
