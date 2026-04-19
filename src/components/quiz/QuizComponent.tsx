@@ -1,11 +1,14 @@
 import { useState, useMemo } from "react";
-import { CheckCircle2, XCircle, Trophy, RotateCcw, Lightbulb, Sparkles, Flame, Zap, Target } from "lucide-react";
+import { CheckCircle2, XCircle, Trophy, RotateCcw, Lightbulb, Sparkles, Flame, Zap, Target, Bot, Loader2, HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import confetti from "canvas-confetti";
 import { useSubmitQuizResult } from "@/hooks/useTopics";
+import { apiFetch } from "@/lib/apiFetch";
+import { useAiSettings } from "@/lib/useAiSettings";
+import { appLog } from "@/lib/appLogger";
 
 export type Difficulty = "easy" | "medium" | "hard";
 
