@@ -330,8 +330,10 @@ export default function AiTutor() {
                 content={msg.content}
                 onRegenerate={handleRegenerate}
                 meta={msg.meta}
-                onSuggestionClick={isLastAssistant ? send : undefined}
+                onSuggestionClick={msg.role === "assistant" && i === messages.length - 1 ? send : undefined}
                 showHomeLink={isLastAssistant}
+                isSuggestionsLoading={msg.role === "assistant" && i === messages.length - 1 && isLoading}
+                suggestionOrigin="ai_tutor"
               />
             );
           })}

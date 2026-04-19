@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from "react";
 import { apiFetch } from "@/lib/apiFetch";
 import { appLog } from "@/lib/appLogger";
 import { motion, AnimatePresence } from "framer-motion";
-import { Settings as SettingsIcon, Key, Bot, Save, CheckCircle2, AlertCircle, Loader2, ExternalLink, Sparkles, Zap, Brain, Code2, Eye, Search, X, ChevronDown, Clock, AlertTriangle, Hash, Server, ShieldAlert, Lock, Users, Globe, RefreshCw, MessageSquare } from "lucide-react";
+import { Settings as SettingsIcon, Key, Bot, Save, CheckCircle2, AlertCircle, Loader2, ExternalLink, Sparkles, Zap, Brain, Code2, Eye, Search, X, ChevronDown, Clock, AlertTriangle, Hash, Server, ShieldAlert, Lock, Users, Globe, RefreshCw, MessageSquare, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAiSettings, type RouteKey, type RoutePolicy } from "@/lib/useAiSettings";
@@ -14,6 +14,7 @@ import { useAdminRole } from "@/hooks/useAdminRole";
 import AdminLogViewer from "@/components/admin/AdminLogViewer";
 import AdminUserRoles from "@/components/admin/AdminUserRoles";
 import AdminFeedbackViewer from "@/components/admin/AdminFeedbackViewer";
+import AdminSuggestionInsights from "@/components/admin/AdminSuggestionInsights";
 import { Slider } from "@/components/ui/slider";
 
 interface FreeModel {
@@ -102,6 +103,7 @@ export default function Settings() {
   const [showAdminPanel, setShowAdminPanel] = useState(false);
   const [showUserRoles, setShowUserRoles] = useState(false);
   const [showFeedbackPanel, setShowFeedbackPanel] = useState(false);
+  const [showSuggestionInsights, setShowSuggestionInsights] = useState(false);
   const [showRoutePolicies, setShowRoutePolicies] = useState(false);
   const availableModels = dynamicModels.length > 0 ? dynamicModels : freeModels;
 
@@ -929,6 +931,14 @@ export default function Settings() {
                       <MessageSquare className="w-4 h-4" />
                       {showFeedbackPanel ? "Hide Feedback" : "View Feedback"}
                     </Button>
+                    <Button
+                      variant={showSuggestionInsights ? "default" : "outline"}
+                      onClick={() => setShowSuggestionInsights(!showSuggestionInsights)}
+                      className="gap-2 rounded-xl"
+                    >
+                      <TrendingUp className="w-4 h-4" />
+                      {showSuggestionInsights ? "Hide Insights" : "Suggestion Insights"}
+                    </Button>
                   </div>
                 </div>
               </CardContent>
@@ -966,6 +976,18 @@ export default function Settings() {
                   exit={{ opacity: 0, height: 0 }}
                 >
                   <AdminFeedbackViewer />
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+              {showSuggestionInsights && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                >
+                  <AdminSuggestionInsights />
                 </motion.div>
               )}
             </AnimatePresence>

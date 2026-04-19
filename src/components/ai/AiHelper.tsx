@@ -212,8 +212,6 @@ export function AiHelper({ topicSlug, topicTitle, seedPrompt }: AiHelperProps) {
         )}
 
         {messages.map((msg, i) => {
-          const isLastAssistant = msg.role === "assistant" && i === messages.length - 1 && !isLoading;
-
           const handleRegenerate = msg.role === "assistant" ? () => {
             let userMsgIndex = -1;
             for (let j = i - 1; j >= 0; j--) { if (messages[j].role === "user") { userMsgIndex = j; break; } }
@@ -231,8 +229,10 @@ export function AiHelper({ topicSlug, topicTitle, seedPrompt }: AiHelperProps) {
               content={msg.content}
               onRegenerate={handleRegenerate}
               meta={msg.meta}
-              onSuggestionClick={isLastAssistant ? sendMessage : undefined}
+              onSuggestionClick={msg.role === "assistant" && i === messages.length - 1 ? sendMessage : undefined}
               showHomeLink={false}
+              isSuggestionsLoading={msg.role === "assistant" && i === messages.length - 1 && isLoading}
+              suggestionOrigin={`ai_helper:${topicSlug}`}
             />
           );
         })}

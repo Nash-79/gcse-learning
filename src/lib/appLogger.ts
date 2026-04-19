@@ -12,7 +12,8 @@ export type LogEventType =
   | "client_error"
   | "api_error"
   | "navigation"
-  | "progress_update";
+  | "progress_update"
+  | "ai_suggestion_click";
 
 interface LogEntry {
   event_type: LogEventType;
