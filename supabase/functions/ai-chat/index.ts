@@ -300,7 +300,25 @@ Be encouraging but honest. Reference OCR J277 exam expectations where relevant.`
     if (wantJson) {
       const jsonMatch = content.match(/[\[{][\s\S]*[\]}]/);
       if (jsonMatch) {
-        return new Response(JSON.stringify({ content: jsonMatch[0], meta }), {
+        // Defence-in-depth: backfill optional fields so the client always
+        // receives a schema-conformant structured response. Models occasionally
+        // omit `next_step` / `suggestions` even when instructed.
+        let normalised = jsonMatch[0];
+        try {
+          const parsed = JSON.parse(jsonMatch[0]);
+          if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+            const obj = parsed as Record<string, unknown>;
+            if (typeof obj.summary === "string" && Array.isArray(obj.sections)) {
+              if (typeof obj.next_step !== "string") obj.next_step = "";
+              if (!Array.isArray(obj.suggestions)) obj.suggestions = [];
+              if (!obj.mode) obj.mode = "json";
+              normalised = JSON.stringify(obj);
+            }
+          }
+        } catch {
+          // Leave as-is — client parser is now resilient.
+        }
+        return new Response(JSON.stringify({ content: normalised, meta }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
