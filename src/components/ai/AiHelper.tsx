@@ -12,11 +12,13 @@ import { extractMeta } from "@/lib/aiResponseMeta";
 import { LOVABLE_AI_MODELS } from "@/lib/lovableModels";
 import { FeedbackDialog } from "@/components/feedback/FeedbackDialog";
 import { useRewards } from "@/hooks/useRewards";
+import { aiCache, buildKey, djb2 } from "@/lib/aiResponseCache";
 
 interface Message {
   role: "user" | "assistant";
   content: string;
   meta?: AiResponseMeta;
+  cachedAt?: number;
 }
 
 interface AiHelperProps {
@@ -60,7 +62,7 @@ export function AiHelper({ topicSlug, topicTitle, seedPrompt }: AiHelperProps) {
     "I'm confused about this topic, help me",
   ];
 
-  const sendMessage = async (text: string) => {
+  const sendMessage = async (text: string, opts: { bypass?: boolean } = {}) => {
     if (!text.trim() || isLoading) return;
 
     const userMsg: Message = { role: "user", content: text.trim() };
@@ -68,6 +70,23 @@ export function AiHelper({ topicSlug, topicTitle, seedPrompt }: AiHelperProps) {
     setMessages(newMessages);
     setInput("");
     setIsLoading(true);
+
+    // Cache key: scoped per topic, model, and full conversation hash so a
+    // different conversational context auto-misses.
+    const convoHash = djb2(newMessages.map((m) => `${m.role}:${m.content}`).join("\n"));
+    const cacheKey = buildKey([topicSlug, chatModel, convoHash]);
+    const cached = aiCache.get("topic-explainer", cacheKey, { bypass: opts.bypass });
+    if (cached) {
+      setMessages((prev) => [...prev, {
+        role: "assistant",
+        content: cached.content,
+        meta: cached.meta,
+        cachedAt: cached.createdAt,
+      }]);
+      setIsLoading(false);
+      rewards.recordMeaningfulAiQuestion(topicSlug, text);
+      return;
+    }
 
     try {
       const response = await apiFetch("/api/ai-chat", {
@@ -91,6 +110,9 @@ export function AiHelper({ topicSlug, topicTitle, seedPrompt }: AiHelperProps) {
       const reply = data?.content || "Sorry, I couldn't generate a response.";
       const meta = extractMeta(data);
       setMessages(prev => [...prev, { role: "assistant", content: reply, meta }]);
+      if (data?.content) {
+        aiCache.set("topic-explainer", cacheKey, { content: reply, meta, model: chatModel });
+      }
       rewards.recordMeaningfulAiQuestion(topicSlug, text);
     } catch (err: unknown) {
       const errMsg = err instanceof Error ? err.message : String(err);
@@ -225,13 +247,13 @@ export function AiHelper({ topicSlug, topicTitle, seedPrompt }: AiHelperProps) {
             );
           }
 
-          const handleRegenerate = () => {
+          const handleRegenerate = (bypass = true) => {
             let userMsgIndex = -1;
             for (let j = i - 1; j >= 0; j--) { if (messages[j].role === "user") { userMsgIndex = j; break; } }
             if (userMsgIndex >= 0) {
               const userText = messages[userMsgIndex].content;
               setMessages(prev => prev.slice(0, i));
-              setTimeout(() => sendMessage(userText), 100);
+              setTimeout(() => sendMessage(userText, { bypass }), 100);
             }
           };
 
@@ -239,12 +261,14 @@ export function AiHelper({ topicSlug, topicTitle, seedPrompt }: AiHelperProps) {
             <StructuredAiResponse
               key={i}
               content={msg.content}
-              onRegenerate={handleRegenerate}
+              onRegenerate={() => handleRegenerate(true)}
               meta={msg.meta}
-              onSuggestionClick={i === messages.length - 1 ? sendMessage : undefined}
+              onSuggestionClick={i === messages.length - 1 ? (p) => sendMessage(p) : undefined}
               showHomeLink={false}
               isSuggestionsLoading={i === messages.length - 1 && isLoading}
               suggestionOrigin={`ai_helper:${topicSlug}`}
+              cachedAt={msg.cachedAt}
+              onBypassCache={msg.cachedAt ? () => handleRegenerate(true) : undefined}
             />
           );
         })}
@@ -263,15 +287,23 @@ export function AiHelper({ topicSlug, topicTitle, seedPrompt }: AiHelperProps) {
       </div>
 
       <div className="border-t p-3 bg-muted/20">
-        <form onSubmit={(e) => { e.preventDefault(); sendMessage(input); }} className="flex gap-2">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            const native = e.nativeEvent as unknown as { altKey?: boolean; submitter?: HTMLElement | null };
+            const bypass = !!native?.altKey || (native?.submitter?.dataset?.bypass === "1");
+            sendMessage(input, { bypass });
+          }}
+          className="flex gap-2"
+        >
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask about this topic..."
+            placeholder="Ask about this topic… (⌥/Alt + Enter skips cache)"
             className="flex-1 bg-background border border-border rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-secondary/50 focus:border-secondary/50"
             disabled={isLoading}
           />
-          <Button type="submit" size="icon" disabled={isLoading || !input.trim()} className="rounded-xl bg-secondary hover:bg-secondary/80 shrink-0">
+          <Button type="submit" size="icon" disabled={isLoading || !input.trim()} className="rounded-xl bg-secondary hover:bg-secondary/80 shrink-0" title="Send (Alt to bypass cache)">
             <Send className="w-4 h-4" />
           </Button>
         </form>

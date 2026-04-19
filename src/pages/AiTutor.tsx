@@ -3,17 +3,20 @@ import { Bot, Send, Loader2, Trash2, Sparkles, Code2, GraduationCap, Lightbulb, 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ChatMessage } from "@/components/chat/ChatMessage";
+import { StructuredAiResponse } from "@/lib/structuredAiRenderer";
 import { useAiSettings } from "@/lib/useAiSettings";
 import { apiFetch } from "@/lib/apiFetch";
 import { useOpenRouterModels } from "@/lib/useOpenRouterModels";
 import { appLog } from "@/lib/appLogger";
 import type { AiResponseMeta } from "@/lib/aiResponseMeta";
 import { LOVABLE_AI_MODELS } from "@/lib/lovableModels";
+import { aiCache, buildKey, djb2 } from "@/lib/aiResponseCache";
 
 interface Message {
   role: "user" | "assistant";
   content: string;
   meta?: AiResponseMeta;
+  cachedAt?: number;
 }
 
 const CHAT_URL = `/api/gcse-chat`;
@@ -148,13 +151,29 @@ export default function AiTutor() {
 
 
 
-  const send = useCallback(async (text: string) => {
+  const send = useCallback(async (text: string, opts: { bypass?: boolean } = {}) => {
     if (!text.trim() || isLoading) return;
     const userMsg: Message = { role: "user", content: text.trim() };
     const allMessages = [...messages, userMsg];
     setMessages(allMessages);
     setInput("");
     setIsLoading(true);
+
+    // Cache key: scoped to model + full conversation hash so context-dependent
+    // answers auto-miss when prior turns change.
+    const convoHash = djb2(allMessages.map((m) => `${m.role}:${m.content}`).join("\n"));
+    const cacheKey = buildKey(["ai-tutor", chatModel, convoHash]);
+    const cached = aiCache.get("ai-tutor", cacheKey, { bypass: opts.bypass });
+    if (cached) {
+      setMessages((prev) => [...prev, {
+        role: "assistant",
+        content: cached.content,
+        meta: cached.meta,
+        cachedAt: cached.createdAt,
+      }]);
+      setIsLoading(false);
+      return;
+    }
 
     let assistantSoFar = "";
     let streamMeta: AiResponseMeta | undefined;
@@ -178,11 +197,14 @@ export default function AiTutor() {
         provider: settingsProvider,
         onDelta: (chunk) => upsertAssistant(chunk),
         onDone: () => {
-          // Apply final meta to last message
+          // Apply final meta + cache the full assembled response.
           if (streamMeta) {
             setMessages(prev => prev.map((msg, i) =>
               i === prev.length - 1 && msg.role === "assistant" ? { ...msg, meta: streamMeta } : msg
             ));
+          }
+          if (assistantSoFar.trim()) {
+            aiCache.set("ai-tutor", cacheKey, { content: assistantSoFar, meta: streamMeta, model: chatModel });
           }
           setIsLoading(false);
         },
@@ -216,7 +238,7 @@ export default function AiTutor() {
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      send(input);
+      send(input, { bypass: e.altKey });
     }
   };
 
@@ -313,27 +335,34 @@ export default function AiTutor() {
           {messages.map((msg, i) => {
             const isLastAssistant = msg.role === "assistant" && i === messages.length - 1 && !isLoading;
 
-            const handleRegenerate = msg.role === "assistant" ? () => {
+            const handleRegenerate = msg.role === "assistant" ? (bypass = true) => {
               let userMsgIndex = -1;
               for (let j = i - 1; j >= 0; j--) { if (messages[j].role === "user") { userMsgIndex = j; break; } }
               if (userMsgIndex >= 0) {
                 const userText = messages[userMsgIndex].content;
                 setMessages(prev => prev.slice(0, i));
-                setTimeout(() => send(userText), 100);
+                setTimeout(() => send(userText, { bypass }), 100);
               }
             } : undefined;
 
+            if (msg.role === "user") {
+              return (
+                <ChatMessage key={i} role="user" content={msg.content} />
+              );
+            }
+
             return (
-              <ChatMessage
+              <StructuredAiResponse
                 key={i}
-                role={msg.role}
                 content={msg.content}
-                onRegenerate={handleRegenerate}
+                onRegenerate={handleRegenerate ? () => handleRegenerate(true) : undefined}
                 meta={msg.meta}
-                onSuggestionClick={msg.role === "assistant" && i === messages.length - 1 ? send : undefined}
+                onSuggestionClick={i === messages.length - 1 ? (p) => send(p) : undefined}
                 showHomeLink={isLastAssistant}
-                isSuggestionsLoading={msg.role === "assistant" && i === messages.length - 1 && isLoading}
+                isSuggestionsLoading={i === messages.length - 1 && isLoading}
                 suggestionOrigin="ai_tutor"
+                cachedAt={msg.cachedAt}
+                onBypassCache={msg.cachedAt && handleRegenerate ? () => handleRegenerate(true) : undefined}
               />
             );
           })}
@@ -370,7 +399,7 @@ export default function AiTutor() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Ask about Python, GCSE topics, exam tips, or paste code for help..."
+                placeholder="Ask about Python, GCSE topics, exam tips… (⌥/Alt + Enter skips cache)"
                 rows={1}
                 className="w-full bg-background border border-border rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/50 focus:border-secondary/50 resize-none min-h-[42px] max-h-[120px] overflow-y-auto"
                 style={{ height: "auto" }}
@@ -383,10 +412,11 @@ export default function AiTutor() {
               />
             </div>
             <Button
-              onClick={() => send(input)}
+              onClick={(e) => send(input, { bypass: (e as React.MouseEvent).altKey })}
               size="icon"
               disabled={isLoading || !input.trim()}
               className="shrink-0 rounded-xl bg-secondary hover:bg-secondary/80 h-10 w-10"
+              title="Send (Alt to bypass cache)"
             >
               <Send className="w-4 h-4" />
             </Button>

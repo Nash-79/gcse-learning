@@ -10,6 +10,7 @@ import { LOVABLE_AI_MODELS } from "@/lib/lovableModels";
 import { appLog } from "@/lib/appLogger";
 import { extractMeta } from "@/lib/aiResponseMeta";
 import type { AiResponseMeta } from "@/lib/aiResponseMeta";
+import { aiCache, djb2, migrateLegacyCaches } from "@/lib/aiResponseCache";
 
 export interface TaskAssistantProps {
   taskId: string;
@@ -22,44 +23,7 @@ export interface TaskAssistantProps {
 
 type PromptKind = "explain" | "plan" | "hint" | "freeform" | "explain_output";
 
-const CACHE_KEY = "pylearn-task-assistant:v1";
-const CACHE_LIMIT = 200;
 const MODEL_KEY = "pylearn-task-assistant-model:v1";
-
-const djb2 = (str: string): string => {
-  let hash = 5381;
-  for (let i = 0; i < str.length; i++) {
-    hash = ((hash << 5) + hash) + str.charCodeAt(i);
-    hash = hash & 0xffffffff;
-  }
-  return (hash >>> 0).toString(36);
-};
-
-const readCache = (): Record<string, string> => {
-  try {
-    const raw = localStorage.getItem(CACHE_KEY);
-    if (!raw) return {};
-    const parsed = JSON.parse(raw);
-    return parsed && typeof parsed === "object" ? parsed : {};
-  } catch {
-    return {};
-  }
-};
-
-const writeCache = (key: string, value: string) => {
-  try {
-    const cache = readCache();
-    const keys = Object.keys(cache);
-    if (keys.length >= CACHE_LIMIT && !(key in cache)) {
-      const toDrop = keys.slice(0, keys.length - CACHE_LIMIT + 1);
-      toDrop.forEach(k => delete cache[k]);
-    }
-    cache[key] = value;
-    localStorage.setItem(CACHE_KEY, JSON.stringify(cache));
-  } catch {
-    /* ignore */
-  }
-};
 
 export function TaskAssistant({ taskId, taskInstruction, starterCode, currentCode, topicTitle, lastOutput }: TaskAssistantProps) {
   const [expanded, setExpanded] = useState(false);
@@ -69,6 +33,8 @@ export function TaskAssistant({ taskId, taskInstruction, starterCode, currentCod
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [fromCache, setFromCache] = useState(false);
+  const [cachedAt, setCachedAt] = useState<number | undefined>(undefined);
+  const [lastAsk, setLastAsk] = useState<{ kind: PromptKind; freeform?: string } | null>(null);
   const [freeformInput, setFreeformInput] = useState("");
   const { model: settingsModel, provider: settingsProvider } = useAiSettings();
   const { freeModels, status: modelsStatus, refreshing: modelsRefreshing, refreshModels } = useOpenRouterModels();
@@ -112,11 +78,13 @@ export function TaskAssistant({ taskId, taskInstruction, starterCode, currentCod
     }
   };
 
-  const ask = async (kind: PromptKind, freeform?: string) => {
+  const ask = async (kind: PromptKind, freeform?: string, opts: { bypass?: boolean } = {}) => {
     setActiveKind(kind);
+    setLastAsk({ kind, freeform });
     setLoading(true);
     setError("");
     setFromCache(false);
+    setCachedAt(undefined);
     setResponse("");
     setResponseMeta(undefined);
 
@@ -129,10 +97,12 @@ export function TaskAssistant({ taskId, taskInstruction, starterCode, currentCod
             ? `${taskId}::explain_output::${djb2(lastOutput || "")}::${chatModel}`
             : `${taskId}::${kind}::${chatModel}`;
 
-    const cache = readCache();
-    if (cache[cacheKeyInput]) {
-      setResponse(cache[cacheKeyInput]);
+    const cached = aiCache.get("task-assistant", cacheKeyInput, { bypass: opts.bypass });
+    if (cached) {
+      setResponse(cached.content);
+      setResponseMeta(cached.meta);
       setFromCache(true);
+      setCachedAt(cached.createdAt);
       setLoading(false);
       return;
     }
@@ -153,9 +123,12 @@ export function TaskAssistant({ taskId, taskInstruction, starterCode, currentCod
       const data = await res.json();
       if (!res.ok || data?.error) throw new Error(data?.error || "Request failed");
       const content = data?.content || "No response returned.";
+      const meta = extractMeta(data);
       setResponse(content);
-      setResponseMeta(extractMeta(data));
-      if (data?.content) writeCache(cacheKeyInput, content);
+      setResponseMeta(meta);
+      if (data?.content) {
+        aiCache.set("task-assistant", cacheKeyInput, { content, meta, model: chatModel });
+      }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       void appLog({
@@ -171,11 +144,22 @@ export function TaskAssistant({ taskId, taskInstruction, starterCode, currentCod
     }
   };
 
-  const submitFreeform = (e: React.FormEvent) => {
+  // Migrate any legacy `pylearn-task-assistant:v1` cache once on mount.
+  useEffect(() => { migrateLegacyCaches(); }, []);
+
+  const bypassCacheAndRetry = () => {
+    if (!lastAsk) return;
+    void ask(lastAsk.kind, lastAsk.freeform, { bypass: true });
+  };
+
+  const submitFreeform = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const q = freeformInput.trim();
     if (!q || loading) return;
-    void ask("freeform", q);
+    // Hold Alt (⌥) while pressing Enter / clicking Send to bypass cache.
+    const native = (e.nativeEvent as unknown) as { altKey?: boolean; submitter?: HTMLElement | null };
+    const bypass = !!native?.altKey || (native?.submitter?.dataset?.bypass === "1");
+    void ask("freeform", q, { bypass });
     setFreeformInput("");
   };
 
@@ -348,9 +332,12 @@ export function TaskAssistant({ taskId, taskInstruction, starterCode, currentCod
             content={response}
             meta={responseMeta}
             onSuggestionClick={handleSuggestionClick}
+            onRegenerate={lastAsk ? bypassCacheAndRetry : undefined}
             showHomeLink={false}
             isSuggestionsLoading={loading}
             suggestionOrigin={`task_assistant:${taskId}`}
+            cachedAt={fromCache ? cachedAt : undefined}
+            onBypassCache={fromCache && lastAsk ? bypassCacheAndRetry : undefined}
           />
         )}
       </div>
@@ -360,11 +347,11 @@ export function TaskAssistant({ taskId, taskInstruction, starterCode, currentCod
           type="text"
           value={freeformInput}
           onChange={(e) => setFreeformInput(e.target.value)}
-          placeholder="Ask anything about this task..."
+          placeholder="Ask anything about this task… (hold ⌥/Alt + Enter to skip cache)"
           className="flex-1 text-xs px-3 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-1 focus:ring-primary"
           disabled={loading}
         />
-        <Button type="submit" size="sm" className="h-8 px-3" disabled={loading || !freeformInput.trim()}>
+        <Button type="submit" size="sm" className="h-8 px-3" disabled={loading || !freeformInput.trim()} title="Send (hold Alt to bypass cache)">
           <Send className="w-3.5 h-3.5" />
         </Button>
       </form>
