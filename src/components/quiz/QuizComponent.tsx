@@ -429,11 +429,28 @@ export function QuizComponent({ topicSlug, questions, onGenerateMore, isGenerati
 
             {aiExplanation && (
               <div className="mt-3 px-4 py-3 rounded-xl border border-secondary/30 bg-secondary/5">
-                <div className="flex items-center gap-2 mb-2 text-secondary">
-                  <Bot className="w-4 h-4" />
-                  <span className="text-xs font-semibold uppercase tracking-wide">AI Tutor</span>
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <div className="flex items-center gap-2 text-secondary">
+                    <Bot className="w-4 h-4" />
+                    <span className="text-xs font-semibold uppercase tracking-wide">AI Tutor</span>
+                  </div>
+                  {aiFromCache && (
+                    <span className="text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full bg-muted text-muted-foreground border border-border">
+                      Cached
+                    </span>
+                  )}
                 </div>
                 <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">{aiExplanation}</p>
+                {onSendToAiTutor && (
+                  <button
+                    type="button"
+                    onClick={sendToAiTutor}
+                    className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-secondary hover:text-secondary/80 transition-colors"
+                  >
+                    <MessageSquare className="w-3 h-3" />
+                    Continue in AI Tutor →
+                  </button>
+                )}
               </div>
             )}
           </div>
