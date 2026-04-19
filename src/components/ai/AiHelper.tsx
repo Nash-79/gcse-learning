@@ -12,11 +12,13 @@ import { extractMeta } from "@/lib/aiResponseMeta";
 import { LOVABLE_AI_MODELS } from "@/lib/lovableModels";
 import { FeedbackDialog } from "@/components/feedback/FeedbackDialog";
 import { useRewards } from "@/hooks/useRewards";
+import { aiCache, buildKey, djb2 } from "@/lib/aiResponseCache";
 
 interface Message {
   role: "user" | "assistant";
   content: string;
   meta?: AiResponseMeta;
+  cachedAt?: number;
 }
 
 interface AiHelperProps {
