@@ -3,7 +3,6 @@ import { Bot, Send, Loader2, ChevronDown, RefreshCw, AlertTriangle } from "lucid
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ChatMessage } from "@/components/chat/ChatMessage";
-import { FollowUpSuggestions } from "@/components/chat/FollowUpSuggestions";
 import { useAiSettings } from "@/lib/useAiSettings";
 import { apiFetch } from "@/lib/apiFetch";
 import { useOpenRouterModels } from "@/lib/useOpenRouterModels";
@@ -11,7 +10,6 @@ import { appLog } from "@/lib/appLogger";
 import type { AiResponseMeta } from "@/lib/aiResponseMeta";
 import { extractMeta } from "@/lib/aiResponseMeta";
 import { LOVABLE_AI_MODELS } from "@/lib/lovableModels";
-import { parseAssistantOutput, structuredJsonToMarkdown } from "@/lib/parseAssistantOutput";
 import { FeedbackDialog } from "@/components/feedback/FeedbackDialog";
 
 interface Message {
@@ -26,48 +24,6 @@ interface AiHelperProps {
   seedPrompt?: string;
 }
 
-function extractFollowUps(content: string): { cleanContent: string; suggestions: string[] } {
-  // Prefer the structured JSON contract when present — suggestions come
-  // from `data.suggestions`, and the main body is rendered from the
-  // remaining fields. Falling back to regex only matters for legacy
-  // markdown-mode outputs.
-  const parsed = parseAssistantOutput(content);
-  if (parsed.type === "json") {
-    const suggestions = Array.isArray(parsed.data.suggestions)
-      ? parsed.data.suggestions.filter((s): s is string => typeof s === "string" && s.trim().length > 0)
-      : [];
-    const cleanBody = structuredJsonToMarkdown({ ...parsed.data, suggestions: [] });
-    return { cleanContent: cleanBody, suggestions };
-  }
-
-  const lines = content.split("\n");
-  const suggestions: string[] = [];
-  let followUpStart = -1;
-
-  for (let i = lines.length - 1; i >= 0; i--) {
-    const line = lines[i].trim();
-    if (line.match(/^\*?\*?🔗/)) { followUpStart = i; break; }
-  }
-
-  if (followUpStart === -1) {
-    for (let i = lines.length - 1; i >= Math.max(0, lines.length - 12); i--) {
-      if (lines[i].trim() === "---" && i < lines.length - 2) {
-        const nextNonEmpty = lines.slice(i + 1).find(l => l.trim());
-        if (nextNonEmpty && nextNonEmpty.includes("🔗")) { followUpStart = i; break; }
-      }
-    }
-  }
-
-  if (followUpStart >= 0) {
-    for (let i = followUpStart; i < lines.length; i++) {
-      const match = lines[i].trim().match(/^[-•*]\s*"?(.+?)"?\s*$/);
-      if (match) suggestions.push(match[1].replace(/^[""]|[""]$/g, ""));
-    }
-    return { cleanContent: lines.slice(0, followUpStart).join("\n").trimEnd(), suggestions };
-  }
-
-  return { cleanContent: content, suggestions: [] };
-}
 
 export function AiHelper({ topicSlug, topicTitle, seedPrompt }: AiHelperProps) {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -257,9 +213,6 @@ export function AiHelper({ topicSlug, topicTitle, seedPrompt }: AiHelperProps) {
 
         {messages.map((msg, i) => {
           const isLastAssistant = msg.role === "assistant" && i === messages.length - 1 && !isLoading;
-          const { cleanContent, suggestions } = isLastAssistant
-            ? extractFollowUps(msg.content)
-            : { cleanContent: msg.content, suggestions: [] };
 
           const handleRegenerate = msg.role === "assistant" ? () => {
             let userMsgIndex = -1;
@@ -272,16 +225,15 @@ export function AiHelper({ topicSlug, topicTitle, seedPrompt }: AiHelperProps) {
           } : undefined;
 
           return (
-            <div key={i}>
-              <ChatMessage role={msg.role} content={cleanContent} onRegenerate={handleRegenerate} meta={msg.meta} />
-              {isLastAssistant && suggestions.length > 0 && (
-                <FollowUpSuggestions
-                  suggestions={suggestions}
-                  onSelect={sendMessage}
-                  showHomeLink={false}
-                />
-              )}
-            </div>
+            <ChatMessage
+              key={i}
+              role={msg.role}
+              content={msg.content}
+              onRegenerate={handleRegenerate}
+              meta={msg.meta}
+              onSuggestionClick={isLastAssistant ? sendMessage : undefined}
+              showHomeLink={false}
+            />
           );
         })}
 
