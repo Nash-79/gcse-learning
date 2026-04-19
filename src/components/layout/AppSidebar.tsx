@@ -22,6 +22,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useListTopics, useGetProgress, useExamBoard, type Topic, type ExamBoard } from "@/hooks/useTopics";
 import { useAuth } from "@/hooks/useAuth";
+import { usePendingApprovalCount } from "@/hooks/usePendingApprovalCount";
 
 const boardLabels: Record<ExamBoard, string> = {
   ocr: "OCR J277",
