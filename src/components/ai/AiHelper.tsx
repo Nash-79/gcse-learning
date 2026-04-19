@@ -215,7 +215,17 @@ export function AiHelper({ topicSlug, topicTitle, seedPrompt }: AiHelperProps) {
         )}
 
         {messages.map((msg, i) => {
-          const handleRegenerate = msg.role === "assistant" ? () => {
+          if (msg.role === "user") {
+            return (
+              <div key={i} className="flex justify-end">
+                <div className="max-w-[80%] bg-primary text-primary-foreground px-4 py-3 rounded-2xl rounded-br-md shadow-sm">
+                  <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+                </div>
+              </div>
+            );
+          }
+
+          const handleRegenerate = () => {
             let userMsgIndex = -1;
             for (let j = i - 1; j >= 0; j--) { if (messages[j].role === "user") { userMsgIndex = j; break; } }
             if (userMsgIndex >= 0) {
@@ -223,7 +233,7 @@ export function AiHelper({ topicSlug, topicTitle, seedPrompt }: AiHelperProps) {
               setMessages(prev => prev.slice(0, i));
               setTimeout(() => sendMessage(userText), 100);
             }
-          } : undefined;
+          };
 
           return (
             <StructuredAiResponse
@@ -231,9 +241,9 @@ export function AiHelper({ topicSlug, topicTitle, seedPrompt }: AiHelperProps) {
               content={msg.content}
               onRegenerate={handleRegenerate}
               meta={msg.meta}
-              onSuggestionClick={msg.role === "assistant" && i === messages.length - 1 ? sendMessage : undefined}
+              onSuggestionClick={i === messages.length - 1 ? sendMessage : undefined}
               showHomeLink={false}
-              isSuggestionsLoading={msg.role === "assistant" && i === messages.length - 1 && isLoading}
+              isSuggestionsLoading={i === messages.length - 1 && isLoading}
               suggestionOrigin={`ai_helper:${topicSlug}`}
             />
           );
