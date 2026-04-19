@@ -64,9 +64,15 @@ function parseMigration(file: string, sql: string): Declared[] {
     });
   }
 
-  // CREATE [OR REPLACE] FUNCTION public.<name>
-  const fnRe = /create\s+(?:or\s+replace\s+)?function\s+public\.([a-z_][a-z0-9_]*)/gi;
+  // CREATE [OR REPLACE] FUNCTION public.<name>(...) RETURNS <type>
+  // We skip trigger functions (RETURNS TRIGGER) because Supabase's generated
+  // types.ts only exposes functions callable via PostgREST — trigger functions
+  // are intentionally omitted from the Functions block.
+  const fnRe =
+    /create\s+(?:or\s+replace\s+)?function\s+public\.([a-z_][a-z0-9_]*)\s*\([^)]*\)\s*returns\s+([a-z_]+)/gi;
   for (const m of cleaned.matchAll(fnRe)) {
+    const returns = m[2].toLowerCase();
+    if (returns === "trigger") continue;
     out.push({ kind: "function", name: m[1].toLowerCase(), file });
   }
 
