@@ -334,10 +334,40 @@ export function QuizComponent({ topicSlug, questions, onGenerateMore, isGenerati
               ? 'border-green-500/30 bg-green-500/5 text-green-400'
               : 'border-red-500/30 bg-red-500/5 text-red-400'
           }`}>
-            <p className="font-semibold mb-1">
-              {selectedOption === currentQ.correctIndex ? "✓ Correct!" : "✗ Incorrect"}
-            </p>
+            <div className="flex items-start justify-between gap-3 mb-1">
+              <p className="font-semibold">
+                {selectedOption === currentQ.correctIndex ? "✓ Correct!" : "✗ Incorrect"}
+              </p>
+              {selectedOption !== currentQ.correctIndex && !aiExplanation && (
+                <button
+                  type="button"
+                  onClick={explainWithAi}
+                  disabled={aiExplaining}
+                  className="flex items-center gap-1.5 text-xs px-3 py-1 rounded-full border border-secondary/40 bg-secondary/10 text-secondary hover:bg-secondary/20 transition-colors disabled:opacity-60"
+                >
+                  {aiExplaining ? (
+                    <><Loader2 className="w-3 h-3 animate-spin" /> Asking AI…</>
+                  ) : (
+                    <><HelpCircle className="w-3 h-3" /> Why?</>
+                  )}
+                </button>
+              )}
+            </div>
             <p className="text-muted-foreground">{currentQ.explanation}</p>
+
+            {aiError && (
+              <p className="mt-3 text-xs text-destructive">⚠ {aiError}</p>
+            )}
+
+            {aiExplanation && (
+              <div className="mt-3 px-4 py-3 rounded-xl border border-secondary/30 bg-secondary/5">
+                <div className="flex items-center gap-2 mb-2 text-secondary">
+                  <Bot className="w-4 h-4" />
+                  <span className="text-xs font-semibold uppercase tracking-wide">AI Tutor</span>
+                </div>
+                <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">{aiExplanation}</p>
+              </div>
+            )}
           </div>
         )}
       </CardContent>
