@@ -1,16 +1,13 @@
-import { useState, useRef, useEffect, useCallback, useMemo } from "react";
-import { Bot, Send, Loader2, Trash2, Sparkles, Code2, GraduationCap, Lightbulb, BookOpen, Home, ChevronDown } from "lucide-react";
-import { Link } from "react-router-dom";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { Bot, Send, Loader2, Trash2, Sparkles, Code2, GraduationCap, Lightbulb, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ChatMessage } from "@/components/chat/ChatMessage";
-import { FollowUpSuggestions } from "@/components/chat/FollowUpSuggestions";
 import { useAiSettings } from "@/lib/useAiSettings";
 import { apiFetch } from "@/lib/apiFetch";
 import { useOpenRouterModels } from "@/lib/useOpenRouterModels";
 import { appLog } from "@/lib/appLogger";
 import type { AiResponseMeta } from "@/lib/aiResponseMeta";
-import { extractMeta } from "@/lib/aiResponseMeta";
 import { LOVABLE_AI_MODELS } from "@/lib/lovableModels";
 
 interface Message {
@@ -27,48 +24,6 @@ const suggestedPrompts = [
   { icon: Lightbulb, label: "Explain a concept", prompt: "Explain how for loops work in Python with a commented example and expected output." },
   { icon: BookOpen, label: "Practice question", prompt: "Give me an OCR exam-style Python question about lists and arrays, then walk me through the answer with comments." },
 ];
-
-// Extract follow-up suggestions from AI response
-function extractFollowUps(content: string): { cleanContent: string; suggestions: string[] } {
-  const lines = content.split("\n");
-  const suggestions: string[] = [];
-  let followUpStart = -1;
-
-  for (let i = lines.length - 1; i >= 0; i--) {
-    const line = lines[i].trim();
-    if (line.match(/^\*?\*?🔗/)) {
-      followUpStart = i;
-      break;
-    }
-  }
-
-  if (followUpStart === -1) {
-    // Try finding the separator before follow-ups
-    for (let i = lines.length - 1; i >= Math.max(0, lines.length - 12); i--) {
-      if (lines[i].trim() === "---" && i < lines.length - 2) {
-        const nextNonEmpty = lines.slice(i + 1).find(l => l.trim());
-        if (nextNonEmpty && nextNonEmpty.includes("🔗")) {
-          followUpStart = i;
-          break;
-        }
-      }
-    }
-  }
-
-  if (followUpStart >= 0) {
-    for (let i = followUpStart; i < lines.length; i++) {
-      const line = lines[i].trim();
-      const match = line.match(/^[-•*]\s*"?(.+?)"?\s*$/);
-      if (match) {
-        suggestions.push(match[1].replace(/^[""]|[""]$/g, ""));
-      }
-    }
-    const cleanContent = lines.slice(0, followUpStart).join("\n").trimEnd();
-    return { cleanContent, suggestions };
-  }
-
-  return { cleanContent: content, suggestions: [] };
-}
 
 async function streamChat({
   messages,
