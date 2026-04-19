@@ -114,7 +114,24 @@ Be encouraging but honest. Reference OCR J277 exam expectations where relevant.`
     if (wantJson) {
       const jsonMatch = content.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
-        res.json({ content: jsonMatch[0], meta });
+        // Defence-in-depth: backfill optional fields (`next_step`, `suggestions`)
+        // so the client always receives a schema-conformant payload.
+        let normalised = jsonMatch[0];
+        try {
+          const parsed = JSON.parse(jsonMatch[0]);
+          if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+            const obj = parsed as Record<string, unknown>;
+            if (typeof obj.summary === "string" && Array.isArray(obj.sections)) {
+              if (typeof obj.next_step !== "string") obj.next_step = "";
+              if (!Array.isArray(obj.suggestions)) obj.suggestions = [];
+              if (!obj.mode) obj.mode = "json";
+              normalised = JSON.stringify(obj);
+            }
+          }
+        } catch {
+          // Leave as-is — client parser is resilient.
+        }
+        res.json({ content: normalised, meta });
         return;
       }
       res.status(500).json({ error: "Could not parse AI JSON response", meta });
