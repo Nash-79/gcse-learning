@@ -1,53 +1,59 @@
 
 
-## Context
+## Plan
 
-- No `.github/workflows/` exists — project deploys via Lovable / Replit, not GitHub Actions.
-- Migrations live in `supabase/migrations/*.sql`. Each one creates known objects (tables, functions, triggers, policies).
-- The "drift" we keep hitting: a migration file exists locally but was never executed against the live DB. There's no automatic detector.
-- Build is `vite build` (frontend) + `node build-server.mjs` (server bundle). No pre-build hook today.
+Two small, additive enhancements to `QuizComponent` (and a tiny prop wire-up in `TopicPage`).
 
-## Approach
+### 1. Cache AI explanations in localStorage
 
-A pure Node script that runs as part of the build (and locally via `npm run migrations:check`). It does **not** need DB credentials at build time — instead it uses the **generated `src/integrations/supabase/types.ts`** as the source of truth for the live schema (Lovable regenerates this file from the live DB after every migration). If a migration file references a table/function that doesn't appear in `types.ts`, the migration hasn't been applied → fail the build.
+**Key**: `pylearn-quiz-ai-explain:v1` → `Record<string, string>` where the inner key is a stable hash per question+wrong-choice combo:
+```
+`${topicSlug}::${djb2(question)}::${selectedOption}`
+```
+(djb2 is a 10-line pure function — no deps. Question text + chosen wrong index uniquely identifies the explanation context.)
 
-This is the only viable check in this environment because:
-- Lovable doesn't expose live DB credentials to the build sandbox.
-- `types.ts` IS the live-schema mirror, regenerated server-side.
-- It catches exactly the drift class we hit 3 times today (`archived_at` missing, `openrouter_model_cache` missing, `populate_app_log_actor` missing).
+Flow inside `explainWithAi`:
+1. Build cache key.
+2. If cache has entry → set `aiExplanation` from cache, skip network. Show small "Cached" pill.
+3. Else fetch as today, then write to cache on success.
 
-## What the script does
+Eviction: simple cap at 200 entries (FIFO drop oldest) to stop unbounded growth. Wrap all `localStorage` access in try/catch (private mode safe).
 
-`scripts/checkMigrationDrift.ts`:
+### 2. "Send to AI Tutor chat" link
 
-1. Read every `supabase/migrations/*.sql` file.
-2. For each, parse out declared objects via regex:
-   - `CREATE TABLE [IF NOT EXISTS] public.<name>` → table
-   - `ALTER TABLE public.<name> ADD COLUMN [IF NOT EXISTS] <col>` → table.column
-   - `CREATE [OR REPLACE] FUNCTION public.<name>` → function
-3. Read `src/integrations/supabase/types.ts` and extract:
-   - All table names from the `Tables: { … }` block
-   - All column names per table from the `Row: { … }` blocks
-   - All function names from the `Functions: { … }` block
-4. For each declared object in a migration, check it exists in `types.ts`. If missing → record drift.
-5. Print a clean report. Exit `1` if any drift found.
+Add a new optional prop to `QuizComponent`:
+```ts
+onSendToAiTutor?: (prompt: string) => void;
+```
 
-**Allowlist** for known-acceptable cases (e.g. triggers/policies aren't in `types.ts`, so we only check tables/columns/functions — those are the high-signal indicators).
+Render a small link/button under the AI explanation block (only when `aiExplanation` exists AND prop provided):
+> 💬 Continue in AI Tutor →
 
-**Wiring**:
-- `package.json` → add `"migrations:check": "tsx scripts/checkMigrationDrift.ts"`
-- `package.json` → change `"build"` to `"npm run migrations:check && vite build"` so Lovable's build fails fast on drift.
-- Also runnable standalone: `npm run migrations:check`.
+When clicked, calls `onSendToAiTutor(prompt)` with a follow-up seed like:
+```
+I just got this quiz question wrong: "${question}". Can you walk me through it in more detail and ask me a similar follow-up question?
+```
 
-## Files
+Then in `TopicPage.tsx` wire it up using existing `handleUseAiPrompt`:
+```tsx
+<QuizComponent
+  topicSlug={slug}
+  questions={allQuestions}
+  onSendToAiTutor={handleUseAiPrompt}
+/>
+```
+`handleUseAiPrompt` already opens the `AiHelper` panel, switches to the lesson tab, and seeds the prompt — perfect fit, no new logic needed.
 
-- **Create** `scripts/checkMigrationDrift.ts` (~120 lines, no new deps — uses `node:fs` + `node:path`)
-- **Edit** `package.json` — add script + chain into `build`
+### Files
 
-## Acceptance
+- **Edit** `src/components/quiz/QuizComponent.tsx` — add cache helpers, cache check in `explainWithAi`, "Cached" pill, `onSendToAiTutor` prop + button.
+- **Edit** `src/pages/TopicPage.tsx` — pass `onSendToAiTutor={handleUseAiPrompt}` to `<QuizComponent>`.
 
-- Running `npm run migrations:check` against the current repo passes (all 17 migrations are now in sync after today's fixes).
-- If someone adds a new migration creating `public.foo` without it being applied, `npm run build` fails with: `Drift detected: table "foo" declared in 20260420…sql is missing from live schema (types.ts).`
-- Zero false positives on triggers/policies (deliberately excluded — `types.ts` doesn't expose them).
-- No new npm dependencies.
+### Acceptance
+
+- Click "Why?" once → AI call made, explanation cached.
+- Click "Why?" again on same wrong answer (after navigating away & back, or restart) → instant render, no network call, "Cached" badge visible.
+- Click "Continue in AI Tutor →" → AiHelper panel opens above tabs with the seed prompt pre-filled in the input box (existing behaviour).
+- Cache survives reloads, capped at 200 entries, safe in private/incognito mode.
+- No new dependencies, no DB changes.
 
