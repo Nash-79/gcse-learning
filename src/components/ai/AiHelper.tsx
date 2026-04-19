@@ -62,7 +62,7 @@ export function AiHelper({ topicSlug, topicTitle, seedPrompt }: AiHelperProps) {
     "I'm confused about this topic, help me",
   ];
 
-  const sendMessage = async (text: string) => {
+  const sendMessage = async (text: string, opts: { bypass?: boolean } = {}) => {
     if (!text.trim() || isLoading) return;
 
     const userMsg: Message = { role: "user", content: text.trim() };
@@ -70,6 +70,23 @@ export function AiHelper({ topicSlug, topicTitle, seedPrompt }: AiHelperProps) {
     setMessages(newMessages);
     setInput("");
     setIsLoading(true);
+
+    // Cache key: scoped per topic, model, and full conversation hash so a
+    // different conversational context auto-misses.
+    const convoHash = djb2(newMessages.map((m) => `${m.role}:${m.content}`).join("\n"));
+    const cacheKey = buildKey([topicSlug, chatModel, convoHash]);
+    const cached = aiCache.get("topic-explainer", cacheKey, { bypass: opts.bypass });
+    if (cached) {
+      setMessages((prev) => [...prev, {
+        role: "assistant",
+        content: cached.content,
+        meta: cached.meta,
+        cachedAt: cached.createdAt,
+      }]);
+      setIsLoading(false);
+      rewards.recordMeaningfulAiQuestion(topicSlug, text);
+      return;
+    }
 
     try {
       const response = await apiFetch("/api/ai-chat", {
@@ -93,6 +110,9 @@ export function AiHelper({ topicSlug, topicTitle, seedPrompt }: AiHelperProps) {
       const reply = data?.content || "Sorry, I couldn't generate a response.";
       const meta = extractMeta(data);
       setMessages(prev => [...prev, { role: "assistant", content: reply, meta }]);
+      if (data?.content) {
+        aiCache.set("topic-explainer", cacheKey, { content: reply, meta, model: chatModel });
+      }
       rewards.recordMeaningfulAiQuestion(topicSlug, text);
     } catch (err: unknown) {
       const errMsg = err instanceof Error ? err.message : String(err);
