@@ -226,9 +226,8 @@ export function AiHelper({ topicSlug, topicTitle, seedPrompt }: AiHelperProps) {
           } : undefined;
 
           return (
-            <ChatMessage
+            <StructuredAiResponse
               key={i}
-              role={msg.role}
               content={msg.content}
               onRegenerate={handleRegenerate}
               meta={msg.meta}
