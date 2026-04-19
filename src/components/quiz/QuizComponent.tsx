@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { CheckCircle2, XCircle, Trophy, RotateCcw, Lightbulb, Sparkles, Flame, Zap, Target, Bot, Loader2, HelpCircle } from "lucide-react";
+import { CheckCircle2, XCircle, Trophy, RotateCcw, Lightbulb, Sparkles, Flame, Zap, Target, Bot, Loader2, HelpCircle, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
@@ -26,7 +26,47 @@ interface QuizComponentProps {
   questions: QuizQuestion[];
   onGenerateMore?: () => void;
   isGenerating?: boolean;
+  onSendToAiTutor?: (prompt: string) => void;
 }
+
+const AI_EXPLAIN_CACHE_KEY = "pylearn-quiz-ai-explain:v1";
+const AI_EXPLAIN_CACHE_LIMIT = 200;
+
+const djb2 = (str: string): string => {
+  let hash = 5381;
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) + hash) + str.charCodeAt(i);
+    hash = hash & 0xffffffff;
+  }
+  return (hash >>> 0).toString(36);
+};
+
+const readExplainCache = (): Record<string, string> => {
+  try {
+    const raw = localStorage.getItem(AI_EXPLAIN_CACHE_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch {
+    return {};
+  }
+};
+
+const writeExplainCache = (key: string, value: string) => {
+  try {
+    const cache = readExplainCache();
+    // FIFO eviction: drop oldest entries when at limit
+    const keys = Object.keys(cache);
+    if (keys.length >= AI_EXPLAIN_CACHE_LIMIT && !(key in cache)) {
+      const toDrop = keys.slice(0, keys.length - AI_EXPLAIN_CACHE_LIMIT + 1);
+      toDrop.forEach(k => delete cache[k]);
+    }
+    cache[key] = value;
+    localStorage.setItem(AI_EXPLAIN_CACHE_KEY, JSON.stringify(cache));
+  } catch {
+    /* ignore (private mode, quota, etc.) */
+  }
+};
 
 const difficultyConfig = {
   easy: { label: "Easy", icon: Zap, color: "text-green-400", bg: "bg-green-500/10 border-green-500/30 hover:bg-green-500/20", activeBg: "bg-green-500 text-white" },
@@ -34,7 +74,7 @@ const difficultyConfig = {
   hard: { label: "Hard", icon: Target, color: "text-red-400", bg: "bg-red-500/10 border-red-500/30 hover:bg-red-500/20", activeBg: "bg-red-500 text-white" },
 };
 
-export function QuizComponent({ topicSlug, questions, onGenerateMore, isGenerating }: QuizComponentProps) {
+export function QuizComponent({ topicSlug, questions, onGenerateMore, isGenerating, onSendToAiTutor }: QuizComponentProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [isAnswered, setIsAnswered] = useState(false);
@@ -47,6 +87,7 @@ export function QuizComponent({ topicSlug, questions, onGenerateMore, isGenerati
   const [aiExplanation, setAiExplanation] = useState<string>("");
   const [aiExplaining, setAiExplaining] = useState(false);
   const [aiError, setAiError] = useState<string>("");
+  const [aiFromCache, setAiFromCache] = useState(false);
 
   const submitQuiz = useSubmitQuizResult();
   const { model: aiModel, provider: aiProvider } = useAiSettings();
@@ -70,6 +111,7 @@ export function QuizComponent({ topicSlug, questions, onGenerateMore, isGenerati
     setAiExplanation("");
     setAiError("");
     setAiExplaining(false);
+    setAiFromCache(false);
   };
 
   const handleNext = () => {
@@ -93,9 +135,21 @@ export function QuizComponent({ topicSlug, questions, onGenerateMore, isGenerati
     setAiExplaining(true);
     setAiError("");
     setAiExplanation("");
+    setAiFromCache(false);
 
     const studentChoice = currentQ.options[selectedOption];
     const correctChoice = currentQ.options[currentQ.correctIndex];
+    const cacheKey = `${topicSlug}::${djb2(currentQ.question)}::${selectedOption}`;
+
+    // Cache hit: skip network
+    const cache = readExplainCache();
+    if (cache[cacheKey]) {
+      setAiExplanation(cache[cacheKey]);
+      setAiFromCache(true);
+      setAiExplaining(false);
+      return;
+    }
+
     const prompt =
       `I got this OCR GCSE Computer Science quick-quiz question wrong. Please explain in 2-3 short paragraphs why my answer is incorrect and why the correct one is right. Use simple GCSE-level language.\n\n` +
       `Question: ${currentQ.question}\n` +
@@ -117,7 +171,9 @@ export function QuizComponent({ topicSlug, questions, onGenerateMore, isGenerati
       });
       const data = await response.json();
       if (!response.ok || data?.error) throw new Error(data?.error || "Request failed");
-      setAiExplanation(data?.content || "No explanation returned.");
+      const explanation = data?.content || "No explanation returned.";
+      setAiExplanation(explanation);
+      if (data?.content) writeExplainCache(cacheKey, explanation);
     } catch (err: unknown) {
       const errMsg = err instanceof Error ? err.message : String(err);
       void appLog({
@@ -131,6 +187,18 @@ export function QuizComponent({ topicSlug, questions, onGenerateMore, isGenerati
     } finally {
       setAiExplaining(false);
     }
+  };
+
+  const sendToAiTutor = () => {
+    if (!onSendToAiTutor || !currentQ) return;
+    const studentChoice = selectedOption !== null ? currentQ.options[selectedOption] : "(no answer)";
+    const correctChoice = currentQ.options[currentQ.correctIndex];
+    const seed =
+      `I just got this quiz question wrong: "${currentQ.question}"\n\n` +
+      `My answer: ${studentChoice}\n` +
+      `Correct answer: ${correctChoice}\n\n` +
+      `Can you walk me through it in more detail and ask me a similar follow-up question to check my understanding?`;
+    onSendToAiTutor(seed);
   };
 
 
@@ -361,11 +429,28 @@ export function QuizComponent({ topicSlug, questions, onGenerateMore, isGenerati
 
             {aiExplanation && (
               <div className="mt-3 px-4 py-3 rounded-xl border border-secondary/30 bg-secondary/5">
-                <div className="flex items-center gap-2 mb-2 text-secondary">
-                  <Bot className="w-4 h-4" />
-                  <span className="text-xs font-semibold uppercase tracking-wide">AI Tutor</span>
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <div className="flex items-center gap-2 text-secondary">
+                    <Bot className="w-4 h-4" />
+                    <span className="text-xs font-semibold uppercase tracking-wide">AI Tutor</span>
+                  </div>
+                  {aiFromCache && (
+                    <span className="text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full bg-muted text-muted-foreground border border-border">
+                      Cached
+                    </span>
+                  )}
                 </div>
                 <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">{aiExplanation}</p>
+                {onSendToAiTutor && (
+                  <button
+                    type="button"
+                    onClick={sendToAiTutor}
+                    className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-secondary hover:text-secondary/80 transition-colors"
+                  >
+                    <MessageSquare className="w-3 h-3" />
+                    Continue in AI Tutor →
+                  </button>
+                )}
               </div>
             )}
           </div>
