@@ -133,7 +133,7 @@ export function CodeRunner({
         </div>
       </div>
 
-      <div className="w-full xl:w-2/5 flex flex-col rounded-2xl overflow-hidden border border-border/50 shadow-lg bg-card">
+      <div className="w-full 2xl:w-2/5 flex flex-col rounded-2xl overflow-hidden border border-border/50 shadow-lg bg-card">
         <div className="px-4 py-3 border-b bg-muted/30 flex items-center gap-2 text-sm font-semibold text-foreground">
           Console Output
         </div>
