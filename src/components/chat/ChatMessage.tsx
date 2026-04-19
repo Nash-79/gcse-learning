@@ -3,6 +3,7 @@ import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { parseAssistantOutput, structuredJsonToMarkdown, structuredMarkdownToClean } from "@/lib/parseAssistantOutput";
 import type { AiResponseMeta } from "@/lib/aiResponseMeta";
+import { FollowUpSuggestions } from "@/components/chat/FollowUpSuggestions";
 
 interface ChatMessageProps {
   role: "user" | "assistant";
@@ -10,6 +11,58 @@ interface ChatMessageProps {
   onRegenerate?: () => void;
   onCopyAll?: () => void;
   meta?: AiResponseMeta;
+  /** When provided, follow-up suggestions are stripped from the rendered
+   * markdown and shown below as clickable pill chips. */
+  onSuggestionClick?: (prompt: string) => void;
+  /** Whether to show the "Back to Home" pill alongside the suggestion chips. */
+  showHomeLink?: boolean;
+}
+
+/** Pull a trailing follow-up section out of any markdown content. Matches the
+ *  `🔗 Follow-up` block emitted by `structuredJsonToMarkdown` AND legacy
+ *  patterns (markdown bullets after a 🔗 / 💡 / "Suggestions" heading). */
+function extractFollowUpsFromMarkdown(content: string): { cleanContent: string; suggestions: string[] } {
+  const lines = content.split("\n");
+  let followUpStart = -1;
+
+  for (let i = lines.length - 1; i >= 0; i--) {
+    const line = lines[i].trim();
+    // Markers we accept: 🔗 / 💡 prefix, or a markdown heading mentioning "follow-up" / "suggestions"
+    if (
+      /^\*?\*?(?:🔗|💡)/.test(line) ||
+      /^#{1,4}\s+.*(?:follow.?up|suggestions?|continue learning)/i.test(line)
+    ) {
+      followUpStart = i;
+      break;
+    }
+  }
+
+  if (followUpStart === -1) {
+    for (let i = lines.length - 1; i >= Math.max(0, lines.length - 14); i--) {
+      if (lines[i].trim() === "---" && i < lines.length - 2) {
+        const nextNonEmpty = lines.slice(i + 1).find(l => l.trim());
+        if (nextNonEmpty && /(?:🔗|💡|follow.?up|suggestions?)/i.test(nextNonEmpty)) {
+          followUpStart = i;
+          break;
+        }
+      }
+    }
+  }
+
+  if (followUpStart >= 0) {
+    const suggestions: string[] = [];
+    for (let i = followUpStart; i < lines.length; i++) {
+      const match = lines[i].trim().match(/^[-•*]\s*"?(.+?)"?\s*$/);
+      if (match) suggestions.push(match[1].replace(/^["“”]|["“”]$/g, ""));
+    }
+    // Trim a trailing horizontal rule that immediately precedes the block
+    let endIdx = followUpStart;
+    while (endIdx > 0 && lines[endIdx - 1].trim() === "") endIdx--;
+    if (endIdx > 0 && lines[endIdx - 1].trim() === "---") endIdx--;
+    return { cleanContent: lines.slice(0, endIdx).join("\n").trimEnd(), suggestions };
+  }
+
+  return { cleanContent: content, suggestions: [] };
 }
 
 /* ───────── Code Block ───────── */
