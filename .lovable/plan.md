@@ -1,64 +1,58 @@
 
 
-The user wants two things:
-1. Verify the AI tutor renders RAM vs Storage as separate sections (testing) — but I'm in plan mode, can't open browser. The real actionable item is #2.
-2. Make the 3 follow-up suggestion bullets render as clickable pill chips.
+## Goal
+Three improvements to the AI follow-up chip experience:
+1. **Loading shimmer on chips** — when a student taps a chip, show a subtle "thinking…" shimmer in the chip area immediately so it's clear something is happening.
+2. **(Verification only)** — confirm chips render on `/ai-tutor` and topic AI Helper. Already implemented in the previous turn; user will manually verify.
+3. **Track chip-click engagement** — log every chip click so admins can see which suggested questions actually drive next-step learning.
 
-Let me check current state. Looking at `AiTutor.tsx`: it uses `extractFollowUps()` to strip the "🔗" suggestions block from the assistant content and renders them via `<FollowUpSuggestions>` component as pill chips. Good — that part works *if* the model emits the markdown 🔗 block.
+## Approach
 
-But after the recent contract change, the edge functions return JSON with a `suggestions: [...]` array, which `parseAssistantOutput.ts` converts to markdown. I need to check how the suggestions get rendered in markdown form, and whether `extractFollowUps` picks them up.
+### 1. Chip shimmer while loading
+- Add an `isLoading?: boolean` prop to `FollowUpSuggestions`.
+- When `isLoading` is true, render the chips with reduced opacity, disabled pointer events, and an animated `bg-shimmer` overlay (gradient sliding left→right) so it feels like the AI is processing the tap.
+- Pipe `isLoading` from `ChatMessage` → `FollowUpSuggestions`. `ChatMessage` itself receives it via a new optional prop `isSuggestionsLoading`.
+- In `AiTutor.tsx` and `AiHelper.tsx`, pass `isSuggestionsLoading={isLoading}` so chips shimmer the moment the user clicks one (because clicking immediately sets `isLoading=true`).
 
-Let me inspect.
+### 2. Verification (no code change)
+Already wired in the previous turn:
+- `AiTutor.tsx` passes `onSuggestionClick={send}` + `showHomeLink={true}` to `ChatMessage` for the last assistant message.
+- `AiHelper.tsx` passes `onSuggestionClick={sendMessage}` + `showHomeLink={false}`.
+User will verify in browser.
 
-## Investigation needed
+### 3. Track chip clicks for admin insights
 
-- `src/lib/parseAssistantOutput.ts` — how does it serialize `suggestions[]` into markdown? Does it prefix with 🔗?
-- `src/components/ai/AiHelper.tsx` — does the topic-page AI helper also extract & render follow-ups as chips? Likely NOT (only AiTutor does).
-- `ChatMessage.tsx` — currently renders the suggestions as a plain bulleted list inside the markdown, which is the "plain list" the user is complaining about.
+**Logging path** (lightweight, reuses existing `app_logs` infrastructure):
+- Add a new event type `ai_suggestion_click` to `LogEventType` in `src/lib/appLogger.ts`.
+- In `FollowUpSuggestions`, when a chip is clicked, fire `appLog({ event_type: "ai_suggestion_click", origin, message: suggestion, details: { surface, topicSlug? } })` *before* calling `onSelect`.
+- Pass an `origin` prop (e.g. `"ai_tutor"` or `"ai_helper:intro-to-python"`) from `ChatMessage` through to `FollowUpSuggestions`. `AiTutor` and `AiHelper` set this when rendering.
+- In `AdminLogViewer.tsx`, register a label for the new event type: `ai_suggestion_click: "💬 Chip Click"` so it shows nicely in the existing log viewer.
 
-## Hypothesis
+**New admin insight panel** — `src/components/admin/AdminSuggestionInsights.tsx`:
+- Queries `app_logs` filtered by `event_type = 'ai_suggestion_click'` (no schema change needed — RLS already restricts admin reads).
+- Aggregates client-side: groups by `message` (the suggestion text), counts occurrences over the last 30 days, and ranks the top 20.
+- Renders as a clean card list: rank, suggestion text, click count, last clicked timestamp, surface origin breakdown (tutor vs helper).
+- Includes a 7d / 30d / all-time toggle and a CSV export button (matches the existing admin viewer aesthetic — same icons, badges, motion).
+- Mounted in `Settings.tsx` next to `AdminLogViewer` / `AdminFeedbackViewer`, behind the same admin-role gate.
 
-The JSON `suggestions` array → `parseAssistantOutput` writes them as a markdown bullet list under a "🔗 Try next" heading (or similar). On `/ai-tutor`, `extractFollowUps` strips them out and renders chips ✓. On topic AI Helper (`AiHelper.tsx`), no such extraction happens → suggestions render as a plain bulleted list ✗. That's the inconsistency.
-
-Plus: even on `/ai-tutor`, if the markdown emoji prefix doesn't match `extractFollowUps` regex (`/^\*?\*?🔗/`), chips won't appear and they fall through as a plain list.
-
-## Plan
-
-### 1. Inspect & align the markdown shape
-Read `parseAssistantOutput.ts` to see exactly how `suggestions` are serialized. Confirm the prefix matches what `extractFollowUps` expects. Tweak whichever is mismatched so chips reliably appear.
-
-### 2. Extract follow-up rendering into a shared concern
-Right now chip rendering lives inside `AiTutor.tsx` (`extractFollowUps` + `<FollowUpSuggestions>`). Move it so **`ChatMessage.tsx`** (or a thin wrapper) handles it for every surface:
-- Add a `onSuggestionClick?: (q: string) => void` prop to `ChatMessage`.
-- Inside `ChatMessage`, run `extractFollowUps` on the content, strip the suggestions from the rendered markdown, and render `<FollowUpSuggestions>` below if `onSuggestionClick` is provided.
-- Remove the duplicated extraction logic from `AiTutor.tsx`.
-
-### 3. Wire AiHelper to use the same chips
-In `src/components/ai/AiHelper.tsx`, pass an `onSuggestionClick` callback to `ChatMessage` that re-submits the question. So topic pages get the same Claude-style clickable follow-ups.
-
-### 4. Polish chip styling (`FollowUpSuggestions.tsx`)
-Current chips look fine but tighten:
-- Slightly bigger tap target (`py-2 px-3.5`)
-- Subtle hover scale + accent ring
-- Show "💡 Continue learning" label with a thin divider above
-- Make the "Back to Home" link optional and default to off inside topic-page contexts
-
-### 5. Defensive: if model returns markdown bullets without 🔗 marker
-Update `extractFollowUps` to also detect a trailing `## 💡 Suggestions` or `## 🔗 ...` heading produced by `parseAssistantOutput`, so chips work regardless of which path the data took.
+No database migration needed (we reuse `app_logs` with a new `event_type` value — `event_type` is `text`, not an enum in the DB).
 
 ## Files to change
 
-- `src/lib/parseAssistantOutput.ts` — confirm/normalize the suggestions block prefix to `🔗` so extraction works
-- `src/components/chat/ChatMessage.tsx` — accept `onSuggestionClick`, extract & render chips internally
-- `src/components/chat/FollowUpSuggestions.tsx` — chip styling polish, make `showHomeLink` default `false`
-- `src/pages/AiTutor.tsx` — remove local `extractFollowUps`/chip rendering, pass `onSuggestionClick={send}` to `ChatMessage`, keep `showHomeLink` on for the tutor page
-- `src/components/ai/AiHelper.tsx` — pass `onSuggestionClick` so topic AI Helper also gets clickable chips
+- `src/lib/appLogger.ts` — add `"ai_suggestion_click"` to `LogEventType`.
+- `src/components/chat/FollowUpSuggestions.tsx` — accept `isLoading`, `origin`; add shimmer style; log on click.
+- `src/components/chat/ChatMessage.tsx` — accept and forward `isSuggestionsLoading` and `suggestionOrigin` props.
+- `src/pages/AiTutor.tsx` — pass `isSuggestionsLoading={isLoading}` and `suggestionOrigin="ai_tutor"`.
+- `src/components/ai/AiHelper.tsx` — pass `isSuggestionsLoading={isLoading}` and `suggestionOrigin={`ai_helper:${topicSlug}`}`.
+- `src/components/admin/AdminLogViewer.tsx` — add label for `ai_suggestion_click` event.
+- **New** `src/components/admin/AdminSuggestionInsights.tsx` — top suggestions panel with timeframe toggle + CSV export.
+- `src/pages/Settings.tsx` — mount the new insights panel inside the admin section.
 
-No backend, no DB, no data changes.
+No DB schema changes. No backend changes. No new dependencies.
 
 ## Acceptance check
-
-- `/ai-tutor` → ask "RAM vs Storage" → 2+ emoji-headed sections + 3 clickable pill chips below the answer (no plain bullet list). Clicking a chip submits it as the next question.
-- Open any topic page → AI Helper → ask anything → same 3 chips appear and are clickable.
-- "Back to Home" link still appears on `/ai-tutor` but not inside topic AI Helper.
+- Tap a chip → it dims with a subtle left-to-right shimmer until the next answer starts streaming.
+- `/ai-tutor`: ask "RAM vs Storage" → 3 chips appear → tap one → next answer arrives.
+- Topic AI Helper: same chip behaviour, no "Back to Home" link.
+- Admin Settings → new "Suggestion Insights" panel shows ranked list of most-clicked suggestions with counts and timeframe toggle.
 
