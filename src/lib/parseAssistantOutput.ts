@@ -106,21 +106,32 @@ export type ParsedOutput =
   | { type: "raw"; data: string };
 
 export function parseAssistantOutput(text: string): ParsedOutput {
+  // Resilient validator: accept any object with `summary` (string) and a
+  // non-empty `sections` array. Optional fields (`next_step`, `suggestions`,
+  // `mode`) are defaulted so a missing field never falls back to raw JSON.
   const isStructured = (data: unknown): data is StructuredJson => {
     if (!data || typeof data !== "object") return false;
     const candidate = data as Partial<StructuredJson>;
     return (
       Array.isArray(candidate.sections) &&
-      typeof candidate.summary === "string" &&
-      typeof candidate.next_step === "string"
+      candidate.sections.length > 0 &&
+      typeof candidate.summary === "string"
     );
   };
+
+  const normaliseDefaults = (data: StructuredJson): StructuredJson => ({
+    mode: "json",
+    summary: data.summary,
+    sections: data.sections,
+    next_step: typeof data.next_step === "string" ? data.next_step : "",
+    suggestions: Array.isArray(data.suggestions) ? data.suggestions : [],
+  });
 
   // Try JSON first
   try {
     const data = JSON.parse(text);
     if (isStructured(data)) {
-      return { type: "json", data: { ...data, mode: "json" } };
+      return { type: "json", data: normaliseDefaults(data) };
     }
   } catch {
     // Not valid JSON, continue
@@ -132,7 +143,7 @@ export function parseAssistantOutput(text: string): ParsedOutput {
     try {
       const data = JSON.parse(jsonMatch[0]);
       if (isStructured(data)) {
-        return { type: "json", data: { ...data, mode: "json" } };
+        return { type: "json", data: normaliseDefaults(data) };
       }
     } catch {
       // Continue
