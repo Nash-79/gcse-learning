@@ -32,6 +32,8 @@ function looksLikePythonCode(input: string): boolean {
 
 function hasMarkdownStructure(input: string): boolean {
   if (input.includes("```")) return true;
+  // Markdown tables: a line starting with `|` (pipe) signals tabular markdown.
+  if (/(^|\n)\s*\|.*\|/.test(input)) return true;
   // Any line that looks like prose, a heading, a list, or a blockquote —
   // means it's a narrative section, not a raw code snippet.
   return /(^|\n)\s*(#{1,6}\s|[-*]\s|>\s|\d+\.\s)/.test(input) ||
