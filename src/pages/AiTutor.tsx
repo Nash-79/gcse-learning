@@ -9,11 +9,13 @@ import { useOpenRouterModels } from "@/lib/useOpenRouterModels";
 import { appLog } from "@/lib/appLogger";
 import type { AiResponseMeta } from "@/lib/aiResponseMeta";
 import { LOVABLE_AI_MODELS } from "@/lib/lovableModels";
+import { aiCache, buildKey, djb2 } from "@/lib/aiResponseCache";
 
 interface Message {
   role: "user" | "assistant";
   content: string;
   meta?: AiResponseMeta;
+  cachedAt?: number;
 }
 
 const CHAT_URL = `/api/gcse-chat`;
