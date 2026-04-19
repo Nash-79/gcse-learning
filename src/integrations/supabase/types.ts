@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.5"
+    PostgrestVersion: "14.4"
   }
   public: {
     Tables: {
@@ -166,93 +166,27 @@ export type Database = {
         }
         Relationships: []
       }
-      leaderboard_scores: {
-        Row: {
-          bronze_topics: number
-          completed_topics: number
-          created_at: string
-          current_streak: number
-          display_name: string
-          gold_topics: number
-          level: number
-          longest_streak: number
-          overall_best_score: number | null
-          quizzes_passed: number
-          silver_topics: number
-          total_topics: number
-          total_xp: number
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          bronze_topics?: number
-          completed_topics?: number
-          created_at?: string
-          current_streak?: number
-          display_name?: string
-          gold_topics?: number
-          level?: number
-          longest_streak?: number
-          overall_best_score?: number | null
-          quizzes_passed?: number
-          silver_topics?: number
-          total_topics?: number
-          total_xp?: number
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          bronze_topics?: number
-          completed_topics?: number
-          created_at?: string
-          current_streak?: number
-          display_name?: string
-          gold_topics?: number
-          level?: number
-          longest_streak?: number
-          overall_best_score?: number | null
-          quizzes_passed?: number
-          silver_topics?: number
-          total_topics?: number
-          total_xp?: number
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      openrouter_model_cache: {
-        Row: {
-          cache_key: string
-          models: Json
-          source: string
-          updated_at: string
-        }
-        Insert: {
-          cache_key: string
-          models: Json
-          source?: string
-          updated_at?: string
-        }
-        Update: {
-          cache_key?: string
-          models?: Json
-          source?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
       profiles: {
         Row: {
+          approval_status: string
+          approved_at: string | null
+          approved_by: string | null
           created_at: string
           display_name: string | null
           id: string
         }
         Insert: {
+          approval_status?: string
+          approved_at?: string | null
+          approved_by?: string | null
           created_at?: string
           display_name?: string | null
           id: string
         }
         Update: {
+          approval_status?: string
+          approved_at?: string | null
+          approved_by?: string | null
           created_at?: string
           display_name?: string | null
           id?: string
@@ -321,18 +255,16 @@ export type Database = {
           page_path: string
           payload: Json
           section_key: string
-          status: string
           user_email: string | null
           user_id: string | null
         }
         Insert: {
           created_at?: string
-          feedback_type?: string
+          feedback_type: string
           id?: string
           page_path: string
           payload?: Json
-          section_key?: string
-          status?: string
+          section_key: string
           user_email?: string | null
           user_id?: string | null
         }
@@ -343,7 +275,6 @@ export type Database = {
           page_path?: string
           payload?: Json
           section_key?: string
-          status?: string
           user_email?: string | null
           user_id?: string | null
         }
