@@ -1,59 +1,70 @@
 
 
-## Plan
+## Problem
 
-Two small, additive enhancements to `QuizComponent` (and a tiny prop wire-up in `TopicPage`).
+Looking at the screenshot on `/topic/input-output-casting` "Learn" tab:
 
-### 1. Cache AI explanations in localStorage
+1. **Wasted left gutter** when the Learning Steps sidebar collapses (or on narrow content), the Code Editor sits in the middle with a huge empty left band.
+2. **Cramped editor** — `CodeRunner` inside `SteppedLearning` is forced into `h-[250px]` and shares a row with a narrow Console (`md:w-1/3`), making real coding awkward.
+3. **No AI assistance** next to the task. Students currently have to leave the editor, open the AI Tutor panel, paste their code, and re-explain the task. There's no reusable "guide me through THIS task" component.
+4. **Inconsistency** — `CodeRunner` is used in three places (`SteppedLearning`, `Playground`, `RunnableCode`) and each looks/sized slightly differently.
 
-**Key**: `pylearn-quiz-ai-explain:v1` → `Record<string, string>` where the inner key is a stable hash per question+wrong-choice combo:
-```
-`${topicSlug}::${djb2(question)}::${selectedOption}`
-```
-(djb2 is a 10-line pure function — no deps. Question text + chosen wrong index uniquely identifies the explanation context.)
+## Solution
 
-Flow inside `explainWithAi`:
-1. Build cache key.
-2. If cache has entry → set `aiExplanation` from cache, skip network. Show small "Cached" pill.
-3. Else fetch as today, then write to cache on success.
+Three coordinated changes — all in existing files, no new dependencies.
 
-Eviction: simple cap at 200 entries (FIFO drop oldest) to stop unbounded growth. Wrap all `localStorage` access in try/catch (private mode safe).
+### 1. Reusable `<TaskAssistant>` component (new file)
 
-### 2. "Send to AI Tutor chat" link
+`src/components/learning/TaskAssistant.tsx` — small, self-contained side panel built on top of the same `/api/ai-chat` endpoint and the same localStorage cache pattern already used by `QuizComponent` (`pylearn-task-assistant:v1`).
 
-Add a new optional prop to `QuizComponent`:
+Props:
 ```ts
-onSendToAiTutor?: (prompt: string) => void;
+{
+  taskId: string;          // stable key for caching ("topic-slug::step-index")
+  taskInstruction: string; // the YOUR TASK text
+  starterCode: string;     // shown to the AI for context
+  currentCode: string;     // live editor contents (so hints reflect their attempt)
+  topicTitle: string;
+}
 ```
 
-Render a small link/button under the AI explanation block (only when `aiExplanation` exists AND prop provided):
-> 💬 Continue in AI Tutor →
+UI: collapsed by default as a slim "🤖 Need help with this task?" pill. When expanded, shows three one-click prompts that hit the AI:
+- **Explain the task** — plain-English breakdown
+- **Step-by-step plan** — numbered pseudocode, no full solution
+- **Hint on my code** — feeds `currentCode` to AI, returns ONE next-step nudge
 
-When clicked, calls `onSendToAiTutor(prompt)` with a follow-up seed like:
-```
-I just got this quiz question wrong: "${question}". Can you walk me through it in more detail and ask me a similar follow-up question?
-```
+Plus a small free-text box for follow-up questions. Responses render with the existing `ChatMessage` styling (markdown + code blocks). Cached per `taskId + prompt-type` so re-opening doesn't re-bill tokens. Strict GCSE-Python system prompt (no f-strings, no try/except, no comprehensions) — reuses the constraint already baked into `ai-chat`.
 
-Then in `TopicPage.tsx` wire it up using existing `handleUseAiPrompt`:
-```tsx
-<QuizComponent
-  topicSlug={slug}
-  questions={allQuestions}
-  onSendToAiTutor={handleUseAiPrompt}
-/>
-```
-`handleUseAiPrompt` already opens the `AiHelper` panel, switches to the lesson tab, and seeds the prompt — perfect fit, no new logic needed.
+### 2. Bigger, consistent code editor inside `SteppedLearning`
 
-### Files
+In `src/components/learning/SteppedLearning.tsx`:
 
-- **Edit** `src/components/quiz/QuizComponent.tsx` — add cache helpers, cache check in `explainWithAi`, "Cached" pill, `onSendToAiTutor` prop + button.
-- **Edit** `src/pages/TopicPage.tsx` — pass `onSendToAiTutor={handleUseAiPrompt}` to `<QuizComponent>`.
+- Change the Code Editor section from a single full-width `CodeRunner` to a 2-column grid: **editor + console on the left (2/3), TaskAssistant on the right (1/3)** at `lg:` breakpoint. On mobile they stack.
+- Bump `CodeRunner` height from `h-[250px]` → `h-[420px]` so multi-line answers (the user's "ask name + birth year + age" task needs ~10 lines) breathe.
+- Have `CodeRunner` accept and forward an `onCodeChange` callback (already exists) so `SteppedLearning` can mirror code into `TaskAssistant` for the "Hint on my code" button.
 
-### Acceptance
+### 3. Consistency pass on `CodeRunner`
 
-- Click "Why?" once → AI call made, explanation cached.
-- Click "Why?" again on same wrong answer (after navigating away & back, or restart) → instant render, no network call, "Cached" badge visible.
-- Click "Continue in AI Tutor →" → AiHelper panel opens above tabs with the seed prompt pre-filled in the input box (existing behaviour).
-- Cache survives reloads, capped at 200 entries, safe in private/incognito mode.
-- No new dependencies, no DB changes.
+In `src/components/code/CodeRunner.tsx`:
+
+- Make the editor/console split responsive on its own (`md:flex-row` already there). Drop the hard-coded `md:w-1/3` console; use `md:w-2/5` so the console is readable but the editor still dominates.
+- Ensure the editor textarea uses the `height` prop properly for both panes (currently only the textarea uses it; the console card has its own `min-h-[200px]` — align them so they're equal height).
+
+This means every place `CodeRunner` is used (`SteppedLearning`, `Playground`, `RunnableCode`) gets the same proportions automatically.
+
+## Files
+
+- **Create** `src/components/learning/TaskAssistant.tsx` (~180 lines)
+- **Edit** `src/components/learning/SteppedLearning.tsx` — wrap Code Editor in 2-col grid, mount `<TaskAssistant>`, taller editor
+- **Edit** `src/components/code/CodeRunner.tsx` — equal heights, 2/5 console width, forward `onCodeChange` (already there, keep)
+
+No data model changes. No new endpoints. No new deps. Reuses existing `/api/ai-chat`, existing markdown chat rendering, existing localStorage cache pattern.
+
+## Acceptance
+
+- On `/topic/input-output-casting` → Learn tab → step with `interactiveTask`: editor takes 2/3 width, console is taller, TaskAssistant appears on the right at `lg+` and below the editor on mobile.
+- Clicking "Step-by-step plan" returns a numbered GCSE-Python plan (no full solution).
+- Clicking the same prompt twice on same task = second click is instant + shows "Cached" pill.
+- Same proportions visible in Playground and inline `RunnableCode` blocks across every topic — one source of truth.
+- No regressions to existing code-run reward tracking or step navigation.
 
