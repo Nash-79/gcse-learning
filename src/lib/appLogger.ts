@@ -26,14 +26,31 @@ interface LogEntry {
 
 export async function appLog(entry: LogEntry) {
   try {
-    await supabase.from("app_logs").insert([{
+    // Attach the current auth identity so the row passes the
+    // "authenticated users can insert logs" RLS policy
+    // (which requires auth.uid() = user_id).
+    const { data: { user } } = await supabase.auth.getUser();
+
+    const row: Record<string, unknown> = {
       event_type: entry.event_type,
       origin: entry.origin,
       message: entry.message,
       details: (entry.details ?? {}) as any,
       error_stack: entry.error_stack ?? undefined,
       severity: entry.severity ?? "info",
-    }]);
+    };
+
+    if (user) {
+      row.user_id = user.id;
+      row.user_email = user.email ?? null;
+    }
+
+    const { error } = await supabase.from("app_logs").insert([row as any]);
+    if (error && import.meta.env.DEV) {
+      // Surface in dev so we catch silent RLS rejections early
+      // eslint-disable-next-line no-console
+      console.warn("[appLog] insert failed:", error.message, entry);
+    }
   } catch {
     // Silently fail — logging should never break the app
   }
