@@ -14,9 +14,11 @@ const difficultyConfig: Record<StepDifficulty, { label: string; icon: React.Elem
 interface SteppedLearningProps {
   steps: LearningStep[];
   topicTitle: string;
+  onComplete?: () => void;
+  onCodeRun?: () => void;
 }
 
-export function SteppedLearning({ steps, topicTitle }: SteppedLearningProps) {
+export function SteppedLearning({ steps, topicTitle, onComplete, onCodeRun }: SteppedLearningProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
   const [visibleHints, setVisibleHints] = useState<Set<number>>(new Set());
@@ -36,7 +38,9 @@ export function SteppedLearning({ steps, topicTitle }: SteppedLearningProps) {
     if (currentStep < filtered.length - 1) {
       setCurrentStep(currentStep + 1);
       setVisibleHints(new Set());
+      return;
     }
+    onComplete?.();
   };
 
   const toggleHint = (idx: number) => {
@@ -210,7 +214,7 @@ export function SteppedLearning({ steps, topicTitle }: SteppedLearningProps) {
             <div className="bg-yellow-500/5 border border-yellow-500/15 rounded-xl px-4 py-3 mb-3 text-sm text-foreground/80">
               <span className="font-semibold text-yellow-600">YOUR TASK:</span> {step.interactiveTask.instruction}
             </div>
-            <CodeRunner initialCode={step.interactiveTask.starterCode} height="h-[250px]" />
+            <CodeRunner initialCode={step.interactiveTask.starterCode} height="h-[250px]" onRunSuccess={onCodeRun} />
           </div>
         )}
 

@@ -5,6 +5,7 @@ import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { useTheme } from "@/lib/theme";
 import { PageBreadcrumb } from "./PageBreadcrumb";
 import { FeedbackDialog } from "@/components/feedback/FeedbackDialog";
+import { HeaderRewards } from "@/components/rewards/HeaderRewards";
 
 export function Header() {
   const { theme, setTheme } = useTheme();
@@ -64,6 +65,7 @@ export function Header() {
       </Link>
 
       <div className="flex items-center gap-1 shrink-0" role="toolbar" aria-label="Header actions">
+        <HeaderRewards />
         <Link to="/playground" className="hidden sm:block">
           <Button
             variant="ghost"

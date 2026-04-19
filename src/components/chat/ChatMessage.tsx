@@ -1,9 +1,12 @@
-import { Bot, Copy, Check, RotateCcw, Info, Sparkles } from "lucide-react";
+import { Bot, Copy, Check, RotateCcw, Info, Sparkles, Play } from "lucide-react";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
-import { parseAssistantOutput, structuredJsonToMarkdown, structuredMarkdownToClean } from "@/lib/parseAssistantOutput";
+import { parseAssistantOutput, structuredJsonToMarkdown, structuredJsonToBlocks, structuredMarkdownToClean, type StructuredBlock } from "@/lib/parseAssistantOutput";
 import type { AiResponseMeta } from "@/lib/aiResponseMeta";
 import { FollowUpSuggestions } from "@/components/chat/FollowUpSuggestions";
+import { TraceTable } from "@/components/chat/TraceTable";
+import { stashPlaygroundCode } from "@/lib/playgroundHandoff";
 
 interface ChatMessageProps {
   role: "user" | "assistant";
@@ -72,14 +75,21 @@ function extractFollowUpsFromMarkdown(content: string): { cleanContent: string; 
 /* ───────── Code Block ───────── */
 function CodeBlock({ className, children, ...props }: any) {
   const [copied, setCopied] = useState(false);
+  const navigate = useNavigate();
   const match = /language-(\w+)/.exec(className || "");
   const lang = match ? match[1] : "";
   const code = String(children).replace(/\n$/, "");
+  const isPython = lang === "python" || lang === "py";
 
   const handleCopy = () => {
     navigator.clipboard.writeText(code);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleRunInPlayground = () => {
+    stashPlaygroundCode(code);
+    navigate("/playground?fromChat=1");
   };
 
   // Inline code
@@ -107,13 +117,27 @@ function CodeBlock({ className, children, ...props }: any) {
             </span>
           )}
         </div>
-        <button
-          onClick={handleCopy}
-          className="flex items-center gap-1 text-[10px] text-muted-foreground/70 hover:text-foreground transition-colors px-2 py-1 rounded-md hover:bg-muted/50"
-        >
-          {copied ? <Check className="w-3 h-3 text-green-500" /> : <Copy className="w-3 h-3" />}
-          {copied ? "Copied" : "Copy"}
-        </button>
+        <div className="flex items-center gap-1">
+          {isPython && (
+            <button
+              type="button"
+              onClick={handleRunInPlayground}
+              title="Open this snippet in the Python Playground"
+              className="flex items-center gap-1 text-[10px] text-primary/80 hover:text-primary transition-colors px-2 py-1 rounded-md hover:bg-primary/10"
+            >
+              <Play className="w-3 h-3 fill-current" />
+              Run in Playground
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={handleCopy}
+            className="flex items-center gap-1 text-[10px] text-muted-foreground/70 hover:text-foreground transition-colors px-2 py-1 rounded-md hover:bg-muted/50"
+          >
+            {copied ? <Check className="w-3 h-3 text-green-500" /> : <Copy className="w-3 h-3" />}
+            {copied ? "Copied" : "Copy"}
+          </button>
+        </div>
       </div>
       <pre className="p-4 overflow-x-auto text-[13px] leading-[1.75] font-mono">
         <code className="text-foreground/90">{children}</code>
@@ -135,6 +159,7 @@ function MessageActions({ content, onRegenerate }: { content: string; onRegenera
   return (
     <div className="flex items-center gap-1 mt-3 pt-2 border-t border-border/10 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
       <button
+        type="button"
         onClick={handleCopy}
         className="flex items-center gap-1.5 text-[11px] text-muted-foreground/60 hover:text-foreground transition-colors px-2.5 py-1.5 rounded-lg hover:bg-muted/40"
         title="Copy message"
@@ -144,6 +169,7 @@ function MessageActions({ content, onRegenerate }: { content: string; onRegenera
       </button>
       {onRegenerate && (
         <button
+          type="button"
           onClick={onRegenerate}
           className="flex items-center gap-1.5 text-[11px] text-muted-foreground/60 hover:text-foreground transition-colors px-2.5 py-1.5 rounded-lg hover:bg-muted/40"
           title="Regenerate response"
@@ -241,42 +267,80 @@ function MarkdownRenderer({ content }: { content: string }) {
 
 /* ───────── Provenance Badge ───────── */
 function ProvenanceLine({ meta }: { meta?: AiResponseMeta }) {
+  const [showDetails, setShowDetails] = useState(false);
   if (!meta) return null;
   const label = meta.finalModelLabel || meta.finalModelId?.split("/").pop()?.replace(":free", "");
   if (!label) return null;
 
   const isLovable = label.includes("Lovable AI") || meta.finalModelId?.startsWith("google/gemini");
+  const reason = meta.fallbackReason;
+  const hasDetails = Boolean(reason || (meta.attempts && meta.attempts.length > 1));
 
   return (
-    <div className="flex items-center gap-2 mt-2 flex-wrap">
-      {isLovable ? (
-        <span className="text-[10px] px-2 py-0.5 rounded-full bg-secondary/8 text-secondary/70 border border-secondary/15 inline-flex items-center gap-1 font-medium">
-          <Sparkles className="w-2.5 h-2.5" /> {label}
-        </span>
-      ) : (
-        <span className="text-[10px] text-muted-foreground/50 inline-flex items-center gap-1">
-          <Bot className="w-2.5 h-2.5" /> {label}
-        </span>
-      )}
-      {meta.usedFallback && (
-        <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-500/8 text-amber-500/70 border border-amber-500/12 inline-flex items-center gap-0.5">
-          <Info className="w-2.5 h-2.5" /> Fallback
-        </span>
-      )}
-      {meta.degraded && (
-        <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-500/8 text-amber-500/70 border border-amber-500/12">
-          Degraded
-        </span>
-      )}
-      {meta.attemptCount && meta.attemptCount > 1 && (
-        <span className="text-[10px] text-muted-foreground/40">
-          {meta.attemptCount} attempts
-        </span>
-      )}
-      {meta.elapsedMs && (
-        <span className="text-[10px] text-muted-foreground/35">
-          {(meta.elapsedMs / 1000).toFixed(1)}s
-        </span>
+    <div className="mt-2">
+      <div className="flex items-center gap-2 flex-wrap">
+        {isLovable ? (
+          <span className="text-[10px] px-2 py-0.5 rounded-full bg-secondary/8 text-secondary/70 border border-secondary/15 inline-flex items-center gap-1 font-medium">
+            <Sparkles className="w-2.5 h-2.5" /> {label}
+          </span>
+        ) : (
+          <span className="text-[10px] text-muted-foreground/50 inline-flex items-center gap-1">
+            <Bot className="w-2.5 h-2.5" /> {label}
+          </span>
+        )}
+        {meta.usedFallback && (
+          <button
+            type="button"
+            onClick={() => hasDetails && setShowDetails((v) => !v)}
+            disabled={!hasDetails}
+            title={reason ? `Fell back after ${reason.provider}/${reason.model.split("/").pop()?.replace(":free", "")} returned ${reason.status}` : undefined}
+            className={`text-[10px] px-1.5 py-0.5 rounded-full bg-amber-500/8 text-amber-500/70 border border-amber-500/12 inline-flex items-center gap-0.5 ${hasDetails ? "hover:bg-amber-500/15 cursor-pointer" : ""}`}
+          >
+            <Info className="w-2.5 h-2.5" /> Fallback
+          </button>
+        )}
+        {meta.degraded && (
+          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-500/8 text-amber-500/70 border border-amber-500/12">
+            Degraded
+          </span>
+        )}
+        {meta.attemptCount && meta.attemptCount > 1 && (
+          <span className="text-[10px] text-muted-foreground/40">
+            {meta.attemptCount} attempts
+          </span>
+        )}
+        {meta.elapsedMs && (
+          <span className="text-[10px] text-muted-foreground/35">
+            {(meta.elapsedMs / 1000).toFixed(1)}s
+          </span>
+        )}
+      </div>
+      {showDetails && reason && (
+        <div className="mt-1.5 p-2.5 rounded-lg border border-amber-500/20 bg-amber-500/[0.04] text-[11px] text-foreground/80 space-y-1">
+          <div>
+            <span className="text-amber-500/80 font-medium">Fallback reason:</span>{" "}
+            <span className="font-mono">{reason.provider}/{reason.model.split("/").pop()?.replace(":free", "")}</span>{" "}
+            returned <span className="font-mono">{reason.status}</span>.
+          </div>
+          {reason.message && (
+            <div className="text-muted-foreground/70 font-mono break-all">
+              {reason.message.length > 200 ? reason.message.slice(0, 200) + "…" : reason.message}
+            </div>
+          )}
+          {meta.attempts && meta.attempts.length > 0 && (
+            <ul className="space-y-0.5 mt-1 text-muted-foreground/60">
+              {meta.attempts.map((a, i) => (
+                <li key={i} className="font-mono text-[10px]">
+                  <span className={a.status >= 200 && a.status < 300 ? "text-green-500/70" : "text-amber-500/70"}>
+                    {a.status}
+                  </span>{" "}
+                  {a.provider}/{a.model.split("/").pop()?.replace(":free", "")}{" "}
+                  <span className="text-muted-foreground/40">({a.ms}ms)</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       )}
     </div>
   );
@@ -297,19 +361,33 @@ export function ChatMessage({ role, content, onRegenerate, meta, onSuggestionCli
   // Parse structured output
   const parsed = parseAssistantOutput(content);
 
-  // Build the markdown body, then peel off any trailing follow-up block when
-  // the parent has asked us to render chips.
-  const rawMarkdown = (() => {
+  // Build render blocks for the JSON path (markdown + trace tables). For the
+  // raw/fallback path we synthesise a single markdown block.
+  const blocks: StructuredBlock[] = (() => {
     switch (parsed.type) {
-      case "json": return structuredJsonToMarkdown(parsed.data);
-      case "markdown": return structuredMarkdownToClean(parsed.data);
-      default: return parsed.data;
+      case "json": return structuredJsonToBlocks(parsed.data);
+      case "markdown": return [{ kind: "markdown", text: structuredMarkdownToClean(parsed.data) }];
+      default: return [{ kind: "markdown", text: parsed.data }];
     }
   })();
 
-  const { cleanContent, suggestions } = onSuggestionClick
-    ? extractFollowUpsFromMarkdown(rawMarkdown)
-    : { cleanContent: rawMarkdown, suggestions: [] };
+  // For follow-up chip extraction we still work off a flat markdown view so
+  // the existing extractor keeps working regardless of block mix.
+  const flatMarkdown = parsed.type === "json"
+    ? structuredJsonToMarkdown(parsed.data)
+    : parsed.type === "markdown"
+    ? structuredMarkdownToClean(parsed.data)
+    : parsed.data;
+
+  const { suggestions } = onSuggestionClick
+    ? extractFollowUpsFromMarkdown(flatMarkdown)
+    : { suggestions: [] as string[] };
+
+  // When chips are rendered, strip the trailing follow-up markdown block so it
+  // doesn't duplicate above the chips.
+  const renderBlocks = onSuggestionClick && suggestions.length > 0
+    ? blocks.filter((b) => !(b.kind === "markdown" && /🔗 Follow-up questions/.test(b.text)))
+    : blocks;
 
   return (
     <div className="flex justify-start gap-3 group">
@@ -317,7 +395,13 @@ export function ChatMessage({ role, content, onRegenerate, meta, onSuggestionCli
         <Bot className="w-4 h-4 text-secondary" />
       </div>
       <div className="flex-1 min-w-0 max-w-[90%]">
-        <MarkdownRenderer content={cleanContent} />
+        {renderBlocks.map((block, i) =>
+          block.kind === "trace" ? (
+            <TraceTable key={i} heading={block.heading} trace={block.trace} bullets={block.bullets} />
+          ) : (
+            <MarkdownRenderer key={i} content={block.text} />
+          )
+        )}
         <MessageActions content={content} onRegenerate={onRegenerate} />
         <ProvenanceLine meta={meta} />
         {onSuggestionClick && suggestions.length > 0 && (

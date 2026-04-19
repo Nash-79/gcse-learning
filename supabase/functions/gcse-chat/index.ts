@@ -1,11 +1,28 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { requireAuthenticatedUser } from "../_shared/auth.ts";
 import { STRUCTURED_OUTPUT_INSTRUCTION, STRUCTURED_USER_SUFFIX } from "../_shared/structuredContract.ts";
+import {
+  OPENROUTER_CHAIN,
+  OPENROUTER_MODELS,
+  LOVABLE_STREAM_MODEL,
+  type AiAttempt,
+  type AiFallbackReason,
+  type ProviderName,
+  isRetryableStatus,
+  modelLabel,
+  parseRetryWaitMs,
+  sanitizeSnippet,
+  shouldLogUpstreamFailure,
+  sleep,
+} from "../_shared/aiProviders.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
+
+const ROUTE_KEY = "gcse-chat";
+const MAX_RETRIES_PER_MODEL = 1;
 
 const SYSTEM_PROMPT = `You are **PyLearn AI** — a dedicated GCSE Computer Science tutor specialising in Python programming for the OCR J277 and AQA 8525 specifications.
 
@@ -55,31 +72,78 @@ Then list exactly 3 short follow-up questions as bullet points that naturally ex
 - Don't write full coursework solutions — guide the student instead
 - If asked something off-topic, gently redirect` + STRUCTURED_OUTPUT_INSTRUCTION;
 
-// Models supported by OpenRouter free tier
-const OPENROUTER_MODELS = new Set([
-  "meta-llama/llama-3.3-70b-instruct:free",
-  "google/gemma-3-27b-it:free",
-  "qwen/qwen3-coder:free",
-  "nvidia/nemotron-3-super-120b-a12b:free",
-  "qwen/qwen3-next-80b-a3b-instruct:free",
-  "openai/gpt-oss-120b:free",
-  "stepfun/step-3.5-flash:free",
-  "mistralai/mistral-small-3.1-24b-instruct:free",
-  "arcee-ai/trinity-large-preview:free",
-  "openai/gpt-oss-20b:free",
-  "minimax/minimax-m2.5:free",
-  "nvidia/nemotron-3-nano-30b-a3b:free",
-  "nousresearch/hermes-3-llama-3.1-405b:free",
-  "nvidia/nemotron-nano-12b-v2-vl:free",
-  "nvidia/nemotron-nano-9b-v2:free",
-  "z-ai/glm-4.5-air:free",
-  "arcee-ai/trinity-mini:free",
-  "google/gemma-3-12b-it:free",
-  "google/gemma-3-4b-it:free",
-  "qwen/qwen3-4b:free",
-  "meta-llama/llama-3.2-3b-instruct:free",
-  "meta-llama/llama-3.1-8b-instruct:free",
-]);
+async function callProvider(
+  provider: ProviderName,
+  model: string,
+  apiKey: string,
+  chatMessages: Array<{ role: string; content: string }>,
+): Promise<Response> {
+  const body = { model, messages: chatMessages, stream: true };
+  if (provider === "openrouter") {
+    return fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+        "HTTP-Referer": "https://lovable.dev",
+      },
+      body: JSON.stringify(body),
+    });
+  }
+  return fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+}
+
+interface AttemptOutcome {
+  response: Response;
+  attempts: AiAttempt[];
+  fallbackReason: AiFallbackReason | null;
+}
+
+async function tryWithRetries(
+  provider: ProviderName,
+  model: string,
+  apiKey: string,
+  chatMessages: Array<{ role: string; content: string }>,
+): Promise<AttemptOutcome> {
+  const attempts: AiAttempt[] = [];
+  let fallbackReason: AiFallbackReason | null = null;
+  let response: Response | null = null;
+
+  for (let attempt = 0; attempt <= MAX_RETRIES_PER_MODEL; attempt++) {
+    const t0 = Date.now();
+    response = await callProvider(provider, model, apiKey, chatMessages);
+    const ms = Date.now() - t0;
+    attempts.push({ model, provider, status: response.status, ms });
+
+    if (response.ok) return { response, attempts, fallbackReason };
+    if (!isRetryableStatus(response.status)) {
+      return { response, attempts, fallbackReason };
+    }
+
+    if (!fallbackReason) {
+      const snippet = sanitizeSnippet(await response.clone().text());
+      fallbackReason = {
+        status: response.status,
+        message: snippet || response.statusText || "Upstream error",
+        model,
+        provider,
+      };
+    }
+
+    if (attempt < MAX_RETRIES_PER_MODEL) {
+      await sleep(parseRetryWaitMs(response.headers, attempt));
+    }
+  }
+
+  return { response: response!, attempts, fallbackReason };
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -104,10 +168,9 @@ serve(async (req) => {
     }
 
     const preferLovable = provider === "lovable";
-    const requestedModel = model || (preferLovable ? "google/gemini-3-flash-preview" : "meta-llama/llama-3.3-70b-instruct:free");
+    const requestedModel = model || (preferLovable ? LOVABLE_STREAM_MODEL : OPENROUTER_CHAIN[0]);
     const isOpenRouterModel = OPENROUTER_MODELS.has(requestedModel);
 
-    // Append structured suffix to last user message
     const augmentedMessages = messages.map((m: { role: string; content: string }, i: number) => {
       if (i === messages.length - 1 && m.role === "user") {
         return { ...m, content: m.content + STRUCTURED_USER_SUFFIX };
@@ -120,100 +183,102 @@ serve(async (req) => {
       ...augmentedMessages,
     ];
 
-    let response: Response;
-    let usedFallback = false;
-    let finalModelId = requestedModel;
-    let finalModelLabel = requestedModel.split("/").pop()?.replace(":free", "") || requestedModel;
+    // Build candidate chain.
+    const candidates: Array<{ provider: ProviderName; model: string; apiKey: string }> = [];
+    const seen = new Set<string>();
+    const addOr = (m: string) => {
+      if (!OPENROUTER_API_KEY || seen.has(`or:${m}`)) return;
+      seen.add(`or:${m}`);
+      candidates.push({ provider: "openrouter", model: m, apiKey: OPENROUTER_API_KEY });
+    };
+    const addLovable = () => {
+      if (!LOVABLE_API_KEY || seen.has(`lv:${LOVABLE_STREAM_MODEL}`)) return;
+      seen.add(`lv:${LOVABLE_STREAM_MODEL}`);
+      candidates.push({ provider: "lovable", model: LOVABLE_STREAM_MODEL, apiKey: LOVABLE_API_KEY });
+    };
 
-    if (!preferLovable && isOpenRouterModel && OPENROUTER_API_KEY) {
-      response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${OPENROUTER_API_KEY}`,
-          "HTTP-Referer": "https://lovable.dev",
-        },
-        body: JSON.stringify({
-          model: requestedModel,
-          messages: chatMessages,
-          stream: true,
-        }),
-      });
-
-      if (!response.ok && LOVABLE_API_KEY) {
-        console.log("OpenRouter rate limited, falling back to Lovable AI");
-        usedFallback = true;
-        finalModelId = "google/gemini-3-flash-preview";
-        finalModelLabel = "Gemini 3 Flash (Lovable AI)";
-        response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${LOVABLE_API_KEY}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            model: "google/gemini-3-flash-preview",
-            messages: chatMessages,
-            stream: true,
-          }),
-        });
-      }
-    } else if (LOVABLE_API_KEY) {
-      finalModelId = "google/gemini-3-flash-preview";
-      finalModelLabel = "Gemini 3 Flash (Lovable AI)";
-      response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${LOVABLE_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "google/gemini-3-flash-preview",
-          messages: chatMessages,
-          stream: true,
-        }),
-      });
+    if (preferLovable) {
+      addLovable();
+      for (const m of OPENROUTER_CHAIN) addOr(m);
+    } else if (isOpenRouterModel) {
+      addOr(requestedModel);
+      for (const m of OPENROUTER_CHAIN) addOr(m);
+      addLovable();
     } else {
-      throw new Error("No suitable AI provider available for the selected model");
+      addLovable();
+      for (const m of OPENROUTER_CHAIN) addOr(m);
     }
 
-    if (!response.ok) {
-      if (response.status === 429) {
+    if (candidates.length === 0) {
+      throw new Error("No AI provider available");
+    }
+
+    const allAttempts: AiAttempt[] = [];
+    let fallbackReason: AiFallbackReason | null = null;
+    let finalResponse: Response | null = null;
+    let finalCandidate = candidates[0];
+
+    for (const candidate of candidates) {
+      const outcome = await tryWithRetries(candidate.provider, candidate.model, candidate.apiKey, chatMessages);
+      allAttempts.push(...outcome.attempts);
+      if (!fallbackReason && outcome.fallbackReason) fallbackReason = outcome.fallbackReason;
+      finalResponse = outcome.response;
+      finalCandidate = candidate;
+      if (outcome.response.ok) break;
+      if (shouldLogUpstreamFailure({ origin: ROUTE_KEY, status: outcome.response.status, model: candidate.model })) {
+        console.error(`[${ROUTE_KEY}] upstream ${outcome.response.status} from ${candidate.provider}/${candidate.model}`);
+      }
+    }
+
+    if (!finalResponse || !finalResponse.ok) {
+      const status = finalResponse?.status || 500;
+      if (status === 429) {
         return new Response(JSON.stringify({ error: "Rate limit reached. Please wait a moment and try again." }), {
           status: 429,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      if (response.status === 402) {
+      if (status === 402) {
         return new Response(JSON.stringify({ error: "AI credits exhausted. Please try again later." }), {
           status: 402,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      const t = await response.text();
-      console.error("AI gateway error:", response.status, t);
+      const errorBody = finalResponse ? sanitizeSnippet(await finalResponse.text()) : "No response";
+      console.error(`[${ROUTE_KEY}] all candidates failed:`, status, errorBody);
       return new Response(JSON.stringify({ error: "AI service unavailable" }), {
-        status: 500,
+        status: 502,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Create a TransformStream to append meta event after the AI stream completes
-    const metaEvent = `\ndata: ${JSON.stringify({ meta: { routeKey: "gcse-chat", finalModelId, finalModelLabel, usedFallback } })}\n\n`;
+    const intendedFirst = candidates[0];
+    const usedFallback = finalCandidate.model !== intendedFirst.model || finalCandidate.provider !== intendedFirst.provider;
+
+    const meta = {
+      routeKey: ROUTE_KEY,
+      finalModelId: finalCandidate.model,
+      finalModelLabel: modelLabel(finalCandidate.model, finalCandidate.provider),
+      usedFallback,
+      attemptCount: allAttempts.length,
+      fallbackReason,
+      attempts: allAttempts,
+    };
+
+    const metaEvent = `\ndata: ${JSON.stringify({ meta })}\n\n`;
     const encoder = new TextEncoder();
 
     const { readable, writable } = new TransformStream();
     const writer = writable.getWriter();
 
     (async () => {
-      const reader = response.body!.getReader();
+      const reader = finalResponse!.body!.getReader();
       try {
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
           await writer.write(value);
         }
-        // Append meta event at the end of the stream
         await writer.write(encoder.encode(metaEvent));
       } catch (e) {
         console.error("Stream relay error:", e);
@@ -226,7 +291,7 @@ serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
     });
   } catch (e) {
-    console.error("gcse-chat error:", e);
+    console.error(`[${ROUTE_KEY}] error:`, e);
     return new Response(
       JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }

@@ -11,6 +11,7 @@ import type { AiResponseMeta } from "@/lib/aiResponseMeta";
 import { extractMeta } from "@/lib/aiResponseMeta";
 import { LOVABLE_AI_MODELS } from "@/lib/lovableModels";
 import { FeedbackDialog } from "@/components/feedback/FeedbackDialog";
+import { useRewards } from "@/hooks/useRewards";
 
 interface Message {
   role: "user" | "assistant";
@@ -40,6 +41,7 @@ export function AiHelper({ topicSlug, topicTitle, seedPrompt }: AiHelperProps) {
   const [chatModel, setChatModel] = useState(settingsModel);
   const [showModelPicker, setShowModelPicker] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const rewards = useRewards();
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -89,6 +91,7 @@ export function AiHelper({ topicSlug, topicTitle, seedPrompt }: AiHelperProps) {
       const reply = data?.content || "Sorry, I couldn't generate a response.";
       const meta = extractMeta(data);
       setMessages(prev => [...prev, { role: "assistant", content: reply, meta }]);
+      rewards.recordMeaningfulAiQuestion(topicSlug, text);
     } catch (err: unknown) {
       const errMsg = err instanceof Error ? err.message : String(err);
       const errStack = err instanceof Error ? err.stack : undefined;

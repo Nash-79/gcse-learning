@@ -1,7 +1,15 @@
+export interface TraceTable {
+  columns: string[];
+  rows: string[][];
+}
+
 export interface StructuredSection {
   heading: string;
   content?: string;
   bullets?: string[];
+  /** When present, render as a variable-trace table instead of markdown. */
+  type?: "trace_table";
+  trace?: TraceTable;
 }
 
 export interface StructuredJson {
@@ -161,48 +169,184 @@ function splitInlineLabels(content: string): string {
     .trim();
 }
 
-/** Convert structured JSON output to clean, well-formatted markdown */
-export function structuredJsonToMarkdown(data: StructuredJson): string {
-  const parts: string[] = [];
+/**
+ * Match first-column headers that look like a variable-trace step counter.
+ * Used by the auto-promote heuristic to decide if a markdown table inside a
+ * section's content should be rendered via the dedicated <TraceTable /> UI
+ * instead of plain markdown.
+ */
+const TRACE_STEP_HEADER = /^(step|iter|iteration|loop|n|i|cycle|row)$/i;
 
-  // Summary as a highlighted callout with a goal emoji
-  if (data.summary) {
-    parts.push(`> 🎯 **${data.summary.trim()}**`);
-    parts.push("");
+/**
+ * Try to parse a markdown table out of a content block. Returns the first
+ * table found, or null if none present / malformed. Rows are returned as
+ * raw strings (no HTML escaping needed — the renderer uses monospace text).
+ */
+function parseMarkdownTable(content: string): TraceTable | null {
+  if (!content) return null;
+  const lines = content.split("\n");
+  let start = -1;
+  for (let i = 0; i < lines.length - 1; i++) {
+    if (/^\s*\|.*\|\s*$/.test(lines[i]) && /^\s*\|?\s*:?-{2,}/.test(lines[i + 1])) {
+      start = i;
+      break;
+    }
+  }
+  if (start === -1) return null;
+
+  const headerCells = lines[start]
+    .trim()
+    .replace(/^\||\|$/g, "")
+    .split("|")
+    .map((c) => c.trim());
+
+  const rows: string[][] = [];
+  for (let i = start + 2; i < lines.length; i++) {
+    const line = lines[i];
+    if (!/^\s*\|.*\|\s*$/.test(line)) break;
+    const cells = line
+      .trim()
+      .replace(/^\||\|$/g, "")
+      .split("|")
+      .map((c) => c.trim());
+    rows.push(cells);
   }
 
-  for (const section of data.sections) {
-    parts.push(`## ${ensureHeadingEmoji(section.heading)}`);
-    parts.push("");
+  if (headerCells.length < 2 || rows.length === 0) return null;
+  return { columns: headerCells, rows };
+}
+
+/**
+ * Decide whether a parsed markdown table looks like a variable-trace table
+ * that should render via the dedicated component. Heuristic: the first-column
+ * header matches a step-counter word AND the table has at least 3 columns.
+ */
+function looksLikeTraceTable(trace: TraceTable): boolean {
+  if (trace.columns.length < 3) return false;
+  const firstHeader = trace.columns[0] || "";
+  return TRACE_STEP_HEADER.test(firstHeader);
+}
+
+/**
+ * Normalise a structured response so trace-table sections carry their
+ * `type` and `trace` fields consistently, whether the model emitted them
+ * directly or buried a markdown table inside `content`.
+ */
+export function normalizeStructured(data: StructuredJson): StructuredJson {
+  const sections = data.sections.map((section) => {
+    // Model emitted a structured trace block — trust it.
+    if (section.type === "trace_table" && section.trace?.columns && Array.isArray(section.trace.rows)) {
+      return section;
+    }
+    // Auto-promote: model wrote a markdown table that looks like a trace.
     if (section.content) {
-      const md = toMarkdownContent(splitInlineLabels(section.content));
-      // Ensure blank line padding around fenced code blocks / tables
-      parts.push(md);
+      const parsed = parseMarkdownTable(section.content);
+      if (parsed && looksLikeTraceTable(parsed)) {
+        return { ...section, type: "trace_table" as const, trace: parsed };
+      }
+    }
+    return section;
+  });
+  return { ...data, sections };
+}
+
+export type StructuredBlock =
+  | { kind: "markdown"; text: string }
+  | { kind: "trace"; heading: string; trace: TraceTable; bullets?: string[] };
+
+/**
+ * Render the structured JSON into a list of blocks the chat renderer can
+ * mix-and-match. Markdown blocks include headings, summary callouts, and
+ * next-step lines; trace blocks are handed to <TraceTable />.
+ */
+export function structuredJsonToBlocks(data: StructuredJson): StructuredBlock[] {
+  const normalised = normalizeStructured(data);
+  const blocks: StructuredBlock[] = [];
+
+  if (normalised.summary) {
+    blocks.push({ kind: "markdown", text: `> 🎯 **${normalised.summary.trim()}**` });
+  }
+
+  for (const section of normalised.sections) {
+    if (section.type === "trace_table" && section.trace) {
+      blocks.push({
+        kind: "trace",
+        heading: ensureHeadingEmoji(section.heading),
+        trace: section.trace,
+        bullets: section.bullets,
+      });
+      continue;
+    }
+    const parts: string[] = [`## ${ensureHeadingEmoji(section.heading)}`, ""];
+    if (section.content) {
+      parts.push(toMarkdownContent(splitInlineLabels(section.content)));
       parts.push("");
     }
     if (section.bullets && section.bullets.length > 0) {
-      for (const bullet of section.bullets) {
-        parts.push(`- ${bullet}`);
-      }
+      for (const bullet of section.bullets) parts.push(`- ${bullet}`);
+      parts.push("");
+    }
+    blocks.push({ kind: "markdown", text: parts.join("\n").trim() });
+  }
+
+  if (normalised.next_step && normalised.next_step.trim()) {
+    blocks.push({ kind: "markdown", text: `---\n\n🚀 **Next step:** ${normalised.next_step.trim()}` });
+  }
+
+  if (Array.isArray(normalised.suggestions) && normalised.suggestions.length > 0) {
+    const parts: string[] = ["---", "", "**🔗 Follow-up questions**", ""];
+    for (const s of normalised.suggestions) parts.push(`- ${s}`);
+    blocks.push({ kind: "markdown", text: parts.join("\n") });
+  }
+
+  return blocks;
+}
+
+/** Convert structured JSON output to clean, well-formatted markdown */
+export function structuredJsonToMarkdown(data: StructuredJson): string {
+  // Preserved for callers that need a pure-markdown render (e.g. follow-up
+  // extraction from legacy content). Trace sections are serialised back to
+  // markdown tables so no information is lost.
+  const normalised = normalizeStructured(data);
+  const parts: string[] = [];
+
+  if (normalised.summary) {
+    parts.push(`> 🎯 **${normalised.summary.trim()}**`);
+    parts.push("");
+  }
+
+  for (const section of normalised.sections) {
+    parts.push(`## ${ensureHeadingEmoji(section.heading)}`);
+    parts.push("");
+    if (section.type === "trace_table" && section.trace) {
+      const { columns, rows } = section.trace;
+      parts.push(`| ${columns.join(" | ")} |`);
+      parts.push(`| ${columns.map(() => "---").join(" | ")} |`);
+      for (const row of rows) parts.push(`| ${row.join(" | ")} |`);
+      parts.push("");
+    } else if (section.content) {
+      parts.push(toMarkdownContent(splitInlineLabels(section.content)));
+      parts.push("");
+    }
+    if (section.bullets && section.bullets.length > 0) {
+      for (const bullet of section.bullets) parts.push(`- ${bullet}`);
       parts.push("");
     }
   }
 
-  if (data.next_step && data.next_step.trim()) {
+  if (normalised.next_step && normalised.next_step.trim()) {
     parts.push("---");
     parts.push("");
-    parts.push(`🚀 **Next step:** ${data.next_step.trim()}`);
+    parts.push(`🚀 **Next step:** ${normalised.next_step.trim()}`);
     parts.push("");
   }
 
-  if (Array.isArray(data.suggestions) && data.suggestions.length > 0) {
+  if (Array.isArray(normalised.suggestions) && normalised.suggestions.length > 0) {
     parts.push("---");
     parts.push("");
     parts.push("**🔗 Follow-up questions**");
     parts.push("");
-    for (const suggestion of data.suggestions) {
-      parts.push(`- ${suggestion}`);
-    }
+    for (const suggestion of normalised.suggestions) parts.push(`- ${suggestion}`);
   }
 
   return parts.join("\n").trim();

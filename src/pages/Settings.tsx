@@ -83,6 +83,7 @@ export default function Settings() {
     refreshing: modelsRefreshing,
     error: modelsError,
     lastUpdatedAt,
+    status: modelsStatus,
     refreshModels,
   } = useOpenRouterModels();
   const { user } = useAuth();
@@ -437,7 +438,34 @@ export default function Settings() {
                 <p className="text-sm text-muted-foreground">
                   OpenRouter model catalog is loaded dynamically and cached. {availableModels.length} models available.
                 </p>
-                <p className="text-[11px] text-muted-foreground mt-1">Last updated: {lastUpdatedLabel}</p>
+                <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                  <span
+                    className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-medium border ${
+                      modelsStatus === "ready"
+                        ? "bg-green-500/10 text-green-500 border-green-500/20"
+                        : modelsStatus === "loading"
+                        ? "bg-muted text-muted-foreground border-border/50"
+                        : "bg-amber-500/10 text-amber-500 border-amber-500/20"
+                    }`}
+                    title="Probes the OpenRouter models endpoint, not chat completions"
+                  >
+                    <span
+                      className={`w-1.5 h-1.5 rounded-full ${
+                        modelsStatus === "ready"
+                          ? "bg-green-500"
+                          : modelsStatus === "loading"
+                          ? "bg-muted-foreground animate-pulse"
+                          : "bg-amber-500"
+                      }`}
+                    />
+                    {modelsStatus === "ready"
+                      ? "Catalog available"
+                      : modelsStatus === "loading"
+                      ? "Checking catalog…"
+                      : "Catalog unavailable — using fallback"}
+                  </span>
+                  <span className="text-[11px] text-muted-foreground">Last updated: {lastUpdatedLabel}</span>
+                </div>
               </div>
               <Button
                 variant="outline"

@@ -33,8 +33,10 @@ import { TopicNotes } from "@/components/content/TopicNotes";
 import { SteppedLearning } from "@/components/learning/SteppedLearning";
 import { ExamQuestionBank } from "@/components/quiz/ExamQuestionBank";
 import { QuizComponent } from "@/components/quiz/QuizComponent";
+import { MasteryBadge } from "@/components/rewards/MasteryBadge";
 import { topicLearningSteps } from "@/data/learningSteps";
 import { topicData, type QuizQuestion } from "@/data/topicContent";
+import { useRewards } from "@/hooks/useRewards";
 import { useExamBoard, useGetTopicProgress, useListTopics, useUpdateTopicProgress } from "@/hooks/useTopics";
 import { getTopicAugmentation } from "@/lib/topicAugmentation";
 import { getRelatedTheory } from "@/lib/topicCrossLinks";
@@ -75,6 +77,7 @@ export default function TopicPage() {
   const { data: topics, isLoading: topicsLoading } = useListTopics("all");
   const { data: progress } = useGetTopicProgress(slug);
   const updateProgress = useUpdateTopicProgress();
+  const rewards = useRewards();
 
   const content = topicData[slug];
   const topicMeta = topics?.find((topic) => topic.slug === slug);
@@ -228,6 +231,7 @@ export default function TopicPage() {
             {topicMeta.title}
           </h1>
           <div className="flex items-center gap-3 shrink-0">
+            <MasteryBadge tier={progress?.masteryTier || "none"} />
             <Button
               variant="ghost"
               size="sm"
@@ -341,7 +345,12 @@ export default function TopicPage() {
                   />
                 </div>
               )}
-              <SteppedLearning steps={learningSteps} topicTitle={topicMeta.title} />
+              <SteppedLearning
+                steps={learningSteps}
+                topicTitle={topicMeta.title}
+                onComplete={() => rewards.completeTheoryActivity(slug)}
+                onCodeRun={() => rewards.recordTopicCodeRun(slug)}
+              />
             </motion.div>
           </TabsContent>
         )}
@@ -364,6 +373,21 @@ export default function TopicPage() {
             )}
 
             <TopicNotes paragraphs={content.explanation} />
+
+            <div className="mt-6 flex flex-wrap items-center gap-3 rounded-2xl border border-primary/20 bg-primary/5 p-4">
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-foreground">Ready to lock this lesson in?</p>
+                <p className="text-xs text-muted-foreground">Mark the notes as complete to collect XP and move this topic toward Bronze mastery.</p>
+              </div>
+              <Button
+                size="sm"
+                className="rounded-full"
+                variant={progress?.lessonCompleted ? "outline" : "default"}
+                onClick={() => rewards.completeLesson(slug)}
+              >
+                {progress?.lessonCompleted ? "Lesson completed" : "Mark lesson complete"}
+              </Button>
+            </div>
 
             <div className="grid grid-cols-1 gap-8 mt-10">
               {content.codeExamples.map((example, index) => (
@@ -471,7 +495,11 @@ export default function TopicPage() {
               <h2 className="text-2xl font-display font-bold mb-2">Practice</h2>
               <p className="text-muted-foreground">Edit and run code to practice what you have learned.</p>
             </div>
-            <CodeRunner initialCode={content.codeExamples[0]?.code || 'print("Hello!")'} height="h-[400px]" />
+            <CodeRunner
+              initialCode={content.codeExamples[0]?.code || 'print("Hello!")'}
+              height="h-[400px]"
+              onRunSuccess={() => rewards.recordTopicCodeRun(slug)}
+            />
           </motion.div>
         </TabsContent>
 

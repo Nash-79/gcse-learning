@@ -45,6 +45,31 @@ JSON RULES:
 - For multi-line code, put a fenced \`\`\`python ... \`\`\` block inside "content".
 - "next_step" may be an empty string.
 
+TRACE TABLE SECTIONS (for variable walkthroughs / loop traces):
+When you would normally draw a step-by-step variable trace (e.g. tracing a for-loop, bubble sort pass, or binary search iteration), use a dedicated trace section instead of writing a markdown table inside "content". Set:
+  "type": "trace_table",
+  "trace": { "columns": ["Step", ...], "rows": [["1", ...], ["2", ...]] }
+- The FIRST column MUST be a step counter: "Step", "Iter", "Iteration", "Loop", "n", "i", "Cycle", or "Row".
+- Include 3-6 columns total. Each row must have one cell per column (use "" for empty).
+- Use at most 8 rows. If a trace is longer, summarise the pattern in "content" and show only key steps.
+- Do NOT also include a markdown table inside "content" for the same trace — pick one representation.
+
+Example trace section:
+{
+  "heading": "🔍 Trace through the loop",
+  "type": "trace_table",
+  "trace": {
+    "columns": ["Step", "i", "total", "Condition (i < 3)"],
+    "rows": [
+      ["1", "0", "0", "True"],
+      ["2", "1", "1", "True"],
+      ["3", "2", "3", "True"],
+      ["4", "3", "3", "False → exit"]
+    ]
+  },
+  "bullets": ["Loop stops when the condition becomes False.", "\`total\` ends at 3 after summing 0+1+2."]
+}
+
 STYLE RULES (INSIDE JSON STRINGS):
 - Write for a 14-16 year old GCSE student — clear, friendly, encouraging.
 - Short sentences (≤ 20 words).

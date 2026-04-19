@@ -10,6 +10,7 @@ import { AiExamValidator } from "@/components/challenges/AiExamValidator";
 import type { CodingChallenge, ChallengeDifficulty } from "@/data/codingChallenges";
 import { getChallengesForTopic } from "@/data/codingChallenges";
 import { useChallengeProgress, type ChallengeStatus } from "@/hooks/useChallengeProgress";
+import { useRewards } from "@/hooks/useRewards";
 
 const difficultyConfig: Record<ChallengeDifficulty, { label: string; icon: React.ElementType; color: string; bg: string; activeBg: string }> = {
   beginner: { label: "Beginner", icon: Zap, color: "text-green-400", bg: "bg-green-500/10 border-green-500/30 hover:bg-green-500/20", activeBg: "bg-green-500 text-white" },
@@ -56,6 +57,7 @@ export function CodingChallengePanel({ topicSlug, topicTitle }: CodingChallengeP
   const [generatingModelAnswerId, setGeneratingModelAnswerId] = useState<string | null>(null);
   const [editorCode, setEditorCode] = useState("");
   const { getStatus, setStatus } = useChallengeProgress();
+  const rewards = useRewards();
 
   const staticChallenges = getChallengesForTopic(topicSlug);
   const allChallenges = [...staticChallenges, ...aiChallenges];
@@ -121,6 +123,7 @@ export function CodingChallengePanel({ topicSlug, topicTitle }: CodingChallengeP
     setGradeResult(grade);
     if (grade.result === "correct") {
       setStatus(selectedChallenge.id, "completed");
+      rewards.completePracticeActivity(topicSlug, selectedChallenge.id, "Challenge completed");
     }
   };
 
@@ -235,6 +238,7 @@ export function CodingChallengePanel({ topicSlug, topicTitle }: CodingChallengeP
           initialCode={selectedChallenge.starterCode}
           height="h-[350px]"
           onOutput={handleCodeRun}
+          onRunSuccess={() => rewards.recordTopicCodeRun(topicSlug)}
           onCodeChange={setEditorCode}
         />
 

@@ -16,6 +16,7 @@ export type Database = {
     Tables: {
       app_logs: {
         Row: {
+          archived_at: string | null
           created_at: string
           details: Json | null
           error_stack: string | null
@@ -28,6 +29,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          archived_at?: string | null
           created_at?: string
           details?: Json | null
           error_stack?: string | null
@@ -40,6 +42,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          archived_at?: string | null
           created_at?: string
           details?: Json | null
           error_stack?: string | null

@@ -1,5 +1,16 @@
 import { useState, useEffect, useCallback } from "react";
 import { topicData } from "@/data/topicContent";
+import { showRewardFeedback } from "@/lib/rewards/feedback";
+import {
+  createDefaultTopicProgress,
+  emitProgressUpdate,
+  getTopicProgress,
+  loadProgress,
+  recordTopicTime,
+  saveProgress,
+  submitQuizAttempt,
+} from "@/lib/progress";
+import type { Progress, TopicProgress } from "@/lib/rewards/types";
 
 export type ExamBoard = "ocr" | "aqa" | "all";
 
@@ -127,66 +138,11 @@ export function useListTopics(filterBoard?: ExamBoard) {
   return { data: filtered, isLoading: false };
 }
 
-interface TopicProgress {
-  topicSlug: string;
-  completed: boolean;
-  timeSpentSeconds: number;
-  bestScore: number | null;
-}
-
-interface Progress {
-  completedTopics: number;
-  totalTopics: number;
-  totalTimeSpentSeconds: number;
-  weeklyTimeSpentSeconds: number;
-  weekStartDate: string;
-  overallBestScore: number | null;
-  topicProgress: TopicProgress[];
-}
-
-function getWeekStart(): string {
-  const now = new Date();
-  const day = now.getDay();
-  const diff = now.getDate() - day + (day === 0 ? -6 : 1); // Monday start
-  const monday = new Date(now.getFullYear(), now.getMonth(), diff);
-  return monday.toISOString().split("T")[0];
-}
-
-function loadProgress(): Progress {
-  try {
-    const stored = localStorage.getItem("pylearn-progress");
-    if (stored) {
-      const p = JSON.parse(stored) as Progress;
-      // Reset weekly time if new week
-      const currentWeek = getWeekStart();
-      if (p.weekStartDate !== currentWeek) {
-        p.weeklyTimeSpentSeconds = 0;
-        p.weekStartDate = currentWeek;
-        saveProgress(p);
-      }
-      return p;
-    }
-  } catch {}
-  return {
-    completedTopics: 0,
-    totalTopics: topicsList.length,
-    totalTimeSpentSeconds: 0,
-    weeklyTimeSpentSeconds: 0,
-    weekStartDate: getWeekStart(),
-    overallBestScore: null,
-    topicProgress: [],
-  };
-}
-
-function saveProgress(p: Progress) {
-  localStorage.setItem("pylearn-progress", JSON.stringify(p));
-}
-
 export function useGetProgress() {
-  const [progress, setProgress] = useState<Progress>(loadProgress);
+  const [progress, setProgress] = useState<Progress>(() => loadProgress(topicsList.length));
 
   useEffect(() => {
-    const handler = () => setProgress(loadProgress());
+    const handler = () => setProgress(loadProgress(topicsList.length));
     window.addEventListener("pylearn-progress-update", handler);
     return () => window.removeEventListener("pylearn-progress-update", handler);
   }, []);
@@ -196,9 +152,9 @@ export function useGetProgress() {
 
 export function useGetTopicProgress(slug: string) {
   const { data: progress } = useGetProgress();
-  const tp = progress.topicProgress.find(t => t.topicSlug === slug);
+  const tp = getTopicProgress(progress, slug);
   return {
-    data: tp || { topicSlug: slug, completed: false, timeSpentSeconds: 0, bestScore: null },
+    data: tp || createDefaultTopicProgress(slug),
     isLoading: false,
   };
 }
@@ -206,22 +162,10 @@ export function useGetTopicProgress(slug: string) {
 export function useUpdateTopicProgress() {
   return {
     mutate: ({ topicSlug, data }: { topicSlug: string; data: { timeSpentSeconds: number } }) => {
-      const progress = loadProgress();
-      const existing = progress.topicProgress.find(t => t.topicSlug === topicSlug);
-      if (existing) {
-        existing.timeSpentSeconds += data.timeSpentSeconds;
-      } else {
-        progress.topicProgress.push({
-          topicSlug,
-          completed: false,
-          timeSpentSeconds: data.timeSpentSeconds,
-          bestScore: null,
-        });
-      }
-      progress.totalTimeSpentSeconds += data.timeSpentSeconds;
-      progress.weeklyTimeSpentSeconds += data.timeSpentSeconds;
-      saveProgress(progress);
-      window.dispatchEvent(new Event("pylearn-progress-update"));
+      const progress = loadProgress(topicsList.length);
+      const next = recordTopicTime(progress, topicSlug, data.timeSpentSeconds);
+      saveProgress(next);
+      emitProgressUpdate();
     },
   };
 }
@@ -229,37 +173,19 @@ export function useUpdateTopicProgress() {
 export function useSubmitQuizResult() {
   return {
     mutate: (
-      { data }: { data: { topicSlug: string; score: number; totalQuestions: number } },
+      { data }: { data: { topicSlug: string; score: number; totalQuestions: number; usedHints?: boolean } },
       options?: { onSuccess?: () => void }
     ) => {
-      const progress = loadProgress();
-      const existing = progress.topicProgress.find(t => t.topicSlug === data.topicSlug);
-      const passed = data.score >= data.totalQuestions * 0.6;
-
-      if (existing) {
-        if (existing.bestScore === null || data.score > existing.bestScore) {
-          existing.bestScore = data.score;
-        }
-        if (passed && !existing.completed) {
-          existing.completed = true;
-          progress.completedTopics++;
-        }
-      } else {
-        progress.topicProgress.push({
-          topicSlug: data.topicSlug,
-          completed: passed,
-          timeSpentSeconds: 0,
-          bestScore: data.score,
-        });
-        if (passed) progress.completedTopics++;
-      }
-
-      if (progress.overallBestScore === null || data.score > progress.overallBestScore) {
-        progress.overallBestScore = data.score;
-      }
-
-      saveProgress(progress);
-      window.dispatchEvent(new Event("pylearn-progress-update"));
+      const progress = loadProgress(topicsList.length);
+      const result = submitQuizAttempt(progress, {
+        topicSlug: data.topicSlug,
+        score: data.score,
+        totalQuestions: data.totalQuestions,
+        usedHints: Boolean(data.usedHints),
+      });
+      saveProgress(result.progress);
+      emitProgressUpdate();
+      showRewardFeedback(result);
       options?.onSuccess?.();
     },
   };

@@ -22,6 +22,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
+import { MasteryBadge } from "@/components/rewards/MasteryBadge";
+import { RewardsSummaryCard } from "@/components/rewards/RewardsSummaryCard";
 import { useListTopics, useGetProgress, useExamBoard, type ExamBoard, type Topic } from "@/hooks/useTopics";
 
 type TopicDifficultyFilter = "all" | Topic["difficulty"];
@@ -184,6 +186,7 @@ export default function Home() {
             [1, 2, 3].map((index) => <Skeleton key={index} className="h-28 rounded-2xl" />)
           ) : (
             <>
+              {progress && <RewardsSummaryCard progress={progress} />}
               <Card className="glass card-shine rounded-2xl overflow-hidden group hover:neon-glow transition-all duration-500">
                 <CardContent className="p-5 flex items-center gap-4">
                   <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center text-primary shrink-0 group-hover:scale-110 transition-transform duration-300">
@@ -309,7 +312,8 @@ export default function Home() {
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mt-3">
                   {categoryTopics.map((topic, index) => {
-                    const completed = progress?.topicProgress.some((entry) => entry.topicSlug === topic.slug && entry.completed);
+                    const topicProgress = progress?.topicProgress.find((entry) => entry.topicSlug === topic.slug);
+                    const completed = Boolean(topicProgress?.completed);
                     return (
                       <motion.div key={topic.id} variants={item}>
                         <Link to={`/topic/${topic.slug}`}>
@@ -325,6 +329,7 @@ export default function Home() {
                                     {topic.ocrRef && (
                                       <span className="text-[10px] font-mono text-muted-foreground/60">S{topic.ocrRef}</span>
                                     )}
+                                    <MasteryBadge tier={topicProgress?.masteryTier || "none"} compact />
                                     <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary">{topic.difficulty}</span>
                                     <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-secondary/10 text-secondary">{topic.level.toUpperCase()}</span>
                                   </div>

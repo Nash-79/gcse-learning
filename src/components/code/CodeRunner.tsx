@@ -6,6 +6,7 @@ export interface CodeRunnerProps {
   initialCode?: string;
   height?: string;
   onOutput?: (output: string) => void;
+  onRunSuccess?: (output: string) => void;
   onCodeChange?: (code: string) => void;
 }
 
@@ -13,6 +14,7 @@ export function CodeRunner({
   initialCode = 'print("Hello, World!")',
   height = "h-[300px]",
   onOutput,
+  onRunSuccess,
   onCodeChange,
 }: CodeRunnerProps) {
   const [code, setCode] = useState(initialCode);
@@ -58,7 +60,11 @@ export function CodeRunner({
     );
 
     myPromise.then(
-      () => { setIsRunning(false); onOutput?.(capturedOutput); },
+      () => {
+        setIsRunning(false);
+        onOutput?.(capturedOutput);
+        onRunSuccess?.(capturedOutput);
+      },
       (err: unknown) => {
         setError(err instanceof Error ? err.message : String(err));
         setIsRunning(false);

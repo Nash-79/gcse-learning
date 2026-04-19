@@ -1,40 +1,36 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { requireAuthenticatedUser } from "../_shared/auth.ts";
 import { STRUCTURED_OUTPUT_INSTRUCTION, STRUCTURED_USER_SUFFIX } from "../_shared/structuredContract.ts";
+import {
+  OPENROUTER_CHAIN,
+  OPENROUTER_MODELS,
+  LOVABLE_JSON_MODEL,
+  type AiAttempt,
+  type AiFallbackReason,
+  type ProviderName,
+  isRetryableStatus,
+  modelLabel,
+  parseRetryWaitMs,
+  sanitizeSnippet,
+  shouldLogUpstreamFailure,
+  sleep,
+} from "../_shared/aiProviders.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-// Models supported by OpenRouter free tier
-const OPENROUTER_MODELS = new Set([
-  "meta-llama/llama-3.3-70b-instruct:free",
-  "google/gemma-3-27b-it:free",
-  "qwen/qwen3-coder:free",
-  "nvidia/nemotron-3-super-120b-a12b:free",
-  "qwen/qwen3-next-80b-a3b-instruct:free",
-  "openai/gpt-oss-120b:free",
-  "stepfun/step-3.5-flash:free",
-  "mistralai/mistral-small-3.1-24b-instruct:free",
-  "arcee-ai/trinity-large-preview:free",
-  "openai/gpt-oss-20b:free",
-  "minimax/minimax-m2.5:free",
-  "nvidia/nemotron-3-nano-30b-a3b:free",
-  "nousresearch/hermes-3-llama-3.1-405b:free",
-  "nvidia/nemotron-nano-12b-v2-vl:free",
-  "nvidia/nemotron-nano-9b-v2:free",
-  "z-ai/glm-4.5-air:free",
-  "arcee-ai/trinity-mini:free",
-  "google/gemma-3-12b-it:free",
-  "google/gemma-3-4b-it:free",
-  "qwen/qwen3-4b:free",
-  "meta-llama/llama-3.2-3b-instruct:free",
-  "meta-llama/llama-3.1-8b-instruct:free",
-]);
+const MAX_RETRIES_PER_MODEL = 1; // +1 initial = 2 attempts per model
+const ROUTE_KEY = "ai-chat";
 
-async function callAI(apiKey: string, body: Record<string, unknown>, isOpenRouter: boolean): Promise<Response> {
-  if (isOpenRouter) {
+async function callProvider(
+  provider: ProviderName,
+  model: string,
+  apiKey: string,
+  body: Record<string, unknown>,
+): Promise<Response> {
+  if (provider === "openrouter") {
     return fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -42,11 +38,12 @@ async function callAI(apiKey: string, body: Record<string, unknown>, isOpenRoute
         Authorization: `Bearer ${apiKey}`,
         "HTTP-Referer": "https://lovable.dev",
       },
-      body: JSON.stringify(body),
+      body: JSON.stringify({ ...body, model }),
     });
   }
-  const lovableBody: Record<string, unknown> = { ...body, model: "google/gemini-2.5-flash" };
-  delete (lovableBody as any).response_format;
+  // Lovable AI doesn't honour response_format
+  const lovableBody: Record<string, unknown> = { ...body, model };
+  delete lovableBody.response_format;
   return fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
     method: "POST",
     headers: {
@@ -55,6 +52,62 @@ async function callAI(apiKey: string, body: Record<string, unknown>, isOpenRoute
     },
     body: JSON.stringify(lovableBody),
   });
+}
+
+interface AttemptContext {
+  provider: ProviderName;
+  model: string;
+  apiKey: string;
+}
+
+interface AttemptResult {
+  response: Response;
+  attempts: AiAttempt[];
+  fallbackReason: AiFallbackReason | null;
+}
+
+// Try a single provider/model with retries on 429/5xx. Returns the final
+// response (ok or not) plus the attempts made.
+async function tryWithRetries(
+  ctx: AttemptContext,
+  body: Record<string, unknown>,
+): Promise<AttemptResult> {
+  const attempts: AiAttempt[] = [];
+  let fallbackReason: AiFallbackReason | null = null;
+  let response: Response | null = null;
+
+  for (let attempt = 0; attempt <= MAX_RETRIES_PER_MODEL; attempt++) {
+    const t0 = Date.now();
+    response = await callProvider(ctx.provider, ctx.model, ctx.apiKey, body);
+    const elapsed = Date.now() - t0;
+    attempts.push({ model: ctx.model, provider: ctx.provider, status: response.status, ms: elapsed });
+
+    if (response.ok) return { response, attempts, fallbackReason };
+
+    if (!isRetryableStatus(response.status)) {
+      // Non-retryable (4xx other than 429) — return immediately so the outer
+      // chain walker can decide whether to try the next model.
+      return { response, attempts, fallbackReason };
+    }
+
+    // Capture the first non-success response as the fallback reason.
+    if (!fallbackReason) {
+      const snippet = sanitizeSnippet(await response.clone().text());
+      fallbackReason = {
+        status: response.status,
+        message: snippet || response.statusText || "Upstream error",
+        model: ctx.model,
+        provider: ctx.provider,
+      };
+    }
+
+    if (attempt < MAX_RETRIES_PER_MODEL) {
+      await sleep(parseRetryWaitMs(response.headers, attempt));
+    }
+  }
+
+  // All retries exhausted.
+  return { response: response!, attempts, fallbackReason };
 }
 
 serve(async (req) => {
@@ -81,7 +134,7 @@ serve(async (req) => {
     }
 
     const preferLovable = provider === "lovable";
-    const requestedModel = model || (preferLovable ? "google/gemini-2.5-flash" : "meta-llama/llama-3.3-70b-instruct:free");
+    const requestedModel = model || (preferLovable ? LOVABLE_JSON_MODEL : OPENROUTER_CHAIN[0]);
     const isOpenRouterModel = OPENROUTER_MODELS.has(requestedModel);
 
     let systemPrompt: string;
@@ -89,7 +142,7 @@ serve(async (req) => {
     let wantJson = false;
 
     if (mode === "chat") {
-      systemPrompt = `You are a GCSE Computer Science tutor helping a student learn Python. The current topic is "${topicTitle}". 
+      systemPrompt = `You are a GCSE Computer Science tutor helping a student learn Python. The current topic is "${topicTitle}".
 
 IMPORTANT CODING STYLE RULES:
 - Use ONLY simple Python suitable for 14-16 year old GCSE students
@@ -100,7 +153,6 @@ IMPORTANT CODING STYLE RULES:
 - Use simple vocabulary appropriate for 14-16 year olds
 - Comment every significant line of code
 - Format code blocks with triple backticks` + STRUCTURED_OUTPUT_INSTRUCTION;
-      // Append structured suffix to last user message
       userMessages = messages.map((m: { role: string; content: string }, i: number) => {
         if (i === messages.length - 1 && m.role === "user") {
           return { ...m, content: m.content + STRUCTURED_USER_SUFFIX };
@@ -108,7 +160,7 @@ IMPORTANT CODING STYLE RULES:
         return m;
       });
     } else if (mode === "validate") {
-      systemPrompt = `You are an OCR GCSE Computer Science exam marker. Grade Python code submissions for the topic "${topicTitle}". 
+      systemPrompt = `You are an OCR GCSE Computer Science exam marker. Grade Python code submissions for the topic "${topicTitle}".
 
 Return ONLY a JSON object with:
 - score (0-10 integer)
@@ -136,7 +188,6 @@ Be encouraging but honest. Reference OCR J277 exam expectations where relevant.`
     }
 
     const requestBody: Record<string, unknown> = {
-      model: requestedModel,
       messages: [
         { role: "system", content: systemPrompt },
         ...userMessages,
@@ -148,46 +199,101 @@ Be encouraging but honest. Reference OCR J277 exam expectations where relevant.`
       requestBody.response_format = { type: "json_object" };
     }
 
-    let response: Response | null = null;
-    let usedFallback = false;
-    let finalModelId = requestedModel;
-    let finalModelLabel = requestedModel.split("/").pop()?.replace(":free", "") || requestedModel;
+    // Build the ordered candidate list. If a specific model was requested,
+    // start there; then continue through the OpenRouter chain (deduped); then
+    // drop to Lovable as final fallback.
+    const candidates: Array<{ provider: ProviderName; model: string; apiKey: string }> = [];
+    const seen = new Set<string>();
+
+    const addOr = (m: string) => {
+      if (!OPENROUTER_API_KEY || seen.has(`or:${m}`)) return;
+      seen.add(`or:${m}`);
+      candidates.push({ provider: "openrouter", model: m, apiKey: OPENROUTER_API_KEY });
+    };
+    const addLovable = () => {
+      if (!LOVABLE_API_KEY || seen.has(`lv:${LOVABLE_JSON_MODEL}`)) return;
+      seen.add(`lv:${LOVABLE_JSON_MODEL}`);
+      candidates.push({ provider: "lovable", model: LOVABLE_JSON_MODEL, apiKey: LOVABLE_API_KEY });
+    };
+
+    if (preferLovable) {
+      addLovable();
+      for (const m of OPENROUTER_CHAIN) addOr(m);
+    } else if (isOpenRouterModel) {
+      addOr(requestedModel);
+      for (const m of OPENROUTER_CHAIN) addOr(m);
+      addLovable();
+    } else {
+      // Unknown model — try Lovable first, then OpenRouter chain.
+      addLovable();
+      for (const m of OPENROUTER_CHAIN) addOr(m);
+    }
+
+    if (candidates.length === 0) {
+      throw new Error("No AI provider available");
+    }
+
     const startTime = Date.now();
+    const allAttempts: AiAttempt[] = [];
+    let fallbackReason: AiFallbackReason | null = null;
+    let finalResponse: Response | null = null;
+    let finalCandidate = candidates[0];
 
-    if (!preferLovable && isOpenRouterModel && OPENROUTER_API_KEY) {
-      response = await callAI(OPENROUTER_API_KEY, requestBody, true);
-      if (!response.ok && LOVABLE_API_KEY) {
-        console.log(`OpenRouter failed (${response.status}), falling back to Lovable AI`);
-        response = await callAI(LOVABLE_API_KEY, requestBody, false);
-        usedFallback = true;
-        finalModelId = "google/gemini-2.5-flash";
-        finalModelLabel = "Gemini 2.5 Flash (Lovable AI)";
+    for (const candidate of candidates) {
+      const result = await tryWithRetries(candidate, requestBody);
+      allAttempts.push(...result.attempts);
+      if (!fallbackReason && result.fallbackReason) {
+        fallbackReason = result.fallbackReason;
       }
-    } else if (LOVABLE_API_KEY) {
-      response = await callAI(LOVABLE_API_KEY, requestBody, false);
-      finalModelId = "google/gemini-2.5-flash";
-      finalModelLabel = "Gemini 2.5 Flash (Lovable AI)";
-    } else if (OPENROUTER_API_KEY) {
-      response = await callAI(OPENROUTER_API_KEY, requestBody, true);
+      finalResponse = result.response;
+      finalCandidate = candidate;
+      if (result.response.ok) break;
+
+      // Log upstream failure once per (origin, status, model) per minute.
+      if (shouldLogUpstreamFailure({ origin: ROUTE_KEY, status: result.response.status, model: candidate.model })) {
+        console.error(`[${ROUTE_KEY}] upstream ${result.response.status} from ${candidate.provider}/${candidate.model}`);
+      }
     }
 
-    if (!response || !response.ok) {
-      const status = response?.status || 500;
-      const errorText = response ? await response.text() : "No response";
-      console.error("AI error:", status, errorText);
-      throw new Error(`AI API error: ${status}`);
+    if (!finalResponse || !finalResponse.ok) {
+      const status = finalResponse?.status || 500;
+      const elapsedMs = Date.now() - startTime;
+      const errorBody = finalResponse ? sanitizeSnippet(await finalResponse.text()) : "No response";
+      console.error(`[${ROUTE_KEY}] all candidates failed:`, status, errorBody);
+      return new Response(
+        JSON.stringify({
+          error: "AI service unavailable",
+          meta: {
+            routeKey: ROUTE_KEY,
+            finalModelId: finalCandidate.model,
+            finalModelLabel: modelLabel(finalCandidate.model, finalCandidate.provider),
+            usedFallback: allAttempts.length > 1,
+            degraded: true,
+            attemptCount: allAttempts.length,
+            elapsedMs,
+            fallbackReason,
+            attempts: allAttempts,
+          },
+        }),
+        { status: status === 402 || status === 429 ? status : 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
-    const data = await response.json();
+    const data = await finalResponse.json();
     const content = data.choices?.[0]?.message?.content || "";
     const elapsedMs = Date.now() - startTime;
+    const intendedFirst = candidates[0];
+    const usedFallback = finalCandidate.model !== intendedFirst.model || finalCandidate.provider !== intendedFirst.provider;
 
     const meta = {
-      routeKey: "ai-chat",
-      finalModelId,
-      finalModelLabel,
+      routeKey: ROUTE_KEY,
+      finalModelId: finalCandidate.model,
+      finalModelLabel: modelLabel(finalCandidate.model, finalCandidate.provider),
       usedFallback,
+      attemptCount: allAttempts.length,
       elapsedMs,
+      fallbackReason,
+      attempts: allAttempts,
     };
 
     if (wantJson) {
@@ -204,7 +310,7 @@ Be encouraging but honest. Reference OCR J277 exam expectations where relevant.`
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
-    console.error("ai-chat error:", e);
+    console.error(`[${ROUTE_KEY}] error:`, e);
     return new Response(
       JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }

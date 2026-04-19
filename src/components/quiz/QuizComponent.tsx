@@ -39,6 +39,7 @@ export function QuizComponent({ topicSlug, questions, onGenerateMore, isGenerati
   const [isFinished, setIsFinished] = useState(false);
   const [finalScore, setFinalScore] = useState(0);
   const [showHint, setShowHint] = useState(false);
+  const [usedHintThisAttempt, setUsedHintThisAttempt] = useState(false);
   const [selectedDifficulty, setSelectedDifficulty] = useState<Difficulty | "all">("all");
 
   const submitQuiz = useSubmitQuizResult();
@@ -82,7 +83,7 @@ export function QuizComponent({ topicSlug, questions, onGenerateMore, isGenerati
     }
 
     submitQuiz.mutate({
-      data: { topicSlug, score: computedScore, totalQuestions: activeQuestions.length }
+      data: { topicSlug, score: computedScore, totalQuestions: activeQuestions.length, usedHints: usedHintThisAttempt }
     });
   };
 
@@ -94,6 +95,7 @@ export function QuizComponent({ topicSlug, questions, onGenerateMore, isGenerati
     setFinalScore(0);
     setIsFinished(false);
     setShowHint(false);
+    setUsedHintThisAttempt(false);
   };
 
   const switchDifficulty = (d: Difficulty | "all") => {
@@ -212,7 +214,12 @@ export function QuizComponent({ topicSlug, questions, onGenerateMore, isGenerati
 
         {currentQ.hint && !isAnswered && (
           <button
-            onClick={() => setShowHint(!showHint)}
+            onClick={() => {
+              if (!showHint) {
+                setUsedHintThisAttempt(true);
+              }
+              setShowHint(!showHint);
+            }}
             className="flex items-center gap-2 text-sm text-yellow-500 hover:text-yellow-400 transition-colors"
           >
             <Lightbulb className="w-4 h-4" />

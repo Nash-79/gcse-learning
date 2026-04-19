@@ -43,6 +43,30 @@ JSON RULES:
 - For code examples, put code in content as a plain string
 - next_step may be an empty string
 
+TRACE TABLE SECTIONS (for variable walkthroughs / loop traces):
+When tracing a for-loop, sort pass, or algorithm step-by-step, use a dedicated trace section instead of a markdown table. Set:
+  "type": "trace_table",
+  "trace": { "columns": ["Step", ...], "rows": [["1", ...]] }
+- First column MUST be a step counter: Step | Iter | Iteration | Loop | n | i | Cycle | Row.
+- 3-6 columns, max 8 rows. Each row needs one cell per column (use "" for empty cells).
+- Do NOT also include a markdown table for the same trace inside "content".
+
+Example trace section:
+{
+  "heading": "🔍 Trace through the loop",
+  "type": "trace_table",
+  "trace": {
+    "columns": ["Step", "i", "total", "Condition (i < 3)"],
+    "rows": [
+      ["1", "0", "0", "True"],
+      ["2", "1", "1", "True"],
+      ["3", "2", "3", "True"],
+      ["4", "3", "3", "False -> exit"]
+    ]
+  },
+  "bullets": ["Loop stops when the condition becomes False.", "total ends at 3 after summing 0+1+2."]
+}
+
 STYLE RULES (INSIDE JSON STRINGS):
 - Write for a 14-16 year-old GCSE student — clear, friendly, encouraging
 - Keep sentences short: aim for 20 words or fewer
