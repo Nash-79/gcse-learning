@@ -85,6 +85,7 @@ function inferLevel(slug: string): Topic["level"] {
 
 const topicsList: Topic[] = baseTopicsList.map((topic) => ({
   ...topic,
+  examBoards: topic.examBoards as ExamBoard[],
   difficulty: inferDifficulty(topic.slug, topic.category),
   level: inferLevel(topic.slug),
 }));
