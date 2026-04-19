@@ -23,6 +23,7 @@ import Theory from "@/pages/Theory";
 import NotFound from "@/pages/NotFound";
 import { AppSidebar } from "@/components/layout/AppSidebar";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { ApprovalGate } from "@/components/auth/ApprovalGate";
 import { Header } from "@/components/layout/Header";
 import { ScrollRestoration } from "@/components/layout/ScrollRestoration";
 import { SkipToContent } from "@/components/layout/SkipToContent";
@@ -61,22 +62,24 @@ const App = () => {
                       aria-label="Main content"
                     >
                       <ScrollRestoration />
-                      <Routes>
-                        <Route path="/" element={<Home />} />
-                        <Route path="/auth" element={<Auth />} />
-                        <Route path="/reset-password" element={<ResetPassword />} />
-                        <Route path="/topic/:slug" element={<TopicPage />} />
-                        <Route path="/playground" element={<Playground />} />
-                        <Route path="/question-bank" element={<QuestionBank />} />
-                        <Route path="/exam-session/:setId" element={<ProtectedRoute><ExamSession /></ProtectedRoute>} />
-                        <Route path="/topic-theory/:slug" element={<TopicTheory />} />
-                        <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-                        <Route path="/ai-tutor" element={<ProtectedRoute><AiTutor /></ProtectedRoute>} />
-                        <Route path="/exam-history" element={<ProtectedRoute><ExamHistory /></ProtectedRoute>} />
-                        <Route path="/spaced-repetition" element={<ProtectedRoute><SpacedRepetition /></ProtectedRoute>} />
-                        <Route path="/theory" element={<Theory />} />
-                        <Route path="*" element={<NotFound />} />
-                      </Routes>
+                      <ApprovalGate>
+                        <Routes>
+                          <Route path="/" element={<Home />} />
+                          <Route path="/auth" element={<Auth />} />
+                          <Route path="/reset-password" element={<ResetPassword />} />
+                          <Route path="/topic/:slug" element={<TopicPage />} />
+                          <Route path="/playground" element={<Playground />} />
+                          <Route path="/question-bank" element={<QuestionBank />} />
+                          <Route path="/exam-session/:setId" element={<ProtectedRoute><ExamSession /></ProtectedRoute>} />
+                          <Route path="/topic-theory/:slug" element={<TopicTheory />} />
+                          <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+                          <Route path="/ai-tutor" element={<ProtectedRoute><AiTutor /></ProtectedRoute>} />
+                          <Route path="/exam-history" element={<ProtectedRoute><ExamHistory /></ProtectedRoute>} />
+                          <Route path="/spaced-repetition" element={<ProtectedRoute><SpacedRepetition /></ProtectedRoute>} />
+                          <Route path="/theory" element={<Theory />} />
+                          <Route path="*" element={<NotFound />} />
+                        </Routes>
+                      </ApprovalGate>
                     </main>
                     <footer className="shrink-0 border-t border-border/50 bg-muted/20 px-6 py-3 text-xs text-muted-foreground flex items-center justify-between gap-4">
                       <span>PyLearn — GCSE Computer Science Revision</span>
