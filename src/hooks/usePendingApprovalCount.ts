@@ -25,7 +25,7 @@ export function usePendingApprovalCount() {
     const fetchCount = async () => {
       const { count: c } = await supabase
         .from("profiles")
-        .select("*", { count: "exact", head: true })
+        .select("id", { count: "exact", head: true })
         .eq("approval_status", "pending");
       if (!cancelled) {
         setCount(c ?? 0);

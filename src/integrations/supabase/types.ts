@@ -10,12 +10,13 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.5"
+    PostgrestVersion: "14.4"
   }
   public: {
     Tables: {
       app_logs: {
         Row: {
+          archived_at: string | null
           created_at: string
           details: Json | null
           error_stack: string | null
@@ -28,6 +29,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          archived_at?: string | null
           created_at?: string
           details?: Json | null
           error_stack?: string | null
@@ -40,6 +42,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          archived_at?: string | null
           created_at?: string
           details?: Json | null
           error_stack?: string | null
@@ -220,39 +223,27 @@ export type Database = {
         }
         Relationships: []
       }
-      openrouter_model_cache: {
-        Row: {
-          cache_key: string
-          models: Json
-          source: string
-          updated_at: string
-        }
-        Insert: {
-          cache_key: string
-          models: Json
-          source?: string
-          updated_at?: string
-        }
-        Update: {
-          cache_key?: string
-          models?: Json
-          source?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
       profiles: {
         Row: {
+          approval_status: string
+          approved_at: string | null
+          approved_by: string | null
           created_at: string
           display_name: string | null
           id: string
         }
         Insert: {
+          approval_status?: string
+          approved_at?: string | null
+          approved_by?: string | null
           created_at?: string
           display_name?: string | null
           id: string
         }
         Update: {
+          approval_status?: string
+          approved_at?: string | null
+          approved_by?: string | null
           created_at?: string
           display_name?: string | null
           id?: string
@@ -321,18 +312,16 @@ export type Database = {
           page_path: string
           payload: Json
           section_key: string
-          status: string
           user_email: string | null
           user_id: string | null
         }
         Insert: {
           created_at?: string
-          feedback_type?: string
+          feedback_type: string
           id?: string
           page_path: string
           payload?: Json
-          section_key?: string
-          status?: string
+          section_key: string
           user_email?: string | null
           user_id?: string | null
         }
@@ -343,7 +332,6 @@ export type Database = {
           page_path?: string
           payload?: Json
           section_key?: string
-          status?: string
           user_email?: string | null
           user_id?: string | null
         }
@@ -379,6 +367,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      purge_archived_app_logs: { Args: never; Returns: number }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
