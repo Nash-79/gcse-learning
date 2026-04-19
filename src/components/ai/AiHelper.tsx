@@ -231,8 +231,10 @@ export function AiHelper({ topicSlug, topicTitle, seedPrompt }: AiHelperProps) {
               content={msg.content}
               onRegenerate={handleRegenerate}
               meta={msg.meta}
-              onSuggestionClick={isLastAssistant ? sendMessage : undefined}
+              onSuggestionClick={msg.role === "assistant" && i === messages.length - 1 ? sendMessage : undefined}
               showHomeLink={false}
+              isSuggestionsLoading={msg.role === "assistant" && i === messages.length - 1 && isLoading}
+              suggestionOrigin={`ai_helper:${topicSlug}`}
             />
           );
         })}

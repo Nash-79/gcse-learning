@@ -42,6 +42,7 @@ const eventTypeLabels: Record<string, string> = {
   api_error: "⚠ API Error",
   navigation: "🧭 Navigation",
   progress_update: "📊 Progress",
+  ai_suggestion_click: "💬 Chip Click",
 };
 
 export default function AdminLogViewer() {

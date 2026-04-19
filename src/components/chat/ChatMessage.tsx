@@ -16,6 +16,10 @@ interface ChatMessageProps {
   onSuggestionClick?: (prompt: string) => void;
   /** Whether to show the "Back to Home" pill alongside the suggestion chips. */
   showHomeLink?: boolean;
+  /** When true, dim the suggestion chips and show a shimmer (next response loading). */
+  isSuggestionsLoading?: boolean;
+  /** Identifier for analytics, e.g. "ai_tutor" or "ai_helper:intro-to-python". */
+  suggestionOrigin?: string;
 }
 
 /** Pull a trailing follow-up section out of any markdown content. Matches the
@@ -279,7 +283,7 @@ function ProvenanceLine({ meta }: { meta?: AiResponseMeta }) {
 }
 
 /* ───────── Main ChatMessage ───────── */
-export function ChatMessage({ role, content, onRegenerate, meta, onSuggestionClick, showHomeLink = false }: ChatMessageProps) {
+export function ChatMessage({ role, content, onRegenerate, meta, onSuggestionClick, showHomeLink = false, isSuggestionsLoading = false, suggestionOrigin }: ChatMessageProps) {
   if (role === "user") {
     return (
       <div className="flex justify-end">
@@ -321,6 +325,8 @@ export function ChatMessage({ role, content, onRegenerate, meta, onSuggestionCli
             suggestions={suggestions}
             onSelect={onSuggestionClick}
             showHomeLink={showHomeLink}
+            isLoading={isSuggestionsLoading}
+            origin={suggestionOrigin}
           />
         )}
       </div>
