@@ -1,65 +1,90 @@
 
 
-## Root cause of the messy output
+## Goal
 
-The user's pasted response was:
-```json
-{"mode":"json","summary":"...","sections":[{...},{...}]}
+Add intelligent, app-wide response caching for all AI chat surfaces (TaskAssistant, AiHelper, AI Tutor) with a clear "bypass cache" escape hatch so users never feel stuck on a stale answer.
+
+## Today's state
+
+- **TaskAssistant** already caches per-task in `localStorage` under `pylearn-task-assistant:v1` keyed by `taskId::kind::hash(input)`.
+- **AiHelper** caches per-topic explanations under its own key.
+- **AI Tutor** has **no caching** — every send hits the model.
+- No shared cache layer, no TTL, no size cap, no UI to bypass or clear, no provenance ("served from cache").
+- Result: inconsistent behaviour, silent staleness, no user control.
+
+## Design — one shared cache + consistent UI
+
+### 1. New module `src/lib/aiResponseCache.ts` (single source of truth)
+
+```ts
+type CacheEntry = {
+  content: string;
+  meta?: AiResponseMeta;
+  model?: string;
+  createdAt: number;   // ms epoch
+  hits: number;
+};
+
+aiCache.get(namespace, key, { maxAgeMs })   // returns entry or null (TTL-aware)
+aiCache.set(namespace, key, entry)          // writes + enforces per-namespace LRU cap
+aiCache.invalidate(namespace, key)          // single-entry bust
+aiCache.clearNamespace(namespace)           // wipe per-surface
+aiCache.stats(namespace)                    // { count, bytes, oldest }
 ```
 
-**Missing `next_step` field.** `parseAssistantOutput` requires `summary` (string), `sections` (array), AND `next_step` (string) to qualify the response as `type: "json"`. Without `next_step`, it falls through to `type: "raw"` and `<ChatMessage />` renders the raw JSON string as plain text — exactly what the user is seeing.
+- Backed by `localStorage` under `pylearn-ai-cache:v1:<namespace>`.
+- Per-namespace LRU cap (default 50 entries) + 7-day TTL (configurable per call).
+- Stable key built via `djb2(model + normalised(prompt) + scopeContext)` so changing model OR prompt OR task auto-misses.
+- Safe JSON, quota-exceeded fallback (drops oldest entries).
 
-The ChatMessage rendering pipeline already works correctly (proven by AI Tutor). The problem is purely the **schema validator being too strict** combined with the **model occasionally omitting `next_step`** in `mode: "generate"` requests.
+### 2. Bypass mechanisms (the "not stuck" guarantee)
 
-## Fix — 4 small, surgical changes
+Three independent ways for the user to skip cache, surfaced consistently across all three components:
 
-### 1. Make `parseAssistantOutput` resilient to missing optional fields
+1. **🔄 Refresh icon button** next to every cached response — re-runs the same prompt with `bypassCache: true` and overwrites the entry. Tooltip: "Regenerate (skip cache)".
+2. **⌥/Alt + Send** keyboard modifier on the input box → bypass cache for that one send. Hint shown in placeholder when held.
+3. **"Served from cache · 2 days ago" pill** on cached messages with a tiny inline "regenerate" link — makes it obvious WHY a response appeared instantly and gives one-click escape.
 
-In `src/lib/parseAssistantOutput.ts`, relax the validator: accept the response as `type: "json"` whenever `summary` (string) and `sections` (non-empty array) are present. Default `next_step` to `""` and `suggestions` to `[]` if missing. Same for `mode`.
+The existing `onRegenerate` prop on `<ChatMessage />` already handles re-asks; we just thread `bypassCache` through.
 
-This is a 5-line change in `isStructured` + the JSON path. Instantly fixes every "raw JSON appears on screen" case across **all** chat surfaces (TaskAssistant, AiHelper, AI Tutor) — single source of truth.
+### 3. Wire all three surfaces through the same cache
 
-### 2. Strengthen the schema enforcement on the way out (defence in depth)
+- **TaskAssistant**: replace its bespoke `pylearn-task-assistant:v1` lookup with `aiCache.get('task-assistant', key)`. Migrate old keys lazily on first read so users don't lose existing cache.
+- **AiHelper**: same treatment, namespace `'topic-explainer'`. Lazy-migrate.
+- **AI Tutor** (`src/pages/AiTutor.tsx`): wrap `streamChat` — before opening the stream, compute key from `(chatModel, last user message, prior turn summary hash)`; if hit and not bypassed, replay cached content into the message with a `[cached]` meta flag and skip the network call. Otherwise stream normally and `aiCache.set` on `onDone`.
 
-In `supabase/functions/ai-chat/index.ts` (and dev-server `server/routes/aiChat.ts`), after `JSON.parse` of the model output:
-- If `summary` + `sections` exist but `next_step` is missing → inject `next_step: ""`.
-- If `suggestions` missing → inject `suggestions: []`.
-- Re-stringify before sending `content` back.
+For streaming, we cache only the **final assembled content + meta** (not partial deltas). On replay we render the full text instantly — no fake typewriter (which would feel deceptive).
 
-So the client always receives a schema-conformant JSON string.
+### 4. Settings page — "Cached AI responses" card
 
-### 3. Add a model picker to TaskAssistant (consistency with AiHelper)
+Add to `src/pages/Settings.tsx`:
+- Total entries + size across all 3 namespaces.
+- Per-namespace breakdown with individual "Clear" buttons.
+- Global "Clear all cached AI responses" button.
+- Toggle: "Disable AI response caching" (sets `pylearn-ai-cache-disabled = '1'` → `aiCache.get` always returns null, `set` becomes no-op).
 
-In `src/components/learning/TaskAssistant.tsx`:
-- Add a `chatModel` local state initialised from `useAiSettings().model` (or the per-route `ai-chat` policy's `primaryModel`).
-- Add a small `<ChevronDown>` model dropdown in the header (mirroring `AiHelper`'s implementation): Lovable AI optgroup + OpenRouter free optgroup, refresh button via `useOpenRouterModels`.
-- Send the selected `chatModel` instead of `aiModel` to `/api/ai-chat`.
-- Persist last selection per task in `localStorage` under `pylearn-task-assistant-model:v1` so it sticks across sessions.
+### 5. Visual consistency via `<StructuredAiResponse />`
 
-This gives users the same per-component model control AiHelper has — consistent across the board.
-
-### 4. Centralise the JSON-rendering "system" (real "structured output service")
-
-Create `src/lib/structuredAiRenderer.tsx` that exports a single `<StructuredAiResponse content={raw} onSuggestionClick={…} meta={…} />` component. Internally it just delegates to `<ChatMessage role="assistant" />` (which already does parse → blocks → markdown/trace). 
-
-Then both `TaskAssistant` and `AiHelper` import this one component instead of `ChatMessage` directly. This is the "system provider that structures JSON output to look like Claude / OpenAI / Gemini" the user asked for — one renderer, used everywhere, identical look-and-feel guaranteed forever.
-
-(No new dependencies, no DB changes, no edge-function deploys beyond #2.)
+The shared renderer added in the previous turn already standardises the look. We extend its props with optional `cachedAt?: number` and `onBypassCache?: () => void` — when present it renders the "Served from cache" pill + refresh icon in the message header. Zero per-surface UI work after that.
 
 ## Files
 
-- **Edit** `src/lib/parseAssistantOutput.ts` — relax validator, default optional fields
-- **Edit** `supabase/functions/ai-chat/index.ts` — backfill `next_step` / `suggestions` before returning
-- **Edit** `server/routes/aiChat.ts` — same backfill for dev parity
-- **Edit** `src/components/learning/TaskAssistant.tsx` — model picker in header, use new renderer
-- **Edit** `src/components/ai/AiHelper.tsx` — switch to new renderer (one-line import swap)
-- **New** `src/lib/structuredAiRenderer.tsx` — single shared renderer component
+- **New** `src/lib/aiResponseCache.ts` — namespaced LRU + TTL cache module
+- **Edit** `src/lib/structuredAiRenderer.tsx` — add `cachedAt` / `onBypassCache` props, render pill + refresh
+- **Edit** `src/components/learning/TaskAssistant.tsx` — swap to shared cache, add bypass wiring + Alt+Send
+- **Edit** `src/components/ai/AiHelper.tsx` — same swap + bypass wiring
+- **Edit** `src/pages/AiTutor.tsx` — add cache check around `streamChat`, replay cached on hit, bypass wiring
+- **Edit** `src/pages/Settings.tsx` — new "Cached AI responses" card with stats + clear + disable toggle
+- **New** `src/test/aiResponseCache.test.ts` — unit tests for TTL, LRU eviction, bypass, disable toggle, key stability
 
 ## Acceptance
 
-- Paste the user's exact buggy response into a test → it now renders as `## 🎯 Goal` heading + `## 🐍 Step-by-step plan` heading with proper sections, NOT raw JSON text.
-- TaskAssistant header now shows a model picker dropdown matching AiHelper's; selecting a different model is honoured on the next request and persists.
-- All AI chat surfaces (TaskAssistant, AiHelper, AI Tutor) render through the same `<StructuredAiResponse />` — visually identical.
-- Backend always returns a schema-complete JSON object (`next_step` and `suggestions` never missing).
-- No regressions on cached responses (parser is more permissive, so old caches upgrade automatically).
+- Ask same question twice in any of TaskAssistant / AiHelper / AI Tutor → 2nd answer is instant with a "Served from cache · just now" pill and a refresh icon.
+- Click refresh icon → fresh model call, cache entry replaced, pill timestamp resets.
+- Hold Alt while pressing Send → bypasses cache for that send only.
+- Settings → "Cached AI responses" card shows accurate counts; "Clear all" empties every namespace; "Disable caching" makes all sends bypass.
+- Changing model or task auto-misses (different key).
+- Old `pylearn-task-assistant:v1` entries migrate transparently on first read — no user-visible regression.
+- TTL = 7 days; oldest entries evicted at >50 per namespace; `localStorage` quota errors handled gracefully.
+- No new dependencies, no DB changes, no edge function changes.
 
