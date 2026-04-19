@@ -599,7 +599,7 @@ export default function TopicPage() {
               </div>
             )}
 
-            <QuizComponent topicSlug={slug} questions={allQuestions} />
+            <QuizComponent topicSlug={slug} questions={allQuestions} onSendToAiTutor={handleUseAiPrompt} />
           </motion.div>
         </TabsContent>
       </Tabs>

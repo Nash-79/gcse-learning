@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { CheckCircle2, XCircle, Trophy, RotateCcw, Lightbulb, Sparkles, Flame, Zap, Target, Bot, Loader2, HelpCircle } from "lucide-react";
+import { CheckCircle2, XCircle, Trophy, RotateCcw, Lightbulb, Sparkles, Flame, Zap, Target, Bot, Loader2, HelpCircle, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
@@ -26,7 +26,47 @@ interface QuizComponentProps {
   questions: QuizQuestion[];
   onGenerateMore?: () => void;
   isGenerating?: boolean;
+  onSendToAiTutor?: (prompt: string) => void;
 }
+
+const AI_EXPLAIN_CACHE_KEY = "pylearn-quiz-ai-explain:v1";
+const AI_EXPLAIN_CACHE_LIMIT = 200;
+
+const djb2 = (str: string): string => {
+  let hash = 5381;
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) + hash) + str.charCodeAt(i);
+    hash = hash & 0xffffffff;
+  }
+  return (hash >>> 0).toString(36);
+};
+
+const readExplainCache = (): Record<string, string> => {
+  try {
+    const raw = localStorage.getItem(AI_EXPLAIN_CACHE_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch {
+    return {};
+  }
+};
+
+const writeExplainCache = (key: string, value: string) => {
+  try {
+    const cache = readExplainCache();
+    // FIFO eviction: drop oldest entries when at limit
+    const keys = Object.keys(cache);
+    if (keys.length >= AI_EXPLAIN_CACHE_LIMIT && !(key in cache)) {
+      const toDrop = keys.slice(0, keys.length - AI_EXPLAIN_CACHE_LIMIT + 1);
+      toDrop.forEach(k => delete cache[k]);
+    }
+    cache[key] = value;
+    localStorage.setItem(AI_EXPLAIN_CACHE_KEY, JSON.stringify(cache));
+  } catch {
+    /* ignore (private mode, quota, etc.) */
+  }
+};
 
 const difficultyConfig = {
   easy: { label: "Easy", icon: Zap, color: "text-green-400", bg: "bg-green-500/10 border-green-500/30 hover:bg-green-500/20", activeBg: "bg-green-500 text-white" },
