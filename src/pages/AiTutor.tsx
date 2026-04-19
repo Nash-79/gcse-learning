@@ -146,18 +146,7 @@ export default function AiTutor() {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages]);
 
-  // Extract follow-ups from the last assistant message
-  const lastAssistantMsg = useMemo(() => {
-    for (let i = messages.length - 1; i >= 0; i--) {
-      if (messages[i].role === "assistant") return messages[i].content;
-    }
-    return "";
-  }, [messages]);
 
-  const { suggestions: followUps } = useMemo(
-    () => extractFollowUps(lastAssistantMsg),
-    [lastAssistantMsg]
-  );
 
   const send = useCallback(async (text: string) => {
     if (!text.trim() || isLoading) return;
@@ -323,32 +312,27 @@ export default function AiTutor() {
 
           {messages.map((msg, i) => {
             const isLastAssistant = msg.role === "assistant" && i === messages.length - 1 && !isLoading;
-            const { cleanContent, suggestions } = isLastAssistant
-              ? extractFollowUps(msg.content)
-              : { cleanContent: msg.content, suggestions: [] };
 
             const handleRegenerate = msg.role === "assistant" ? () => {
               let userMsgIndex = -1;
               for (let j = i - 1; j >= 0; j--) { if (messages[j].role === "user") { userMsgIndex = j; break; } }
               if (userMsgIndex >= 0) {
                 const userText = messages[userMsgIndex].content;
-                // Remove this assistant message and resend
                 setMessages(prev => prev.slice(0, i));
                 setTimeout(() => send(userText), 100);
               }
             } : undefined;
 
             return (
-              <div key={i}>
-                <ChatMessage role={msg.role} content={cleanContent} onRegenerate={handleRegenerate} meta={msg.meta} />
-                {isLastAssistant && suggestions.length > 0 && (
-                  <FollowUpSuggestions
-                    suggestions={suggestions}
-                    onSelect={send}
-                    showHomeLink={true}
-                  />
-                )}
-              </div>
+              <ChatMessage
+                key={i}
+                role={msg.role}
+                content={msg.content}
+                onRegenerate={handleRegenerate}
+                meta={msg.meta}
+                onSuggestionClick={isLastAssistant ? send : undefined}
+                showHomeLink={isLastAssistant}
+              />
             );
           })}
 
