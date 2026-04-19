@@ -960,7 +960,7 @@ if average >= 50:
 else:
     print("Result: FAIL")`
     },
-    videoUrl: "https://www.youtube.com/embed/kqtD5dpn9C8",
+    videoUrl: "",
     quiz: [
       { question: "In the exam, what should you do before writing a multi-step program?", options: ["Start coding immediately", "Plan with pseudocode or a flowchart first", "Look up the answer", "Ask the teacher"], correctIndex: 1, explanation: "Planning with pseudocode first prevents logical errors and helps you structure your answer." },
       { question: "A validation loop asks for input until valid. Which loop is best for this?", options: ["for loop", "while loop", "repeat loop", "do-while loop"], correctIndex: 1, explanation: "A while loop with a condition is perfect for validation — it keeps asking until input is valid." },

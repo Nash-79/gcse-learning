@@ -159,6 +159,7 @@ IMPORTANT CODING STYLE RULES:
         }
         return m;
       });
+      wantJson = true;
     } else if (mode === "validate") {
       systemPrompt = `You are an OCR GCSE Computer Science exam marker. Grade Python code submissions for the topic "${topicTitle}".
 

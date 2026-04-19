@@ -41,33 +41,6 @@ import { useExamBoard, useGetTopicProgress, useListTopics, useUpdateTopicProgres
 import { getTopicAugmentation } from "@/lib/topicAugmentation";
 import { getRelatedTheory } from "@/lib/topicCrossLinks";
 
-const topicVideos: Record<string, string> = {
-  "intro-to-python": "https://www.youtube.com/embed/kqtD5dpn9C8",
-  "variables-data-types": "https://www.youtube.com/embed/cQT33yu9pY8",
-  "variables-constants": "https://www.youtube.com/embed/cQT33yu9pY8",
-  "data-types-casting": "https://www.youtube.com/embed/u_ECGvn1Z2c",
-  "input-output-casting": "https://www.youtube.com/embed/I9h1c-121Uk",
-  "arithmetic-operators": "https://www.youtube.com/embed/Aj8FQRIHJSc",
-  "selection-if-else": "https://www.youtube.com/embed/Zp5MuPOtsSY",
-  iteration: "https://www.youtube.com/embed/6iF8Xb7Z3wQ",
-  "string-handling": "https://www.youtube.com/embed/lSItwlnF0eU",
-  "string-manipulation": "https://www.youtube.com/embed/lSItwlnF0eU",
-  "lists-tuples-dicts": "https://www.youtube.com/embed/W8KRzm-HUcc",
-  "2d-arrays": "https://www.youtube.com/embed/RHjtBv4dmas",
-  "functions-scope": "https://www.youtube.com/embed/9Os0o3wzS_I",
-  "file-handling": "https://www.youtube.com/embed/Uh2ebFW8OYM",
-  "random-numbers": "https://www.youtube.com/embed/KzqSDvzOFNA",
-  "error-handling": "https://www.youtube.com/embed/NIWwJbo-9_8",
-  "robust-programming": "https://www.youtube.com/embed/NIWwJbo-9_8",
-  "boolean-logic": "https://www.youtube.com/embed/UvI-AMAtrvE",
-  "searching-algorithms": "https://www.youtube.com/embed/YNMnJmv8Cd4",
-  "sorting-algorithms": "https://www.youtube.com/embed/kPRA0W1kECg",
-  "insertion-sort": "https://www.youtube.com/embed/JU767SDMDvA",
-  "sql-basics": "https://www.youtube.com/embed/27axs9dO7AE",
-  "pseudocode-trace-tables": "https://www.youtube.com/embed/4jLO0hXPEAE",
-  "exam-tips": "https://www.youtube.com/embed/4jLO0hXPEAE",
-};
-
 export default function TopicPage() {
   const { slug = "" } = useParams<{ slug: string }>();
   const navigate = useNavigate();
@@ -83,7 +56,7 @@ export default function TopicPage() {
   const topicMeta = topics?.find((topic) => topic.slug === slug);
   const learningSteps = topicLearningSteps[slug];
   const hasSteps = Boolean(learningSteps && learningSteps.length > 0);
-  const videoUrl = topicVideos[slug] || content?.videoUrl;
+  const videoUrl = content?.videoUrl;
 
   const [aiQuestions, setAiQuestions] = useState<QuizQuestion[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
