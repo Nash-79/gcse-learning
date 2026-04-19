@@ -237,7 +237,7 @@ export default function AiTutor() {
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      send(input);
+      send(input, { bypass: e.altKey });
     }
   };
 
