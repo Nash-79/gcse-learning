@@ -334,27 +334,34 @@ export default function AiTutor() {
           {messages.map((msg, i) => {
             const isLastAssistant = msg.role === "assistant" && i === messages.length - 1 && !isLoading;
 
-            const handleRegenerate = msg.role === "assistant" ? () => {
+            const handleRegenerate = msg.role === "assistant" ? (bypass = true) => {
               let userMsgIndex = -1;
               for (let j = i - 1; j >= 0; j--) { if (messages[j].role === "user") { userMsgIndex = j; break; } }
               if (userMsgIndex >= 0) {
                 const userText = messages[userMsgIndex].content;
                 setMessages(prev => prev.slice(0, i));
-                setTimeout(() => send(userText), 100);
+                setTimeout(() => send(userText, { bypass }), 100);
               }
             } : undefined;
 
+            if (msg.role === "user") {
+              return (
+                <ChatMessage key={i} role="user" content={msg.content} />
+              );
+            }
+
             return (
-              <ChatMessage
+              <StructuredAiResponse
                 key={i}
-                role={msg.role}
                 content={msg.content}
-                onRegenerate={handleRegenerate}
+                onRegenerate={handleRegenerate ? () => handleRegenerate(true) : undefined}
                 meta={msg.meta}
-                onSuggestionClick={msg.role === "assistant" && i === messages.length - 1 ? send : undefined}
+                onSuggestionClick={i === messages.length - 1 ? (p) => send(p) : undefined}
                 showHomeLink={isLastAssistant}
-                isSuggestionsLoading={msg.role === "assistant" && i === messages.length - 1 && isLoading}
+                isSuggestionsLoading={i === messages.length - 1 && isLoading}
                 suggestionOrigin="ai_tutor"
+                cachedAt={msg.cachedAt}
+                onBypassCache={msg.cachedAt && handleRegenerate ? () => handleRegenerate(true) : undefined}
               />
             );
           })}
@@ -391,7 +398,7 @@ export default function AiTutor() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Ask about Python, GCSE topics, exam tips, or paste code for help..."
+                placeholder="Ask about Python, GCSE topics, exam tips… (⌥/Alt + Enter skips cache)"
                 rows={1}
                 className="w-full bg-background border border-border rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/50 focus:border-secondary/50 resize-none min-h-[42px] max-h-[120px] overflow-y-auto"
                 style={{ height: "auto" }}
@@ -404,10 +411,11 @@ export default function AiTutor() {
               />
             </div>
             <Button
-              onClick={() => send(input)}
+              onClick={(e) => send(input, { bypass: (e as React.MouseEvent).altKey })}
               size="icon"
               disabled={isLoading || !input.trim()}
               className="shrink-0 rounded-xl bg-secondary hover:bg-secondary/80 h-10 w-10"
+              title="Send (Alt to bypass cache)"
             >
               <Send className="w-4 h-4" />
             </Button>
