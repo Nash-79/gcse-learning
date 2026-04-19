@@ -279,7 +279,7 @@ function ProvenanceLine({ meta }: { meta?: AiResponseMeta }) {
 }
 
 /* ───────── Main ChatMessage ───────── */
-export function ChatMessage({ role, content, onRegenerate, meta }: ChatMessageProps) {
+export function ChatMessage({ role, content, onRegenerate, meta, onSuggestionClick, showHomeLink = false }: ChatMessageProps) {
   if (role === "user") {
     return (
       <div className="flex justify-end">
@@ -293,17 +293,19 @@ export function ChatMessage({ role, content, onRegenerate, meta }: ChatMessagePr
   // Parse structured output
   const parsed = parseAssistantOutput(content);
 
-  const renderContent = () => {
+  // Build the markdown body, then peel off any trailing follow-up block when
+  // the parent has asked us to render chips.
+  const rawMarkdown = (() => {
     switch (parsed.type) {
-      case "json":
-        return <MarkdownRenderer content={structuredJsonToMarkdown(parsed.data)} />;
-      case "markdown":
-        return <MarkdownRenderer content={structuredMarkdownToClean(parsed.data)} />;
-      case "raw":
-      default:
-        return <MarkdownRenderer content={parsed.data} />;
+      case "json": return structuredJsonToMarkdown(parsed.data);
+      case "markdown": return structuredMarkdownToClean(parsed.data);
+      default: return parsed.data;
     }
-  };
+  })();
+
+  const { cleanContent, suggestions } = onSuggestionClick
+    ? extractFollowUpsFromMarkdown(rawMarkdown)
+    : { cleanContent: rawMarkdown, suggestions: [] };
 
   return (
     <div className="flex justify-start gap-3 group">
@@ -311,9 +313,16 @@ export function ChatMessage({ role, content, onRegenerate, meta }: ChatMessagePr
         <Bot className="w-4 h-4 text-secondary" />
       </div>
       <div className="flex-1 min-w-0 max-w-[90%]">
-        {renderContent()}
+        <MarkdownRenderer content={cleanContent} />
         <MessageActions content={content} onRegenerate={onRegenerate} />
         <ProvenanceLine meta={meta} />
+        {onSuggestionClick && suggestions.length > 0 && (
+          <FollowUpSuggestions
+            suggestions={suggestions}
+            onSelect={onSuggestionClick}
+            showHomeLink={showHomeLink}
+          />
+        )}
       </div>
     </div>
   );
