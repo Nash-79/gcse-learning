@@ -94,8 +94,8 @@ export function CodeRunner({
   };
 
   return (
-    <div className="flex flex-col md:flex-row gap-4 w-full items-stretch">
-      <div className="flex-1 md:w-3/5 flex flex-col rounded-2xl overflow-hidden border border-border/50 shadow-lg bg-card">
+    <div className="flex flex-col xl:flex-row gap-4 w-full items-stretch">
+      <div className="flex-1 xl:w-3/5 flex flex-col rounded-2xl overflow-hidden border border-border/50 shadow-lg bg-card">
         <div className="flex items-center justify-between px-4 py-3 border-b bg-muted/30">
           <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
             <Terminal className="w-4 h-4 text-primary" />
@@ -133,11 +133,11 @@ export function CodeRunner({
         </div>
       </div>
 
-      <div className="w-full md:w-2/5 flex flex-col rounded-2xl overflow-hidden border border-border/50 shadow-lg bg-card">
+      <div className="w-full xl:w-2/5 flex flex-col rounded-2xl overflow-hidden border border-border/50 shadow-lg bg-card">
         <div className="px-4 py-3 border-b bg-muted/30 flex items-center gap-2 text-sm font-semibold text-foreground">
           Console Output
         </div>
-        <div className={`flex-1 ${height} p-4 bg-black/90 font-mono text-sm overflow-y-auto`}>
+        <div className="flex-1 min-h-[160px] xl:min-h-0 p-4 bg-black/90 font-mono text-sm overflow-y-auto">
           {isRunning && !output && !error && (
             <div className="text-muted-foreground animate-pulse">Running...</div>
           )}

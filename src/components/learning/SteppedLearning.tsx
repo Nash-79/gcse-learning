@@ -216,11 +216,11 @@ export function SteppedLearning({ steps, topicTitle, onComplete, onCodeRun }: St
             <div className="bg-yellow-500/5 border border-yellow-500/15 rounded-xl px-4 py-3 mb-3 text-sm text-foreground/80">
               <span className="font-semibold text-yellow-600">YOUR TASK:</span> {step.interactiveTask.instruction}
             </div>
-            <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-4 items-stretch">
+            <div className="grid grid-cols-1 2xl:grid-cols-[minmax(0,1fr)_360px] gap-4 items-start">
               <div className="min-w-0">
                 <CodeRunner
                   initialCode={step.interactiveTask.starterCode}
-                  height="h-[420px]"
+                  height="h-[340px] lg:h-[400px]"
                   onRunSuccess={onCodeRun}
                   onCodeChange={setLiveCode}
                 />

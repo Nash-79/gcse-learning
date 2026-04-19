@@ -174,7 +174,7 @@ export function TaskAssistant({ taskId, taskInstruction, starterCode, currentCod
   }
 
   return (
-    <div className="rounded-2xl border-2 border-primary/30 bg-card shadow-lg overflow-hidden flex flex-col h-full">
+    <div className="rounded-2xl border-2 border-primary/30 bg-card shadow-lg overflow-hidden flex flex-col">
       <div className="px-4 py-3 border-b border-border/50 bg-primary/5 flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <Bot className="w-4 h-4 text-primary" />
@@ -192,7 +192,7 @@ export function TaskAssistant({ taskId, taskInstruction, starterCode, currentCod
         </button>
       </div>
 
-      <div className="p-3 grid grid-cols-1 gap-2 border-b border-border/50">
+      <div className="p-3 grid grid-cols-1 sm:grid-cols-3 2xl:grid-cols-1 gap-2 border-b border-border/50">
         <Button
           variant={activeKind === "explain" ? "default" : "outline"}
           size="sm"
