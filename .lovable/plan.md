@@ -1,78 +1,65 @@
 
 
-## Problem
+## Root cause of the messy output
 
-Three real issues from the screenshot at `/topic/variables-constants`:
+The user's pasted response was:
+```json
+{"mode":"json","summary":"...","sections":[{...},{...}]}
+```
 
-1. **TaskAssistant output is messy** — raw JSON-shaped text or unstructured prose appears instead of the clean Claude-style markdown/sections used everywhere else in the app. The component is calling the AI but **not running the response through `parseAssistantOutput` + `structuredJsonToBlocks` + `<ChatMessage />`** like `AiHelper` does.
+**Missing `next_step` field.** `parseAssistantOutput` requires `summary` (string), `sections` (array), AND `next_step` (string) to qualify the response as `type: "json"`. Without `next_step`, it falls through to `type: "raw"` and `<ChatMessage />` renders the raw JSON string as plain text — exactly what the user is seeing.
 
-2. **Look & feel inconsistent with AI Tutor** — `AiHelper` (used on Theory tab and via "Ask AI Tutor" button) has polished structured output with emoji headings, summary callout, follow-up suggestions. `TaskAssistant` reinvents its own renderer and looks foreign.
+The ChatMessage rendering pipeline already works correctly (proven by AI Tutor). The problem is purely the **schema validator being too strict** combined with the **model occasionally omitting `next_step`** in `mode: "generate"` requests.
 
-3. **No task pre-loading** — the user wants the assistant to be **scoped to the specific task** so the AI always knows what's being asked, even on free-form questions. Right now task context is only injected for the three preset buttons, not for follow-ups.
+## Fix — 4 small, surgical changes
 
-4. **Layout nit** — user is open to console-below-editor (already the case at <xl per last change, but worth confirming the experience on Variables & Constants specifically).
+### 1. Make `parseAssistantOutput` resilient to missing optional fields
 
-## Solution
+In `src/lib/parseAssistantOutput.ts`, relax the validator: accept the response as `type: "json"` whenever `summary` (string) and `sections` (non-empty array) are present. Default `next_step` to `""` and `suggestions` to `[]` if missing. Same for `mode`.
 
-Reuse the existing AI Tutor rendering pipeline instead of TaskAssistant having its own. Pre-load every request with the task context so the AI is task-locked.
+This is a 5-line change in `isStructured` + the JSON path. Instantly fixes every "raw JSON appears on screen" case across **all** chat surfaces (TaskAssistant, AiHelper, AI Tutor) — single source of truth.
 
-### 1. Render TaskAssistant responses through the shared pipeline
+### 2. Strengthen the schema enforcement on the way out (defence in depth)
+
+In `supabase/functions/ai-chat/index.ts` (and dev-server `server/routes/aiChat.ts`), after `JSON.parse` of the model output:
+- If `summary` + `sections` exist but `next_step` is missing → inject `next_step: ""`.
+- If `suggestions` missing → inject `suggestions: []`.
+- Re-stringify before sending `content` back.
+
+So the client always receives a schema-conformant JSON string.
+
+### 3. Add a model picker to TaskAssistant (consistency with AiHelper)
 
 In `src/components/learning/TaskAssistant.tsx`:
+- Add a `chatModel` local state initialised from `useAiSettings().model` (or the per-route `ai-chat` policy's `primaryModel`).
+- Add a small `<ChevronDown>` model dropdown in the header (mirroring `AiHelper`'s implementation): Lovable AI optgroup + OpenRouter free optgroup, refresh button via `useOpenRouterModels`.
+- Send the selected `chatModel` instead of `aiModel` to `/api/ai-chat`.
+- Persist last selection per task in `localStorage` under `pylearn-task-assistant-model:v1` so it sticks across sessions.
 
-- Import `parseAssistantOutput`, `structuredJsonToBlocks`, `structuredJsonToMarkdown` from `@/lib/parseAssistantOutput`.
-- Import `<ChatMessage />` from `@/components/chat/ChatMessage` (the same one `AiHelper` uses).
-- Replace the current "raw text in a div" rendering with: parse → if JSON → render each `StructuredBlock` (markdown blocks via `<ChatMessage />`, trace blocks via `<TraceTable />`). Fallback: render markdown via `<ChatMessage />`.
-- Cache the **raw response text** (already does) — parsing happens at render time, so old cached entries upgrade automatically.
+This gives users the same per-component model control AiHelper has — consistent across the board.
 
-This gives identical look-and-feel to AI Tutor: emoji headings, summary callout, bulleted sections, syntax-highlighted code, follow-up suggestions chips.
+### 4. Centralise the JSON-rendering "system" (real "structured output service")
 
-### 2. Task-lock every AI call
+Create `src/lib/structuredAiRenderer.tsx` that exports a single `<StructuredAiResponse content={raw} onSuggestionClick={…} meta={…} />` component. Internally it just delegates to `<ChatMessage role="assistant" />` (which already does parse → blocks → markdown/trace). 
 
-Currently the system prompt only includes task context for the 3 preset buttons. Change it so **every** call (presets + free-form follow-ups) sends:
+Then both `TaskAssistant` and `AiHelper` import this one component instead of `ChatMessage` directly. This is the "system provider that structures JSON output to look like Claude / OpenAI / Gemini" the user asked for — one renderer, used everywhere, identical look-and-feel guaranteed forever.
 
-```
-You are helping a GCSE student with this SPECIFIC coding task on topic "${topicTitle}":
-
-TASK:
-${taskInstruction}
-
-STARTER CODE:
-${starterCode}
-
-STUDENT'S CURRENT CODE:
-${currentCode}
-
-Stay focused on this task. Do not give the full solution unless explicitly asked.
-```
-
-Then append the student's question (preset or free-form). This makes the assistant a task-scoped tutor instead of a general chat.
-
-Also tighten the preset prompts to explicitly request the JSON contract so the renderer always gets structured output:
-- "Explain the task" → "Explain this task in 2-3 short sentences. What is being asked, and what concepts will they use? Do NOT give a solution."
-- "Step-by-step plan" → "Give a numbered step-by-step plan in pseudocode. No full Python solution."
-- "Hint on my code" → "Look at the student's current code and give ONE specific next-step hint. Do not write the full solution."
-
-The edge function (`supabase/functions/ai-chat`) already injects `STRUCTURED_OUTPUT_INSTRUCTION`, so the JSON contract is enforced server-side — we just need to render it properly client-side.
-
-### 3. Free-form box pre-fills with task pointer
-
-When the assistant is opened, seed the free-form input placeholder with `Ask anything about this task...` and prepend the task instruction silently to every user message via the system prompt (already covered in #2). No extra UI clutter, just guaranteed scope.
-
-### 4. Layout sanity check
-
-`CodeRunner` already stacks console under editor below `xl` (1280px) per last change — at the user's 1300px viewport this *just barely* triggers side-by-side. To match the user's stated preference ("console output below code"), bump the breakpoint from `xl:flex-row` → `2xl:flex-row` so console always sits below editor unless the viewport is genuinely wide (≥1536px). Single one-line change in `src/components/code/CodeRunner.tsx`.
+(No new dependencies, no DB changes, no edge-function deploys beyond #2.)
 
 ## Files
 
-- **Edit** `src/components/learning/TaskAssistant.tsx` — render via `<ChatMessage />` + structured blocks; task-lock every call; tighten preset prompts
-- **Edit** `src/components/code/CodeRunner.tsx` — `xl:` → `2xl:` so console stacks below editor at most viewports
+- **Edit** `src/lib/parseAssistantOutput.ts` — relax validator, default optional fields
+- **Edit** `supabase/functions/ai-chat/index.ts` — backfill `next_step` / `suggestions` before returning
+- **Edit** `server/routes/aiChat.ts` — same backfill for dev parity
+- **Edit** `src/components/learning/TaskAssistant.tsx` — model picker in header, use new renderer
+- **Edit** `src/components/ai/AiHelper.tsx` — switch to new renderer (one-line import swap)
+- **New** `src/lib/structuredAiRenderer.tsx` — single shared renderer component
 
 ## Acceptance
 
-- Click any preset on `/topic/variables-constants` Learn tab → response renders with emoji headings, summary callout, clean sections, code blocks with syntax highlighting (matching AI Tutor look exactly).
-- Free-form question like "what's a constant?" → AI replies in same structured format, scoped to the current task (mentions the PI/gravity context).
-- Cached responses re-render the same way (no regression for old cached entries).
-- Console sits below editor at 1300px viewport.
-- No new dependencies, no DB changes, no edge function changes.
+- Paste the user's exact buggy response into a test → it now renders as `## 🎯 Goal` heading + `## 🐍 Step-by-step plan` heading with proper sections, NOT raw JSON text.
+- TaskAssistant header now shows a model picker dropdown matching AiHelper's; selecting a different model is honoured on the next request and persists.
+- All AI chat surfaces (TaskAssistant, AiHelper, AI Tutor) render through the same `<StructuredAiResponse />` — visually identical.
+- Backend always returns a schema-complete JSON object (`next_step` and `suggestions` never missing).
+- No regressions on cached responses (parser is more permissive, so old caches upgrade automatically).
 
