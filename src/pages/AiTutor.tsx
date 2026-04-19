@@ -3,6 +3,7 @@ import { Bot, Send, Loader2, Trash2, Sparkles, Code2, GraduationCap, Lightbulb, 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ChatMessage } from "@/components/chat/ChatMessage";
+import { StructuredAiResponse } from "@/lib/structuredAiRenderer";
 import { useAiSettings } from "@/lib/useAiSettings";
 import { apiFetch } from "@/lib/apiFetch";
 import { useOpenRouterModels } from "@/lib/useOpenRouterModels";
