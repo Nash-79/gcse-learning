@@ -58,6 +58,7 @@ export function AppSidebar() {
   const [boardOpen, setBoardOpen] = useState(false);
   const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(getStoredCollapsed);
   const { user, signOut } = useAuth();
+  const { count: pendingApprovals } = usePendingApprovalCount();
 
   const { board, setBoard } = useExamBoard();
   const { data: topics, isLoading: topicsLoading } = useListTopics();
@@ -248,7 +249,16 @@ export function AppSidebar() {
                     aria-current={location.pathname === "/settings" ? "page" : undefined}
                   >
                     <Settings className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-                    <span className="text-sm text-muted-foreground">Settings</span>
+                    <span className="text-sm text-muted-foreground flex-1">Settings</span>
+                    {pendingApprovals > 0 && (
+                      <span
+                        className="ml-auto inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-destructive px-1.5 text-[10px] font-bold text-destructive-foreground shadow-sm shadow-destructive/30"
+                        aria-label={`${pendingApprovals} pending approval${pendingApprovals === 1 ? "" : "s"}`}
+                        title={`${pendingApprovals} pending approval${pendingApprovals === 1 ? "" : "s"}`}
+                      >
+                        {pendingApprovals > 99 ? "99+" : pendingApprovals}
+                      </span>
+                    )}
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
