@@ -3,6 +3,7 @@ import { Lightbulb, FileCode2, CheckCircle2, Zap, Flame, Target, ChevronRight } 
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CodeRunner } from "@/components/code/CodeRunner";
+import { TaskAssistant } from "@/components/learning/TaskAssistant";
 import type { LearningStep, StepDifficulty } from "@/data/topicContent";
 
 const difficultyConfig: Record<StepDifficulty, { label: string; icon: React.ElementType; color: string; bgActive: string; bgInactive: string; badge: string }> = {
@@ -23,6 +24,7 @@ export function SteppedLearning({ steps, topicTitle, onComplete, onCodeRun }: St
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
   const [visibleHints, setVisibleHints] = useState<Set<number>>(new Set());
   const [filterDifficulty, setFilterDifficulty] = useState<StepDifficulty | "all">("all");
+  const [liveCode, setLiveCode] = useState("");
 
   const filtered = filterDifficulty === "all" ? steps : steps.filter(s => s.difficulty === filterDifficulty);
   const step = filtered[currentStep];
@@ -214,7 +216,25 @@ export function SteppedLearning({ steps, topicTitle, onComplete, onCodeRun }: St
             <div className="bg-yellow-500/5 border border-yellow-500/15 rounded-xl px-4 py-3 mb-3 text-sm text-foreground/80">
               <span className="font-semibold text-yellow-600">YOUR TASK:</span> {step.interactiveTask.instruction}
             </div>
-            <CodeRunner initialCode={step.interactiveTask.starterCode} height="h-[250px]" onRunSuccess={onCodeRun} />
+            <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-4 items-stretch">
+              <div className="min-w-0">
+                <CodeRunner
+                  initialCode={step.interactiveTask.starterCode}
+                  height="h-[420px]"
+                  onRunSuccess={onCodeRun}
+                  onCodeChange={setLiveCode}
+                />
+              </div>
+              <div className="min-w-0">
+                <TaskAssistant
+                  taskId={`${topicTitle}::${currentStep}`}
+                  taskInstruction={step.interactiveTask.instruction}
+                  starterCode={step.interactiveTask.starterCode}
+                  currentCode={liveCode || step.interactiveTask.starterCode}
+                  topicTitle={topicTitle}
+                />
+              </div>
+            </div>
           </div>
         )}
 
