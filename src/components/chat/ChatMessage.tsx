@@ -3,6 +3,7 @@ import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { parseAssistantOutput, structuredJsonToMarkdown, structuredMarkdownToClean } from "@/lib/parseAssistantOutput";
 import type { AiResponseMeta } from "@/lib/aiResponseMeta";
+import { FollowUpSuggestions } from "@/components/chat/FollowUpSuggestions";
 
 interface ChatMessageProps {
   role: "user" | "assistant";
@@ -10,6 +11,58 @@ interface ChatMessageProps {
   onRegenerate?: () => void;
   onCopyAll?: () => void;
   meta?: AiResponseMeta;
+  /** When provided, follow-up suggestions are stripped from the rendered
+   * markdown and shown below as clickable pill chips. */
+  onSuggestionClick?: (prompt: string) => void;
+  /** Whether to show the "Back to Home" pill alongside the suggestion chips. */
+  showHomeLink?: boolean;
+}
+
+/** Pull a trailing follow-up section out of any markdown content. Matches the
+ *  `🔗 Follow-up` block emitted by `structuredJsonToMarkdown` AND legacy
+ *  patterns (markdown bullets after a 🔗 / 💡 / "Suggestions" heading). */
+function extractFollowUpsFromMarkdown(content: string): { cleanContent: string; suggestions: string[] } {
+  const lines = content.split("\n");
+  let followUpStart = -1;
+
+  for (let i = lines.length - 1; i >= 0; i--) {
+    const line = lines[i].trim();
+    // Markers we accept: 🔗 / 💡 prefix, or a markdown heading mentioning "follow-up" / "suggestions"
+    if (
+      /^\*?\*?(?:🔗|💡)/.test(line) ||
+      /^#{1,4}\s+.*(?:follow.?up|suggestions?|continue learning)/i.test(line)
+    ) {
+      followUpStart = i;
+      break;
+    }
+  }
+
+  if (followUpStart === -1) {
+    for (let i = lines.length - 1; i >= Math.max(0, lines.length - 14); i--) {
+      if (lines[i].trim() === "---" && i < lines.length - 2) {
+        const nextNonEmpty = lines.slice(i + 1).find(l => l.trim());
+        if (nextNonEmpty && /(?:🔗|💡|follow.?up|suggestions?)/i.test(nextNonEmpty)) {
+          followUpStart = i;
+          break;
+        }
+      }
+    }
+  }
+
+  if (followUpStart >= 0) {
+    const suggestions: string[] = [];
+    for (let i = followUpStart; i < lines.length; i++) {
+      const match = lines[i].trim().match(/^[-•*]\s*"?(.+?)"?\s*$/);
+      if (match) suggestions.push(match[1].replace(/^["“”]|["“”]$/g, ""));
+    }
+    // Trim a trailing horizontal rule that immediately precedes the block
+    let endIdx = followUpStart;
+    while (endIdx > 0 && lines[endIdx - 1].trim() === "") endIdx--;
+    if (endIdx > 0 && lines[endIdx - 1].trim() === "---") endIdx--;
+    return { cleanContent: lines.slice(0, endIdx).join("\n").trimEnd(), suggestions };
+  }
+
+  return { cleanContent: content, suggestions: [] };
 }
 
 /* ───────── Code Block ───────── */
@@ -226,7 +279,7 @@ function ProvenanceLine({ meta }: { meta?: AiResponseMeta }) {
 }
 
 /* ───────── Main ChatMessage ───────── */
-export function ChatMessage({ role, content, onRegenerate, meta }: ChatMessageProps) {
+export function ChatMessage({ role, content, onRegenerate, meta, onSuggestionClick, showHomeLink = false }: ChatMessageProps) {
   if (role === "user") {
     return (
       <div className="flex justify-end">
@@ -240,17 +293,19 @@ export function ChatMessage({ role, content, onRegenerate, meta }: ChatMessagePr
   // Parse structured output
   const parsed = parseAssistantOutput(content);
 
-  const renderContent = () => {
+  // Build the markdown body, then peel off any trailing follow-up block when
+  // the parent has asked us to render chips.
+  const rawMarkdown = (() => {
     switch (parsed.type) {
-      case "json":
-        return <MarkdownRenderer content={structuredJsonToMarkdown(parsed.data)} />;
-      case "markdown":
-        return <MarkdownRenderer content={structuredMarkdownToClean(parsed.data)} />;
-      case "raw":
-      default:
-        return <MarkdownRenderer content={parsed.data} />;
+      case "json": return structuredJsonToMarkdown(parsed.data);
+      case "markdown": return structuredMarkdownToClean(parsed.data);
+      default: return parsed.data;
     }
-  };
+  })();
+
+  const { cleanContent, suggestions } = onSuggestionClick
+    ? extractFollowUpsFromMarkdown(rawMarkdown)
+    : { cleanContent: rawMarkdown, suggestions: [] };
 
   return (
     <div className="flex justify-start gap-3 group">
@@ -258,9 +313,16 @@ export function ChatMessage({ role, content, onRegenerate, meta }: ChatMessagePr
         <Bot className="w-4 h-4 text-secondary" />
       </div>
       <div className="flex-1 min-w-0 max-w-[90%]">
-        {renderContent()}
+        <MarkdownRenderer content={cleanContent} />
         <MessageActions content={content} onRegenerate={onRegenerate} />
         <ProvenanceLine meta={meta} />
+        {onSuggestionClick && suggestions.length > 0 && (
+          <FollowUpSuggestions
+            suggestions={suggestions}
+            onSelect={onSuggestionClick}
+            showHomeLink={showHomeLink}
+          />
+        )}
       </div>
     </div>
   );
