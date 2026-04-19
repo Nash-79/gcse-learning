@@ -1,50 +1,53 @@
 
 
-## Migration sync status
+## Context
 
-I compared every local migration file against the live DB schema and migration ledger.
+- No `.github/workflows/` exists — project deploys via Lovable / Replit, not GitHub Actions.
+- Migrations live in `supabase/migrations/*.sql`. Each one creates known objects (tables, functions, triggers, policies).
+- The "drift" we keep hitting: a migration file exists locally but was never executed against the live DB. There's no automatic detector.
+- Build is `vite build` (frontend) + `node build-server.mjs` (server bundle). No pre-build hook today.
 
-### ✅ In sync (13 of 16)
-All `2026031*` and `2026041914*`–`2026041921*` migrations match. The two re-runs from last turn (`…210612` archive + `…210648` leaderboard) succeeded — `archived_at`, the archive trigger, the purge function, the admin archive policy, the `leaderboard_scores` table and its sync trigger are all live.
+## Approach
 
-### ❌ Drift detected (3 migrations never applied)
+A pure Node script that runs as part of the build (and locally via `npm run migrations:check`). It does **not** need DB credentials at build time — instead it uses the **generated `src/integrations/supabase/types.ts`** as the source of truth for the live schema (Lovable regenerates this file from the live DB after every migration). If a migration file references a table/function that doesn't appear in `types.ts`, the migration hasn't been applied → fail the build.
 
-| Migration file | Issue | Impact |
-|---|---|---|
-| `20260325210500_openrouter_model_cache.sql` | `openrouter_model_cache` table missing | OpenRouter model catalog cache falls back to live API every cold start — no resilience, slower model lookups |
-| `20260418164000_harden_app_logs.sql` | `populate_app_log_actor()` function + `set_app_log_actor` trigger missing; `Authenticated users can insert logs` policy lacks email check; `Anyone can insert error logs` anon policy missing (superseded by the broader `…185350` policy, which is fine) | Server can't auto-stamp `user_id`/`user_email` on logs — all logging relies on the client correctly attaching identity (which we just patched in `appLogger.ts`). Defence-in-depth gap. |
-| `20260418150500_user_feedback.sql` | Table exists but live RLS policies have different names than the file (likely manually adjusted later). Schema columns match. | No functional impact — RLS still enforces correct rules. **Cosmetic drift only.** |
+This is the only viable check in this environment because:
+- Lovable doesn't expose live DB credentials to the build sandbox.
+- `types.ts` IS the live-schema mirror, regenerated server-side.
+- It catches exactly the drift class we hit 3 times today (`archived_at` missing, `openrouter_model_cache` missing, `populate_app_log_actor` missing).
 
-## Fix
+## What the script does
 
-**Re-run two migrations as new idempotent files** (originals can't be retroactively marked applied — Lovable's migration runner only tracks new submissions):
+`scripts/checkMigrationDrift.ts`:
 
-### Migration A — `openrouter_model_cache`
-```sql
-CREATE TABLE IF NOT EXISTS public.openrouter_model_cache (
-  cache_key TEXT PRIMARY KEY,
-  models JSONB NOT NULL,
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  source TEXT NOT NULL DEFAULT 'openrouter'
-);
-ALTER TABLE public.openrouter_model_cache ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS "Anyone can read model cache" ON public.openrouter_model_cache;
-CREATE POLICY "Anyone can read model cache"
-  ON public.openrouter_model_cache FOR SELECT TO anon, authenticated USING (true);
-```
-(Original file had no RLS — adding read-only policy now since RLS is required for safety.)
+1. Read every `supabase/migrations/*.sql` file.
+2. For each, parse out declared objects via regex:
+   - `CREATE TABLE [IF NOT EXISTS] public.<name>` → table
+   - `ALTER TABLE public.<name> ADD COLUMN [IF NOT EXISTS] <col>` → table.column
+   - `CREATE [OR REPLACE] FUNCTION public.<name>` → function
+3. Read `src/integrations/supabase/types.ts` and extract:
+   - All table names from the `Tables: { … }` block
+   - All column names per table from the `Row: { … }` blocks
+   - All function names from the `Functions: { … }` block
+4. For each declared object in a migration, check it exists in `types.ts`. If missing → record drift.
+5. Print a clean report. Exit `1` if any drift found.
 
-### Migration B — `harden_app_logs` (re-runnable)
-Re-applies the `populate_app_log_actor()` trigger so the DB itself stamps identity on every insert (defence-in-depth on top of the client fix). All statements use `OR REPLACE` / `IF EXISTS` / `IF NOT EXISTS` so safe to re-run.
+**Allowlist** for known-acceptable cases (e.g. triggers/policies aren't in `types.ts`, so we only check tables/columns/functions — those are the high-signal indicators).
 
-### `user_feedback` policy drift
-**Leave alone.** Live policies enforce correct security (admins read all, users read own, anon can insert without identity, authenticated insert their own). Renaming them would be churn with zero benefit.
+**Wiring**:
+- `package.json` → add `"migrations:check": "tsx scripts/checkMigrationDrift.ts"`
+- `package.json` → change `"build"` to `"npm run migrations:check && vite build"` so Lovable's build fails fast on drift.
+- Also runnable standalone: `npm run migrations:check`.
+
+## Files
+
+- **Create** `scripts/checkMigrationDrift.ts` (~120 lines, no new deps — uses `node:fs` + `node:path`)
+- **Edit** `package.json` — add script + chain into `build`
 
 ## Acceptance
 
-- `openrouter_model_cache` table exists with read policy → model catalog cache works.
-- `set_app_log_actor` trigger exists on `app_logs` → server-side identity stamping active.
-- All 3 future re-runs of these new migrations are no-ops (fully idempotent).
-- No code changes required — both fixes are pure DB.
-- Build still passes.
+- Running `npm run migrations:check` against the current repo passes (all 17 migrations are now in sync after today's fixes).
+- If someone adds a new migration creating `public.foo` without it being applied, `npm run build` fails with: `Drift detected: table "foo" declared in 20260420…sql is missing from live schema (types.ts).`
+- Zero false positives on triggers/policies (deliberately excluded — `types.ts` doesn't expose them).
+- No new npm dependencies.
 
