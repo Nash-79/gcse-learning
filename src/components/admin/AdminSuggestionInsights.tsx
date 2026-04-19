@@ -93,6 +93,21 @@ export default function AdminSuggestionInsights() {
   const totalClicks = rows.length;
   const uniqueSuggestions = aggregated.length;
 
+  // Top-surface breakdown: tutor vs each topic helper vs unknown
+  const surfaceBreakdown = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const r of rows) {
+      const key = r.origin || "unknown";
+      counts.set(key, (counts.get(key) ?? 0) + 1);
+    }
+    const entries = Array.from(counts.entries())
+      .map(([origin, count]) => ({ origin, count, label: surfaceLabel(origin) }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 8);
+    const max = entries[0]?.count ?? 0;
+    return { entries, max };
+  }, [rows]);
+
   const exportCsv = () => {
     const header = ["rank", "suggestion", "count", "last_clicked_at", "surfaces"];
     const lines = [header.join(",")];
