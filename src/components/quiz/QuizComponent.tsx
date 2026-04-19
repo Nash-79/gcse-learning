@@ -66,12 +66,6 @@ export function QuizComponent({ topicSlug, questions, onGenerateMore, isGenerati
     setIsAnswered(true);
   };
 
-  const handleSelect = (index: number) => {
-    if (isAnswered) return;
-    setSelectedOption(index);
-    setIsAnswered(true);
-  };
-
   const resetPerQuestionAi = () => {
     setAiExplanation("");
     setAiError("");
