@@ -26,12 +26,17 @@ function unescapeIfNeeded(input: string): string {
 function looksLikePythonCode(input: string): boolean {
   const text = input.trim();
   if (!text) return false;
-  const signals = ["print(", "input(", "for ", "while ", "if ", "elif ", "else:", "def ", "import ", " = ", "# "];
-  return signals.some((s) => text.includes(s));
+  // Require at least one *line* that looks like a real Python statement —
+  // not just an English word ("for each", "if needed") inside prose.
+  const lines = text.split("\n");
+  const codeLine = /^(?:\s*)(?:print\(|input\(|def\s+\w+\(|import\s+\w|from\s+\w+\s+import|for\s+\w+\s+in\s|while\s+.+:|if\s+.+:|elif\s+.+:|else\s*:|\w+\s*=\s*[^=])/;
+  return lines.some((l) => codeLine.test(l));
 }
 
 function hasMarkdownStructure(input: string): boolean {
   if (input.includes("```")) return true;
+  // Markdown tables: a line starting with `|` (pipe) signals tabular markdown.
+  if (/(^|\n)\s*\|.*\|/.test(input)) return true;
   // Any line that looks like prose, a heading, a list, or a blockquote —
   // means it's a narrative section, not a raw code snippet.
   return /(^|\n)\s*(#{1,6}\s|[-*]\s|>\s|\d+\.\s)/.test(input) ||
