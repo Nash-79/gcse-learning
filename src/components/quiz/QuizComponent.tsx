@@ -66,6 +66,18 @@ export function QuizComponent({ topicSlug, questions, onGenerateMore, isGenerati
     setIsAnswered(true);
   };
 
+  const handleSelect = (index: number) => {
+    if (isAnswered) return;
+    setSelectedOption(index);
+    setIsAnswered(true);
+  };
+
+  const resetPerQuestionAi = () => {
+    setAiExplanation("");
+    setAiError("");
+    setAiExplaining(false);
+  };
+
   const handleNext = () => {
     const earnedPoint = selectedOption === currentQ.correctIndex ? 1 : 0;
     const newScore = score + earnedPoint;
@@ -76,10 +88,57 @@ export function QuizComponent({ topicSlug, questions, onGenerateMore, isGenerati
       setSelectedOption(null);
       setIsAnswered(false);
       setShowHint(false);
+      resetPerQuestionAi();
     } else {
       finishQuiz(newScore);
     }
   };
+
+  const explainWithAi = async () => {
+    if (aiExplaining || !currentQ || selectedOption === null) return;
+    setAiExplaining(true);
+    setAiError("");
+    setAiExplanation("");
+
+    const studentChoice = currentQ.options[selectedOption];
+    const correctChoice = currentQ.options[currentQ.correctIndex];
+    const prompt =
+      `I got this OCR GCSE Computer Science quick-quiz question wrong. Please explain in 2-3 short paragraphs why my answer is incorrect and why the correct one is right. Use simple GCSE-level language.\n\n` +
+      `Question: ${currentQ.question}\n` +
+      `My answer: ${studentChoice}\n` +
+      `Correct answer: ${correctChoice}\n` +
+      `Existing explanation: ${currentQ.explanation}`;
+
+    try {
+      const response = await apiFetch("/api/ai-chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          mode: "chat",
+          topicTitle: topicSlug,
+          model: aiModel,
+          provider: aiProvider,
+          messages: [{ role: "user", content: prompt }],
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok || data?.error) throw new Error(data?.error || "Request failed");
+      setAiExplanation(data?.content || "No explanation returned.");
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : String(err);
+      void appLog({
+        event_type: "api_error",
+        origin: "QuizComponent.explainWithAi",
+        message: errMsg || "Quiz AI explain failed",
+        details: { topicSlug, question: currentQ.question },
+        severity: "error",
+      });
+      setAiError(errMsg || "Couldn't reach AI tutor.");
+    } finally {
+      setAiExplaining(false);
+    }
+  };
+
 
   const finishQuiz = (computedScore: number) => {
     setFinalScore(computedScore);
