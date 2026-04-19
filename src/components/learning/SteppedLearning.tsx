@@ -25,6 +25,7 @@ export function SteppedLearning({ steps, topicTitle, onComplete, onCodeRun }: St
   const [visibleHints, setVisibleHints] = useState<Set<number>>(new Set());
   const [filterDifficulty, setFilterDifficulty] = useState<StepDifficulty | "all">("all");
   const [liveCode, setLiveCode] = useState("");
+  const [lastOutput, setLastOutput] = useState("");
 
   const filtered = filterDifficulty === "all" ? steps : steps.filter(s => s.difficulty === filterDifficulty);
   const step = filtered[currentStep];
@@ -40,6 +41,7 @@ export function SteppedLearning({ steps, topicTitle, onComplete, onCodeRun }: St
     if (currentStep < filtered.length - 1) {
       setCurrentStep(currentStep + 1);
       setVisibleHints(new Set());
+      setLastOutput("");
       return;
     }
     onComplete?.();
@@ -57,6 +59,7 @@ export function SteppedLearning({ steps, topicTitle, onComplete, onCodeRun }: St
     setFilterDifficulty(d);
     setCurrentStep(0);
     setVisibleHints(new Set());
+    setLastOutput("");
   };
 
   if (!step) {
@@ -221,7 +224,7 @@ export function SteppedLearning({ steps, topicTitle, onComplete, onCodeRun }: St
                 <CodeRunner
                   initialCode={step.interactiveTask.starterCode}
                   height="h-[340px] lg:h-[400px]"
-                  onRunSuccess={onCodeRun}
+                  onRunSuccess={(out) => { setLastOutput(out); onCodeRun?.(); }}
                   onCodeChange={setLiveCode}
                 />
               </div>
@@ -232,6 +235,7 @@ export function SteppedLearning({ steps, topicTitle, onComplete, onCodeRun }: St
                   starterCode={step.interactiveTask.starterCode}
                   currentCode={liveCode || step.interactiveTask.starterCode}
                   topicTitle={topicTitle}
+                  lastOutput={lastOutput}
                 />
               </div>
             </div>

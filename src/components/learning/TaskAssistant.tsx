@@ -1,11 +1,13 @@
 import { useState } from "react";
-import { Bot, ChevronDown, ChevronUp, Loader2, Sparkles, ListOrdered, Lightbulb, Send } from "lucide-react";
+import { Bot, ChevronDown, ChevronUp, Sparkles, ListOrdered, Lightbulb, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ChatMessage } from "@/components/chat/ChatMessage";
 import { apiFetch } from "@/lib/apiFetch";
 import { useAiSettings } from "@/lib/useAiSettings";
 import { appLog } from "@/lib/appLogger";
+import { extractMeta } from "@/lib/aiResponseMeta";
+import type { AiResponseMeta } from "@/lib/aiResponseMeta";
 
 export interface TaskAssistantProps {
   taskId: string;
@@ -13,9 +15,10 @@ export interface TaskAssistantProps {
   starterCode: string;
   currentCode: string;
   topicTitle: string;
+  lastOutput?: string;
 }
 
-type PromptKind = "explain" | "plan" | "hint" | "freeform";
+type PromptKind = "explain" | "plan" | "hint" | "freeform" | "explain_output";
 
 const CACHE_KEY = "pylearn-task-assistant:v1";
 const CACHE_LIMIT = 200;
@@ -55,9 +58,10 @@ const writeCache = (key: string, value: string) => {
   }
 };
 
-export function TaskAssistant({ taskId, taskInstruction, starterCode, currentCode, topicTitle }: TaskAssistantProps) {
+export function TaskAssistant({ taskId, taskInstruction, starterCode, currentCode, topicTitle, lastOutput }: TaskAssistantProps) {
   const [expanded, setExpanded] = useState(false);
   const [response, setResponse] = useState("");
+  const [responseMeta, setResponseMeta] = useState<AiResponseMeta | undefined>();
   const [activeKind, setActiveKind] = useState<PromptKind | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -87,6 +91,8 @@ export function TaskAssistant({ taskId, taskInstruction, starterCode, currentCod
         return "Look at the student's current code above. Give ONE specific, encouraging hint about the very next thing they should fix or add. Do NOT rewrite the whole program. If their code is empty, suggest the first single line.";
       case "freeform":
         return `My question about this task: ${freeform}\n\nAnswer briefly and helpfully, in the context of the task above. Do NOT give the full solution unless I explicitly ask.`;
+      case "explain_output":
+        return `My code just produced this output:\n\`\`\`\n${lastOutput}\n\`\`\`\n\nIs this correct for the task? Explain in 2 short paragraphs what the output means and whether it solves the task. Do NOT give the full solution.`;
     }
   };
 
@@ -96,13 +102,16 @@ export function TaskAssistant({ taskId, taskInstruction, starterCode, currentCod
     setError("");
     setFromCache(false);
     setResponse("");
+    setResponseMeta(undefined);
 
     const cacheKeyInput =
       kind === "freeform"
         ? `${taskId}::freeform::${djb2(freeform || "")}::${djb2(currentCode || "")}`
         : kind === "hint"
           ? `${taskId}::hint::${djb2(currentCode || "")}`
-          : `${taskId}::${kind}`;
+          : kind === "explain_output"
+            ? `${taskId}::explain_output::${djb2(lastOutput || "")}`
+            : `${taskId}::${kind}`;
 
     const cache = readCache();
     if (cache[cacheKeyInput]) {
@@ -117,20 +126,19 @@ export function TaskAssistant({ taskId, taskInstruction, starterCode, currentCod
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          mode: "chat",
+          mode: "generate",
           topicTitle,
           model: aiModel,
           provider: aiProvider,
-          messages: [
-            { role: "system", content: buildSystemPrompt() },
-            { role: "user", content: buildUserPrompt(kind, freeform) },
-          ],
+          systemPromptOverride: buildSystemPrompt(),
+          userPromptOverride: buildUserPrompt(kind, freeform),
         }),
       });
       const data = await res.json();
       if (!res.ok || data?.error) throw new Error(data?.error || "Request failed");
       const content = data?.content || "No response returned.";
       setResponse(content);
+      setResponseMeta(extractMeta(data));
       if (data?.content) writeCache(cacheKeyInput, content);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -222,12 +230,29 @@ export function TaskAssistant({ taskId, taskInstruction, starterCode, currentCod
         >
           <Lightbulb className="w-3.5 h-3.5" /> Hint on my code
         </Button>
+        <Button
+          variant={activeKind === "explain_output" ? "default" : "outline"}
+          size="sm"
+          className="justify-start gap-2 h-9"
+          onClick={() => ask("explain_output")}
+          disabled={loading || !lastOutput}
+          title={!lastOutput ? "Run your code first" : undefined}
+        >
+          📤 Explain my output
+        </Button>
       </div>
 
-      <div className="flex-1 min-h-[200px] max-h-[560px] overflow-y-auto p-4 text-sm">
+      <div className="flex-1 min-h-[200px] max-h-[640px] overflow-y-auto p-4">
         {loading && (
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <Loader2 className="w-4 h-4 animate-spin" /> Thinking...
+          <div className="space-y-2 py-1">
+            {(["w-4/5", "w-3/5", "w-2/5"] as const).map((wCls, i) => (
+              <div
+                key={i}
+                className={`relative h-3 rounded bg-muted/40 overflow-hidden ${wCls}`}
+              >
+                <span className="block h-full w-1/3 -translate-x-full animate-[shimmer_1.4s_ease-in-out_infinite] bg-gradient-to-r from-transparent via-secondary/15 to-transparent" />
+              </div>
+            ))}
           </div>
         )}
         {!loading && error && (
@@ -241,7 +266,22 @@ export function TaskAssistant({ taskId, taskInstruction, starterCode, currentCod
           </p>
         )}
         {!loading && response && (
-          <ChatMessage role="assistant" content={response} />
+          <ChatMessage
+            role="assistant"
+            content={response}
+            meta={responseMeta}
+            onSuggestionClick={(p) => { void ask("freeform", p); }}
+            showHomeLink={false}
+          />
+        )}
+        {loading && response && (
+          <ChatMessage
+            role="assistant"
+            content={response}
+            meta={responseMeta}
+            isSuggestionsLoading
+            showHomeLink={false}
+          />
         )}
       </div>
 
