@@ -44,8 +44,12 @@ export function QuizComponent({ topicSlug, questions, onGenerateMore, isGenerati
   const [showHint, setShowHint] = useState(false);
   const [usedHintThisAttempt, setUsedHintThisAttempt] = useState(false);
   const [selectedDifficulty, setSelectedDifficulty] = useState<Difficulty | "all">("all");
+  const [aiExplanation, setAiExplanation] = useState<string>("");
+  const [aiExplaining, setAiExplaining] = useState(false);
+  const [aiError, setAiError] = useState<string>("");
 
   const submitQuiz = useSubmitQuizResult();
+  const { model: aiModel, provider: aiProvider } = useAiSettings();
 
   const filteredQuestions = useMemo(() => {
     if (selectedDifficulty === "all") return questions;
