@@ -257,32 +257,23 @@ export default function TopicPage() {
         </motion.div>
       )}
 
-      <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1.4fr)_minmax(320px,0.8fr)] gap-6 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.5fr)_minmax(280px,1fr)] gap-6 mb-8">
+        {/* Primary action card */}
         <Card className="rounded-2xl border-primary/20 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5">
           <CardContent className="p-5">
             <div className="flex items-start gap-3">
               <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
                 <Sparkles className="w-5 h-5 text-primary" />
               </div>
-              <div className="min-w-0">
+              <div className="min-w-0 flex-1">
                 <h2 className="text-lg font-display font-bold">Quick Check Before Full Practice</h2>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Start with the built-in quiz, generate extra AI questions using the current free model path, then head into the full exam question bank.
+                  Try the built-in quiz, generate extra AI questions, or open the AI tutor for this topic.
+                  When you&apos;re ready, head into the full exam question bank.
                 </p>
                 <div className="flex flex-wrap gap-2 mt-4">
                   <Button size="sm" className="rounded-full gap-1.5" onClick={() => setActiveTab("quiz")}>
                     <Award className="w-4 h-4" /> Open Quick Quiz
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="rounded-full gap-1.5"
-                    onClick={() => {
-                      setShowAiHelper(true);
-                      setActiveTab("lesson");
-                    }}
-                  >
-                    <Bot className="w-4 h-4" /> Validate With AI
                   </Button>
                   <Button
                     size="sm"
@@ -294,12 +285,65 @@ export default function TopicPage() {
                     {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
                     Generate Extra Questions
                   </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="rounded-full gap-1.5"
+                    onClick={() => {
+                      setShowAiHelper(true);
+                      setAiSeedPrompt(`Explain ${topicMeta.title} in simple terms`);
+                      setActiveTab("lesson");
+                    }}
+                  >
+                    <Bot className="w-4 h-4" /> Ask AI Tutor
+                  </Button>
                 </div>
               </div>
             </div>
           </CardContent>
         </Card>
 
+        {/* At-a-glance stats card — fills the previously empty right gutter */}
+        <Card className="rounded-2xl border-border/60 bg-gradient-to-br from-muted/30 via-transparent to-muted/10">
+          <CardContent className="p-5">
+            <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-3">
+              <Lightbulb className="w-3 h-3" /> At a glance
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="rounded-xl bg-card/60 border border-border/50 p-3">
+                <div className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold">Quick Quiz</div>
+                <div className="text-xl font-display font-bold text-foreground mt-0.5">
+                  {content.quiz.length}
+                  {aiQuestions.length > 0 && (
+                    <span className="text-xs font-medium text-primary ml-1">+{aiQuestions.length}</span>
+                  )}
+                </div>
+                <div className="text-[10px] text-muted-foreground">questions</div>
+              </div>
+              <div className="rounded-xl bg-card/60 border border-border/50 p-3">
+                <div className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold">Code Examples</div>
+                <div className="text-xl font-display font-bold text-foreground mt-0.5">{content.codeExamples.length}</div>
+                <div className="text-[10px] text-muted-foreground">runnable</div>
+              </div>
+              <div className="rounded-xl bg-card/60 border border-border/50 p-3">
+                <div className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold">Spec</div>
+                <div className="text-sm font-display font-bold text-foreground mt-0.5 truncate">
+                  {topicMeta.ocrRef ? `OCR ${topicMeta.ocrRef}` : "—"}
+                </div>
+                <div className="text-[10px] text-muted-foreground capitalize">{topicMeta.difficulty}</div>
+              </div>
+              <div className="rounded-xl bg-card/60 border border-border/50 p-3">
+                <div className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold">Status</div>
+                <div className="text-sm font-display font-bold text-foreground mt-0.5">
+                  {progress?.completed ? "Complete" : progress?.lessonCompleted ? "In progress" : "Not started"}
+                </div>
+                <div className="text-[10px] text-muted-foreground capitalize">
+                  {progress?.masteryTier && progress.masteryTier !== "none" ? `${progress.masteryTier} mastery` : "no badge yet"}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
