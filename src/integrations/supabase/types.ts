@@ -223,6 +223,27 @@ export type Database = {
         }
         Relationships: []
       }
+      openrouter_model_cache: {
+        Row: {
+          cache_key: string
+          models: Json
+          source: string
+          updated_at: string
+        }
+        Insert: {
+          cache_key: string
+          models: Json
+          source?: string
+          updated_at?: string
+        }
+        Update: {
+          cache_key?: string
+          models?: Json
+          source?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           approval_status: string
