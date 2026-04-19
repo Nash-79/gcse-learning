@@ -17,6 +17,7 @@ function mapApiPathToEdgeFunction(path: string): string | null {
     "api/ai-chat": "ai-chat",
     "api/gcse-chat": "gcse-chat",
     "api/mark-answer": "mark-answer",
+    "api/openrouter/models": "openrouter-models",
   };
   return map[clean] ?? null;
 }
@@ -65,12 +66,6 @@ export async function apiFetch(url: string, options: RequestInit = {}): Promise<
     // Health check: synthesize a 200 OK so the Settings page reports healthy.
     if (path === "api/health") {
       return jsonResponse({ ok: true, source: "edge-functions" });
-    }
-
-    // OpenRouter model catalog: not available without Express. Return an empty
-    // catalog so the UI gracefully falls back to the static model list.
-    if (path === "api/openrouter/models") {
-      return jsonResponse({ models: [], source: "edge-functions-fallback" });
     }
 
     // Content library manifest: served from Express only. Return empty.
