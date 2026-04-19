@@ -33,6 +33,8 @@ export function TaskAssistant({ taskId, taskInstruction, starterCode, currentCod
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [fromCache, setFromCache] = useState(false);
+  const [cachedAt, setCachedAt] = useState<number | undefined>(undefined);
+  const [lastAsk, setLastAsk] = useState<{ kind: PromptKind; freeform?: string } | null>(null);
   const [freeformInput, setFreeformInput] = useState("");
   const { model: settingsModel, provider: settingsProvider } = useAiSettings();
   const { freeModels, status: modelsStatus, refreshing: modelsRefreshing, refreshModels } = useOpenRouterModels();
