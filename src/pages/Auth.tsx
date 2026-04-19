@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { Navigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Code2, LogIn, UserPlus, Mail, Lock, User, Loader2, Eye, EyeOff } from "lucide-react";
+import { Code2, LogIn, UserPlus, Mail, Lock, User, Loader2, Eye, EyeOff, KeyRound } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 export default function Auth() {
@@ -149,6 +150,30 @@ export default function Auth() {
                 {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : mode === "login" ? <LogIn className="w-4 h-4" /> : <UserPlus className="w-4 h-4" />}
                 {submitting ? "Please wait..." : mode === "login" ? "Sign In" : "Create Account"}
               </Button>
+
+              {mode === "login" && (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (!email) {
+                      toast.error("Enter your email above first");
+                      return;
+                    }
+                    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                      redirectTo: `${window.location.origin}/reset-password`,
+                    });
+                    if (error) {
+                      toast.error(error.message);
+                    } else {
+                      toast.success("Password reset email sent. Check your inbox.");
+                    }
+                  }}
+                  className="flex items-center justify-center gap-1.5 w-full text-xs text-muted-foreground hover:text-primary transition-colors pt-1"
+                >
+                  <KeyRound className="w-3 h-3" />
+                  Forgot password?
+                </button>
+              )}
             </form>
           </CardContent>
         </Card>

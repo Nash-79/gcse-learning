@@ -16,6 +16,7 @@ import TopicTheory from "@/pages/TopicTheory";
 import Settings from "@/pages/Settings";
 import AiTutor from "@/pages/AiTutor";
 import Auth from "@/pages/Auth";
+import ResetPassword from "@/pages/ResetPassword";
 import ExamHistory from "@/pages/ExamHistory";
 import SpacedRepetition from "@/pages/SpacedRepetition";
 import Theory from "@/pages/Theory";
@@ -62,6 +63,7 @@ const App = () => {
                       <Routes>
                         <Route path="/" element={<Home />} />
                         <Route path="/auth" element={<Auth />} />
+                        <Route path="/reset-password" element={<ResetPassword />} />
                         <Route path="/topic/:slug" element={<TopicPage />} />
                         <Route path="/playground" element={<Playground />} />
                         <Route path="/question-bank" element={<QuestionBank />} />
