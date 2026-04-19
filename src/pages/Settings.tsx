@@ -15,6 +15,7 @@ import AdminLogViewer from "@/components/admin/AdminLogViewer";
 import AdminUserRoles from "@/components/admin/AdminUserRoles";
 import AdminFeedbackViewer from "@/components/admin/AdminFeedbackViewer";
 import AdminSuggestionInsights from "@/components/admin/AdminSuggestionInsights";
+import { CachedResponsesCard } from "@/components/settings/CachedResponsesCard";
 import { Slider } from "@/components/ui/slider";
 
 interface FreeModel {
