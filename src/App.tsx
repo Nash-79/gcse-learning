@@ -22,6 +22,7 @@ import SpacedRepetition from "@/pages/SpacedRepetition";
 import Theory from "@/pages/Theory";
 import NotFound from "@/pages/NotFound";
 import { AppSidebar } from "@/components/layout/AppSidebar";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { Header } from "@/components/layout/Header";
 import { ScrollRestoration } from "@/components/layout/ScrollRestoration";
 import { SkipToContent } from "@/components/layout/SkipToContent";
@@ -67,12 +68,12 @@ const App = () => {
                         <Route path="/topic/:slug" element={<TopicPage />} />
                         <Route path="/playground" element={<Playground />} />
                         <Route path="/question-bank" element={<QuestionBank />} />
-                        <Route path="/exam-session/:setId" element={<ExamSession />} />
+                        <Route path="/exam-session/:setId" element={<ProtectedRoute><ExamSession /></ProtectedRoute>} />
                         <Route path="/topic-theory/:slug" element={<TopicTheory />} />
-                        <Route path="/settings" element={<Settings />} />
-                        <Route path="/ai-tutor" element={<AiTutor />} />
-                        <Route path="/exam-history" element={<ExamHistory />} />
-                        <Route path="/spaced-repetition" element={<SpacedRepetition />} />
+                        <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+                        <Route path="/ai-tutor" element={<ProtectedRoute><AiTutor /></ProtectedRoute>} />
+                        <Route path="/exam-history" element={<ProtectedRoute><ExamHistory /></ProtectedRoute>} />
+                        <Route path="/spaced-repetition" element={<ProtectedRoute><SpacedRepetition /></ProtectedRoute>} />
                         <Route path="/theory" element={<Theory />} />
                         <Route path="*" element={<NotFound />} />
                       </Routes>
