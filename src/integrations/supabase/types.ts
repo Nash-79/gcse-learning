@@ -169,6 +169,60 @@ export type Database = {
         }
         Relationships: []
       }
+      leaderboard_scores: {
+        Row: {
+          bronze_topics: number
+          completed_topics: number
+          created_at: string
+          current_streak: number
+          display_name: string
+          gold_topics: number
+          level: number
+          longest_streak: number
+          overall_best_score: number | null
+          quizzes_passed: number
+          silver_topics: number
+          total_topics: number
+          total_xp: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          bronze_topics?: number
+          completed_topics?: number
+          created_at?: string
+          current_streak?: number
+          display_name?: string
+          gold_topics?: number
+          level?: number
+          longest_streak?: number
+          overall_best_score?: number | null
+          quizzes_passed?: number
+          silver_topics?: number
+          total_topics?: number
+          total_xp?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          bronze_topics?: number
+          completed_topics?: number
+          created_at?: string
+          current_streak?: number
+          display_name?: string
+          gold_topics?: number
+          level?: number
+          longest_streak?: number
+          overall_best_score?: number | null
+          quizzes_passed?: number
+          silver_topics?: number
+          total_topics?: number
+          total_xp?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           approval_status: string
