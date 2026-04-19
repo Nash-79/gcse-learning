@@ -94,8 +94,8 @@ export function CodeRunner({
   };
 
   return (
-    <div className="flex flex-col xl:flex-row gap-4 w-full items-stretch">
-      <div className="flex-1 xl:w-3/5 flex flex-col rounded-2xl overflow-hidden border border-border/50 shadow-lg bg-card">
+    <div className="flex flex-col 2xl:flex-row gap-4 w-full items-stretch">
+      <div className="flex-1 2xl:w-3/5 flex flex-col rounded-2xl overflow-hidden border border-border/50 shadow-lg bg-card">
         <div className="flex items-center justify-between px-4 py-3 border-b bg-muted/30">
           <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
             <Terminal className="w-4 h-4 text-primary" />
