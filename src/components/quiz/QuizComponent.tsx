@@ -1,11 +1,14 @@
 import { useState, useMemo } from "react";
-import { CheckCircle2, XCircle, Trophy, RotateCcw, Lightbulb, Sparkles, Flame, Zap, Target } from "lucide-react";
+import { CheckCircle2, XCircle, Trophy, RotateCcw, Lightbulb, Sparkles, Flame, Zap, Target, Bot, Loader2, HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import confetti from "canvas-confetti";
 import { useSubmitQuizResult } from "@/hooks/useTopics";
+import { apiFetch } from "@/lib/apiFetch";
+import { useAiSettings } from "@/lib/useAiSettings";
+import { appLog } from "@/lib/appLogger";
 
 export type Difficulty = "easy" | "medium" | "hard";
 
@@ -41,8 +44,12 @@ export function QuizComponent({ topicSlug, questions, onGenerateMore, isGenerati
   const [showHint, setShowHint] = useState(false);
   const [usedHintThisAttempt, setUsedHintThisAttempt] = useState(false);
   const [selectedDifficulty, setSelectedDifficulty] = useState<Difficulty | "all">("all");
+  const [aiExplanation, setAiExplanation] = useState<string>("");
+  const [aiExplaining, setAiExplaining] = useState(false);
+  const [aiError, setAiError] = useState<string>("");
 
   const submitQuiz = useSubmitQuizResult();
+  const { model: aiModel, provider: aiProvider } = useAiSettings();
 
   const filteredQuestions = useMemo(() => {
     if (selectedDifficulty === "all") return questions;
@@ -59,6 +66,12 @@ export function QuizComponent({ topicSlug, questions, onGenerateMore, isGenerati
     setIsAnswered(true);
   };
 
+  const resetPerQuestionAi = () => {
+    setAiExplanation("");
+    setAiError("");
+    setAiExplaining(false);
+  };
+
   const handleNext = () => {
     const earnedPoint = selectedOption === currentQ.correctIndex ? 1 : 0;
     const newScore = score + earnedPoint;
@@ -69,10 +82,57 @@ export function QuizComponent({ topicSlug, questions, onGenerateMore, isGenerati
       setSelectedOption(null);
       setIsAnswered(false);
       setShowHint(false);
+      resetPerQuestionAi();
     } else {
       finishQuiz(newScore);
     }
   };
+
+  const explainWithAi = async () => {
+    if (aiExplaining || !currentQ || selectedOption === null) return;
+    setAiExplaining(true);
+    setAiError("");
+    setAiExplanation("");
+
+    const studentChoice = currentQ.options[selectedOption];
+    const correctChoice = currentQ.options[currentQ.correctIndex];
+    const prompt =
+      `I got this OCR GCSE Computer Science quick-quiz question wrong. Please explain in 2-3 short paragraphs why my answer is incorrect and why the correct one is right. Use simple GCSE-level language.\n\n` +
+      `Question: ${currentQ.question}\n` +
+      `My answer: ${studentChoice}\n` +
+      `Correct answer: ${correctChoice}\n` +
+      `Existing explanation: ${currentQ.explanation}`;
+
+    try {
+      const response = await apiFetch("/api/ai-chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          mode: "chat",
+          topicTitle: topicSlug,
+          model: aiModel,
+          provider: aiProvider,
+          messages: [{ role: "user", content: prompt }],
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok || data?.error) throw new Error(data?.error || "Request failed");
+      setAiExplanation(data?.content || "No explanation returned.");
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : String(err);
+      void appLog({
+        event_type: "api_error",
+        origin: "QuizComponent.explainWithAi",
+        message: errMsg || "Quiz AI explain failed",
+        details: { topicSlug, question: currentQ.question },
+        severity: "error",
+      });
+      setAiError(errMsg || "Couldn't reach AI tutor.");
+    } finally {
+      setAiExplaining(false);
+    }
+  };
+
 
   const finishQuiz = (computedScore: number) => {
     setFinalScore(computedScore);
@@ -96,6 +156,7 @@ export function QuizComponent({ topicSlug, questions, onGenerateMore, isGenerati
     setIsFinished(false);
     setShowHint(false);
     setUsedHintThisAttempt(false);
+    resetPerQuestionAi();
   };
 
   const switchDifficulty = (d: Difficulty | "all") => {
@@ -273,10 +334,40 @@ export function QuizComponent({ topicSlug, questions, onGenerateMore, isGenerati
               ? 'border-green-500/30 bg-green-500/5 text-green-400'
               : 'border-red-500/30 bg-red-500/5 text-red-400'
           }`}>
-            <p className="font-semibold mb-1">
-              {selectedOption === currentQ.correctIndex ? "✓ Correct!" : "✗ Incorrect"}
-            </p>
+            <div className="flex items-start justify-between gap-3 mb-1">
+              <p className="font-semibold">
+                {selectedOption === currentQ.correctIndex ? "✓ Correct!" : "✗ Incorrect"}
+              </p>
+              {selectedOption !== currentQ.correctIndex && !aiExplanation && (
+                <button
+                  type="button"
+                  onClick={explainWithAi}
+                  disabled={aiExplaining}
+                  className="flex items-center gap-1.5 text-xs px-3 py-1 rounded-full border border-secondary/40 bg-secondary/10 text-secondary hover:bg-secondary/20 transition-colors disabled:opacity-60"
+                >
+                  {aiExplaining ? (
+                    <><Loader2 className="w-3 h-3 animate-spin" /> Asking AI…</>
+                  ) : (
+                    <><HelpCircle className="w-3 h-3" /> Why?</>
+                  )}
+                </button>
+              )}
+            </div>
             <p className="text-muted-foreground">{currentQ.explanation}</p>
+
+            {aiError && (
+              <p className="mt-3 text-xs text-destructive">⚠ {aiError}</p>
+            )}
+
+            {aiExplanation && (
+              <div className="mt-3 px-4 py-3 rounded-xl border border-secondary/30 bg-secondary/5">
+                <div className="flex items-center gap-2 mb-2 text-secondary">
+                  <Bot className="w-4 h-4" />
+                  <span className="text-xs font-semibold uppercase tracking-wide">AI Tutor</span>
+                </div>
+                <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">{aiExplanation}</p>
+              </div>
+            )}
           </div>
         )}
       </CardContent>
