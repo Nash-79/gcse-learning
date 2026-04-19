@@ -1,8 +1,8 @@
 import { useState } from "react";
-import ReactMarkdown from "react-markdown";
 import { Bot, ChevronDown, ChevronUp, Loader2, Sparkles, ListOrdered, Lightbulb, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { ChatMessage } from "@/components/chat/ChatMessage";
 import { apiFetch } from "@/lib/apiFetch";
 import { useAiSettings } from "@/lib/useAiSettings";
 import { appLog } from "@/lib/appLogger";
@@ -55,11 +55,6 @@ const writeCache = (key: string, value: string) => {
   }
 };
 
-const SYSTEM_PROMPT =
-  "You are a patient OCR GCSE Computer Science (J277) Python tutor helping a student with a coding task. " +
-  "Use ONLY strict GCSE-level Python: no f-strings (use + for concatenation), no try/except, no classes, no list comprehensions, no walrus operator. " +
-  "Use input(), print(), int(), str(), basic if/else, while/for loops. Keep explanations short, kind, and concrete.";
-
 export function TaskAssistant({ taskId, taskInstruction, starterCode, currentCode, topicTitle }: TaskAssistantProps) {
   const [expanded, setExpanded] = useState(false);
   const [response, setResponse] = useState("");
@@ -70,21 +65,28 @@ export function TaskAssistant({ taskId, taskInstruction, starterCode, currentCod
   const [freeformInput, setFreeformInput] = useState("");
   const { model: aiModel, provider: aiProvider } = useAiSettings();
 
-  const buildPrompt = (kind: PromptKind, freeform?: string): string => {
-    const ctx =
-      `Topic: ${topicTitle}\n` +
-      `Task instruction: ${taskInstruction}\n` +
-      `Starter code:\n\`\`\`python\n${starterCode}\n\`\`\`\n` +
-      `Student's current code:\n\`\`\`python\n${currentCode || "(empty)"}\n\`\`\`\n\n`;
+  // Task-locked system prompt — every call (preset OR free-form) carries
+  // the full task context so the AI never drifts off the current exercise.
+  const buildSystemPrompt = (): string =>
+    "You are a patient OCR GCSE Computer Science (J277) Python tutor helping a student with a SPECIFIC coding task. " +
+    "Use ONLY strict GCSE-level Python: no f-strings (use + for concatenation), no try/except, no classes, no list comprehensions, no walrus operator. " +
+    "Use input(), print(), int(), str(), basic if/else, while/for loops. Keep explanations short, kind, and concrete.\n\n" +
+    `TOPIC: ${topicTitle}\n\n` +
+    `THE TASK THE STUDENT IS WORKING ON:\n${taskInstruction}\n\n` +
+    `STARTER CODE:\n\`\`\`python\n${starterCode}\n\`\`\`\n\n` +
+    `STUDENT'S CURRENT CODE:\n\`\`\`python\n${currentCode || "(empty)"}\n\`\`\`\n\n` +
+    "Stay strictly focused on THIS task. Do not give the full solution unless the student explicitly asks for it.";
+
+  const buildUserPrompt = (kind: PromptKind, freeform?: string): string => {
     switch (kind) {
       case "explain":
-        return ctx + "Explain this task in 2-3 short sentences using plain English. What is the student being asked to do, and what concepts will they use? Do NOT give a solution.";
+        return "Explain THIS task in 2-3 short sentences using plain English. What is the student being asked to do, and what concepts will they use? Do NOT give a solution.";
       case "plan":
-        return ctx + "Give a numbered step-by-step plan (3-6 steps) the student can follow. Use plain English or pseudocode. Do NOT write the full Python solution.";
+        return "Give a numbered step-by-step plan (3-6 steps) the student can follow for THIS task. Use plain English or pseudocode. Do NOT write the full Python solution.";
       case "hint":
-        return ctx + "Look at the student's current code. Give ONE specific, encouraging hint about the very next thing they should fix or add. Do NOT rewrite the whole program. If their code is empty, suggest the first single line.";
+        return "Look at the student's current code above. Give ONE specific, encouraging hint about the very next thing they should fix or add. Do NOT rewrite the whole program. If their code is empty, suggest the first single line.";
       case "freeform":
-        return ctx + `Student's question: ${freeform}\n\nAnswer briefly and helpfully. Do NOT give the full solution unless they explicitly ask for it.`;
+        return `My question about this task: ${freeform}\n\nAnswer briefly and helpfully, in the context of the task above. Do NOT give the full solution unless I explicitly ask.`;
     }
   };
 
@@ -110,7 +112,6 @@ export function TaskAssistant({ taskId, taskInstruction, starterCode, currentCod
       return;
     }
 
-    const prompt = buildPrompt(kind, freeform);
     try {
       const res = await apiFetch("/api/ai-chat", {
         method: "POST",
@@ -121,8 +122,8 @@ export function TaskAssistant({ taskId, taskInstruction, starterCode, currentCod
           model: aiModel,
           provider: aiProvider,
           messages: [
-            { role: "system", content: SYSTEM_PROMPT },
-            { role: "user", content: prompt },
+            { role: "system", content: buildSystemPrompt() },
+            { role: "user", content: buildUserPrompt(kind, freeform) },
           ],
         }),
       });
@@ -151,6 +152,7 @@ export function TaskAssistant({ taskId, taskInstruction, starterCode, currentCod
     const q = freeformInput.trim();
     if (!q || loading) return;
     void ask("freeform", q);
+    setFreeformInput("");
   };
 
   if (!expanded) {
@@ -165,7 +167,7 @@ export function TaskAssistant({ taskId, taskInstruction, starterCode, currentCod
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-sm font-bold text-foreground">Need help with this task?</p>
-            <p className="text-xs text-muted-foreground">Ask the AI tutor for an explanation, a plan, or a hint.</p>
+            <p className="text-xs text-muted-foreground">Ask the AI tutor — it already knows what you're working on.</p>
           </div>
           <ChevronDown className="w-4 h-4 text-muted-foreground shrink-0" />
         </div>
@@ -222,7 +224,7 @@ export function TaskAssistant({ taskId, taskInstruction, starterCode, currentCod
         </Button>
       </div>
 
-      <div className="flex-1 min-h-[200px] max-h-[480px] overflow-y-auto p-4 text-sm">
+      <div className="flex-1 min-h-[200px] max-h-[560px] overflow-y-auto p-4 text-sm">
         {loading && (
           <div className="flex items-center gap-2 text-muted-foreground">
             <Loader2 className="w-4 h-4 animate-spin" /> Thinking...
@@ -235,13 +237,11 @@ export function TaskAssistant({ taskId, taskInstruction, starterCode, currentCod
         )}
         {!loading && !error && !response && (
           <p className="text-muted-foreground/60 text-xs italic">
-            Pick an option above, or ask your own question below.
+            Pick an option above, or ask your own question below — the assistant already knows about this task.
           </p>
         )}
         {!loading && response && (
-          <div className="prose prose-sm dark:prose-invert max-w-none prose-pre:bg-[#1e1e1e] prose-pre:text-blue-100 prose-code:text-foreground prose-p:text-foreground/80 prose-headings:text-foreground">
-            <ReactMarkdown>{response}</ReactMarkdown>
-          </div>
+          <ChatMessage role="assistant" content={response} />
         )}
       </div>
 
@@ -250,7 +250,7 @@ export function TaskAssistant({ taskId, taskInstruction, starterCode, currentCod
           type="text"
           value={freeformInput}
           onChange={(e) => setFreeformInput(e.target.value)}
-          placeholder="Ask a follow-up..."
+          placeholder="Ask anything about this task..."
           className="flex-1 text-xs px-3 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-1 focus:ring-primary"
           disabled={loading}
         />
