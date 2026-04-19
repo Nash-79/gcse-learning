@@ -10,32 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.5"
-  }
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
+    PostgrestVersion: "14.4"
   }
   public: {
     Tables: {
@@ -191,27 +166,6 @@ export type Database = {
         }
         Relationships: []
       }
-      openrouter_model_cache: {
-        Row: {
-          cache_key: string
-          models: Json
-          source: string
-          updated_at: string
-        }
-        Insert: {
-          cache_key: string
-          models: Json
-          source?: string
-          updated_at?: string
-        }
-        Update: {
-          cache_key?: string
-          models?: Json
-          source?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
       profiles: {
         Row: {
           created_at: string
@@ -281,42 +235,6 @@ export type Database = {
           times_incorrect?: number
           topic?: string | null
           user_id?: string
-        }
-        Relationships: []
-      }
-      user_feedback: {
-        Row: {
-          created_at: string
-          feedback_type: string
-          id: string
-          page_path: string
-          payload: Json
-          section_key: string
-          status: string
-          user_email: string | null
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string
-          feedback_type?: string
-          id?: string
-          page_path: string
-          payload?: Json
-          section_key?: string
-          status?: string
-          user_email?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string
-          feedback_type?: string
-          id?: string
-          page_path?: string
-          payload?: Json
-          section_key?: string
-          status?: string
-          user_email?: string | null
-          user_id?: string | null
         }
         Relationships: []
       }
@@ -478,9 +396,6 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {
       app_role: ["admin", "moderator", "user"],
