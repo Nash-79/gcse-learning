@@ -221,7 +221,9 @@ export const paper2Theory: TopicTheoryData[] = [
             { step: "low=6, high=6, mid=6. list[6]=38. Found! Return index 6.", explanation: "Fourth comparison. Target matches mid — return position." },
           ],
           answer: "38 found at index 6 after 4 comparisons.",
-          markScheme: "1 mark per step correctly shown (mid calculated correctly, correct comparison, correct half discarded). Full marks for correct final index.",
+          markScheme: [
+            "1 mark per step correctly shown (mid calculated correctly, correct comparison, correct half discarded). Full marks for correct final index"
+          ],
         },
 
         flashcards: [
@@ -262,7 +264,11 @@ export const paper2Theory: TopicTheoryData[] = [
             { step: "Compare 9 and 5: 9>5 → swap → [3, 7, 2, 5, 9]", explanation: "Fourth pair — wrong order, swap. After pass 1: [3, 7, 2, 5, 9]. 9 is now in final position." },
           ],
           answer: "After one pass: [3, 7, 2, 5, 9]. Three swaps were made. 9 (the largest) is now in its final position.",
-          markScheme: "1 mark: correct final list; 1 mark: 3 swaps identified; 1 mark: largest element at end.",
+          markScheme: [
+            "1 mark: correct final list",
+            "1 mark: 3 swaps identified",
+            "1 mark: largest element at end"
+          ],
         },
 
         flashcards: [
@@ -685,7 +691,9 @@ export const paper2Theory: TopicTheoryData[] = [
             { step: "Erroneous: 21-character password → rejected", explanation: "Just above maximum boundary — should fail." },
           ],
           answer: "5-row test plan with: normal (e.g., 12 chars → accepted), boundary at 8 and 20 (accepted), erroneous at 7 and 21 (rejected).",
-          markScheme: "1 mark per correct test case (test data + expected result). Must include at least one boundary and one erroneous case for full marks.",
+          markScheme: [
+            "1 mark per correct test case (test data + expected result). Must include at least one boundary and one erroneous case for full marks"
+          ],
         },
 
         flashcards: [
@@ -829,7 +837,11 @@ export const paper2Theory: TopicTheoryData[] = [
             { step: "Q = (A AND B) OR (NOT C): combine with OR.", explanation: "1 if either column is 1." },
           ],
           answer: "Row by row: (0,0,0)→1; (0,0,1)→0; (0,1,0)→1; (0,1,1)→0; (1,0,0)→1; (1,0,1)→0; (1,1,0)→1; (1,1,1)→1",
-          markScheme: "1 mark: correct A AND B column; 1 mark: correct NOT C column; 2 marks: all 8 Q values correct (deduct 1 per error).",
+          markScheme: [
+            "1 mark: correct A AND B column",
+            "1 mark: correct NOT C column",
+            "2 marks: all 8 Q values correct (deduct 1 per error)"
+          ],
         },
 
         flashcards: [
@@ -944,7 +956,9 @@ export const paper2Theory: TopicTheoryData[] = [
             { step: "Breakpoints allow execution to pause at a specific line.", explanation: "The programmer can then inspect variable values at that point to understand why a logic error is occurring." },
           ],
           answer: "Error diagnostics highlight syntax errors with descriptions; breakpoints pause execution so variable values can be inspected to find logic errors.",
-          markScheme: "1 mark per feature named + 1 mark for how it helps the programmer. Max 4 marks for 2 features.",
+          markScheme: [
+            "1 mark per feature named + 1 mark for how it helps the programmer. Max 4 marks for 2 features"
+          ],
         },
 
         flashcards: [

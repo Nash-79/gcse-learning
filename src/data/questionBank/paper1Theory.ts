@@ -455,7 +455,12 @@ export const paper1Theory: TopicTheoryData[] = [
             { step: "RAM is volatile but fast.", explanation: "RAM can be read and written constantly, which is why it's suitable for active programs rather than permanent storage." },
           ],
           answer: "ROM stores the BIOS/boot instructions permanently (non-volatile), so the computer can start up. RAM then holds the OS and running programs (volatile, read/write, fast) for CPU access.",
-          markScheme: "1 mark each for: ROM stores BIOS; ROM is non-volatile so survives power off; RAM holds running programs/OS; RAM is volatile/fast/read-write. Max 4.",
+          markScheme: [
+            "1 mark each for: ROM stores BIOS",
+            "ROM is non-volatile so survives power off",
+            "RAM holds running programs/OS",
+            "RAM is volatile/fast/read-write. Max 4"
+          ],
         },
 
         flashcards: [
@@ -603,7 +608,12 @@ export const paper1Theory: TopicTheoryData[] = [
             { step: "1100 = 12 = C; 1010 = 10 = A", explanation: "Convert each nibble using the hex table." },
           ],
           answer: "202₁₀ = 11001010₂ = CA₁₆",
-          markScheme: "1 mark: correct binary; 1 mark: correct method shown; 1 mark: correct nibble splitting; 1 mark: correct hex CA.",
+          markScheme: [
+            "1 mark: correct binary",
+            "1 mark: correct method shown",
+            "1 mark: correct nibble splitting",
+            "1 mark: correct hex CA"
+          ],
         },
 
         flashcards: [
@@ -662,7 +672,11 @@ export const paper1Theory: TopicTheoryData[] = [
             { step: "Convert to MB: 1406 ÷ 1024 ≈ 1.37 MB", explanation: "Divide by 1024 again to convert KB to MB." },
           ],
           answer: "≈ 1.37 MB",
-          markScheme: "1 mark: correct formula used; 1 mark: correct multiplication to bits; 1 mark: correct conversion to MB (accept 1.37–1.38 MB).",
+          markScheme: [
+            "1 mark: correct formula used",
+            "1 mark: correct multiplication to bits",
+            "1 mark: correct conversion to MB (accept 1.37–1.38 MB)"
+          ],
         },
 
         flashcards: [
@@ -972,7 +986,9 @@ export const paper1Theory: TopicTheoryData[] = [
             { step: "Different teams can work on different layers simultaneously.", explanation: "Hardware manufacturers design physical layer protocols while software teams design application layer protocols independently." },
           ],
           answer: "Layers allow independent development and modification of protocols without affecting other layers, and simplify the design by dividing complex communication into manageable stages.",
-          markScheme: "2 marks per reason: 1 for stating the reason, 1 for explaining it. Any two of: independence, simplicity, parallel development, hardware flexibility.",
+          markScheme: [
+            "2 marks per reason: 1 for stating the reason, 1 for explaining it. Any two of: independence, simplicity, parallel development, hardware flexibility"
+          ],
         },
 
         flashcards: [
@@ -1183,7 +1199,12 @@ export const paper1Theory: TopicTheoryData[] = [
             { step: "Prevention: use input validation to reject unexpected characters.", explanation: "Parameterised queries separate SQL code from data so user input is never executed as code." },
           ],
           answer: "SQL injection inserts malicious SQL into an input field. The server executes it, granting unauthorised database access. Prevented by input validation and parameterised queries.",
-          markScheme: "1 mark: attacker enters SQL into input field; 1 mark: SQL executes on database; 1 mark: input validation prevents it; 1 mark: parameterised queries explained.",
+          markScheme: [
+            "1 mark: attacker enters SQL into input field",
+            "1 mark: SQL executes on database",
+            "1 mark: input validation prevents it",
+            "1 mark: parameterised queries explained"
+          ],
         },
 
         flashcards: [
@@ -1343,7 +1364,10 @@ export const paper1Theory: TopicTheoryData[] = [
             { step: "Process Management: the OS schedules which process gets CPU time and when.", explanation: "By rapidly switching between processes (multitasking), it gives the impression that multiple programs run simultaneously." },
           ],
           answer: "Memory management allocates RAM to programs to prevent conflicts. Process management schedules CPU time, enabling multitasking.",
-          markScheme: "For each function: 1 mark for naming it; 1 mark for a correct explanation. Max 4.",
+          markScheme: [
+            "For each function: 1 mark for naming it",
+            "1 mark for a correct explanation. Max 4"
+          ],
         },
 
         flashcards: [
@@ -1460,7 +1484,11 @@ export const paper1Theory: TopicTheoryData[] = [
             { step: "No overflow — result fits in 8 bits (max 11111111 = 255).", explanation: "Overflow would only occur if the result exceeded 255 (needed more than 8 bits)." },
           ],
           answer: "01101011 + 00110110 = 10100001₂ (161₁₀). No overflow occurs (result fits in 8 bits).",
-          markScheme: "1 mark: correct binary sum; 1 mark: correct method shown (carry row); 1 mark: correct overflow assessment.",
+          markScheme: [
+            "1 mark: correct binary sum",
+            "1 mark: correct method shown (carry row)",
+            "1 mark: correct overflow assessment"
+          ],
         },
 
         flashcards: [
@@ -1611,7 +1639,9 @@ export const paper1Theory: TopicTheoryData[] = [
             { step: "Personal data must be kept accurate and up to date.", explanation: "Organisations must not store inaccurate data about individuals, and must correct mistakes when reported." },
           ],
           answer: "Data must be used fairly and lawfully (with consent); data must be accurate and kept up to date. Other valid principles: limited to purpose, not kept longer than necessary, kept secure.",
-          markScheme: "1 mark per principle identified + 1 mark for correct explanation. Any two correct pairs. Max 4.",
+          markScheme: [
+            "1 mark per principle identified + 1 mark for correct explanation. Any two correct pairs. Max 4"
+          ],
         },
 
         flashcards: [

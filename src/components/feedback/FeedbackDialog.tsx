@@ -111,7 +111,7 @@ export function FeedbackDialog({ trigger, sectionKey, context }: FeedbackDialogP
     });
 
     setSubmitting(false);
-    if (!result.ok) {
+    if (result.ok === false) {
       toast.error(`Failed to submit feedback: ${result.error}`);
       return;
     }
