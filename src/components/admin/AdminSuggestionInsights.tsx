@@ -93,6 +93,21 @@ export default function AdminSuggestionInsights() {
   const totalClicks = rows.length;
   const uniqueSuggestions = aggregated.length;
 
+  // Top-surface breakdown: tutor vs each topic helper vs unknown
+  const surfaceBreakdown = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const r of rows) {
+      const key = r.origin || "unknown";
+      counts.set(key, (counts.get(key) ?? 0) + 1);
+    }
+    const entries = Array.from(counts.entries())
+      .map(([origin, count]) => ({ origin, count, label: surfaceLabel(origin) }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 8);
+    const max = entries[0]?.count ?? 0;
+    return { entries, max };
+  }, [rows]);
+
   const exportCsv = () => {
     const header = ["rank", "suggestion", "count", "last_clicked_at", "surfaces"];
     const lines = [header.join(",")];
@@ -154,6 +169,49 @@ export default function AdminSuggestionInsights() {
             </button>
           ))}
         </div>
+
+        {/* Top surfaces breakdown */}
+        {!loading && surfaceBreakdown.entries.length > 0 && (
+          <div className="mb-5 rounded-xl border border-border/40 bg-muted/20 p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Top surfaces
+              </h4>
+              <span className="text-[10px] text-muted-foreground/70">
+                Where chips are clicked most
+              </span>
+            </div>
+            <div className="space-y-2">
+              {surfaceBreakdown.entries.map(({ origin, count, label }) => {
+                const pct = surfaceBreakdown.max > 0 ? (count / surfaceBreakdown.max) * 100 : 0;
+                const sharePct = totalClicks > 0 ? Math.round((count / totalClicks) * 100) : 0;
+                const isTutor = origin === "ai_tutor";
+                return (
+                  <div key={origin} className="flex items-center gap-3">
+                    <div className="w-32 shrink-0 text-xs text-foreground/80 truncate" title={label}>
+                      {label}
+                    </div>
+                    <div className="flex-1 h-6 rounded-md bg-background/60 border border-border/30 overflow-hidden relative">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${pct}%` }}
+                        transition={{ duration: 0.5, ease: "easeOut" }}
+                        className={`h-full ${
+                          isTutor
+                            ? "bg-gradient-to-r from-secondary/60 to-secondary/30"
+                            : "bg-gradient-to-r from-primary/60 to-primary/30"
+                        }`}
+                      />
+                      <div className="absolute inset-0 flex items-center px-2 text-[10px] font-medium text-foreground/90">
+                        {count} click{count !== 1 && "s"} · {sharePct}%
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* List */}
         {loading ? (
