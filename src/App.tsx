@@ -18,6 +18,7 @@ import AiTutor from "@/pages/AiTutor";
 import Auth from "@/pages/Auth";
 import ResetPassword from "@/pages/ResetPassword";
 import ExamHistory from "@/pages/ExamHistory";
+import Leaderboard from "@/pages/Leaderboard";
 import SpacedRepetition from "@/pages/SpacedRepetition";
 import Theory from "@/pages/Theory";
 import NotFound from "@/pages/NotFound";
@@ -27,6 +28,7 @@ import { ApprovalGate } from "@/components/auth/ApprovalGate";
 import { Header } from "@/components/layout/Header";
 import { ScrollRestoration } from "@/components/layout/ScrollRestoration";
 import { SkipToContent } from "@/components/layout/SkipToContent";
+import { LeaderboardSync } from "@/components/leaderboard/LeaderboardSync";
 
 const queryClient = new QueryClient();
 
@@ -62,6 +64,7 @@ const App = () => {
                       aria-label="Main content"
                     >
                       <ScrollRestoration />
+                      <LeaderboardSync />
                       <ApprovalGate>
                         <Routes>
                           <Route path="/" element={<Home />} />
@@ -69,6 +72,7 @@ const App = () => {
                           <Route path="/reset-password" element={<ResetPassword />} />
                           <Route path="/topic/:slug" element={<TopicPage />} />
                           <Route path="/playground" element={<Playground />} />
+                          <Route path="/leaderboard" element={<Leaderboard />} />
                           <Route path="/question-bank" element={<QuestionBank />} />
                           <Route path="/exam-session/:setId" element={<ProtectedRoute><ExamSession /></ProtectedRoute>} />
                           <Route path="/topic-theory/:slug" element={<TopicTheory />} />

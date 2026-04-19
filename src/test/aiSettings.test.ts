@@ -22,7 +22,9 @@ function loadSettings() {
         routePolicies: parsed.routePolicies || undefined,
       };
     }
-  } catch {}
+  } catch {
+    // no-op
+  }
   return { apiKey: readSessionApiKey(), model: "meta-llama/llama-3.3-70b-instruct:free", provider: "openrouter" };
 }
 

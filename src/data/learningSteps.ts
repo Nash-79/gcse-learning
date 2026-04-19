@@ -40,15 +40,132 @@ export const topicLearningSteps: Record<string, LearningStep[]> = {
     { title: "OCR exam — string manipulation problems", difficulty: "hard", explanation: "OCR exam questions frequently ask you to extract initials, reverse strings, validate passwords, or encrypt text. You need to combine indexing, slicing, iteration, and string methods fluently.", examples: [{ code: `# Extract initials\nfull_name = "John Robert Smith"\nparts = full_name.split()\ninitials = ""\nfor part in parts:\n    initials += part[0]\nprint(initials)  # JRS`, description: "Split into words, take first character of each." }], hints: [".split() breaks a string into a list of words", "Access first char of each word with word[0]", "Build result strings using += concatenation"], interactiveTask: { instruction: "Write a function that reverses each word in a sentence but keeps the word order.", starterCode: `sentence = "Hello World Python"\n\n# Reverse each word: "olleH dlroW nohtyP"\n` } },
   ],
   "data-types-casting": [
-    { title: "The four GCSE data types", difficulty: "beginner", explanation: "For GCSE you must know: String (str) — text in quotes, Integer (int) — whole numbers without decimals, Float (float) — numbers with decimal points, Boolean (bool) — True or False only. Every value in Python has a type, and the type determines what operations you can perform on it.", examples: [{ code: `name = "Alice"     # str\nage = 15           # int\nheight = 1.65      # float\npassed = True      # bool\n\nprint(type(name))    # <class 'str'>`, description: "type() reveals the data type." }], hints: ["Strings MUST be in quotes", "Booleans are True/False with capital T/F", "Any number with a decimal point is a float"], interactiveTask: { instruction: "Create one variable of each type. Print each with its type.", starterCode: `# Create: str, int, float, bool\n` } },
-    { title: "Type casting — int(), float(), str()", difficulty: "intermediate", explanation: "Casting converts between types. int() converts to integer (truncates decimals), float() to decimal, str() to text. This is essential because input() always returns a string. int('hello') crashes with ValueError.", examples: [{ code: `# input always returns a string\nage = input("Age: ")       # "15" (string)\nage = int(input("Age: "))  # 15 (integer)\n\nprint(int(3.9))   # 3 (truncates, doesn't round!)\nprint(float(3))   # 3.0\nprint(str(42))    # "42"`, description: "int() truncates toward zero — it doesn't round." }], hints: ["int() truncates: int(3.9) = 3, int(-3.9) = -3", "Always cast input() before arithmetic", "Use try/except to handle invalid casting"], interactiveTask: { instruction: "Ask for a price (decimal), cast it, calculate 20% VAT, and display the total.", starterCode: `# Get price, calculate VAT, show total\n` } },
+    { title: "The four GCSE data types", difficulty: "beginner", explanation: "For GCSE you must know: String (str) - text in quotes, Integer (int) - whole numbers without decimals, Float (float) - numbers with decimal points, Boolean (bool) - True or False only. Every value in Python has a type, and the type determines what operations you can perform on it.", examples: [{ code: `name = "Alice"     # str
+age = 15           # int
+height = 1.65      # float
+passed = True      # bool
+
+print(type(name))    # <class 'str'>`, description: "type() reveals the data type." }], hints: ["Strings MUST be in quotes", "Booleans are True/False with capital T/F", "Any number with a decimal point is a float"], interactiveTask: { instruction: "Create one variable of each type. Print each with its type.", starterCode: `# Create: str, int, float, bool
+` } },
+    { title: "Type casting - int(), float(), str()", difficulty: "intermediate", explanation: "Casting converts between types. int() converts to integer (truncates decimals), float() to decimal, str() to text. This is essential because input() always returns a string. int('hello') crashes with ValueError.", examples: [{ code: `# input always returns a string
+age = input("Age: ")       # "15" (string)
+age = int(input("Age: "))  # 15 (integer)
+
+print(int(3.9))   # 3 (truncates, doesn't round!)
+print(float(3))   # 3.0
+print(str(42))    # "42"`, description: "int() truncates toward zero - it doesn't round." }], hints: ["int() truncates: int(3.9) = 3, int(-3.9) = -3", "Always cast input() before arithmetic", "Use try/except to handle invalid casting"], interactiveTask: { instruction: "Ask for a price (decimal), cast it, calculate 20% VAT, and display the total.", starterCode: `# Get price, calculate VAT, show total
+` } },
+    { title: "OCR exam patterns - trace mixed-type code", difficulty: "hard", explanation: "In exam questions you need to trace how values and data types change from line to line. Mixed-type code can look simple but gives different outputs depending on whether Python is working with strings, integers, or floats. You must spot when an operation is concatenation, arithmetic, or an invalid cast.", examples: [{ code: `a = "12"
+b = 4
+c = float(a) + b
+d = str(int(c))
+
+print(c)
+print(d + a)`, description: "c becomes 16.0 because float(a) converts the string to a number. d becomes '16', so d + a gives '1612'." }], hints: ["Trace the value AND the data type after each line", "float + int gives a float result", "Converting back to str changes addition into concatenation"], interactiveTask: { instruction: "Predict the output and resulting data type of each variable, then run the code to check.", starterCode: `x = "7"
+y = 2
+z = int(x) * y
+answer = str(z) + x
+print(z)
+print(answer)
+` } },
   ],
   "input-output-casting": [
-    { title: "Getting user input", difficulty: "beginner", explanation: "input() pauses the program and waits for the user to type. It ALWAYS returns a string. To use the input as a number, you must cast it using int() or float(). The text inside input() is the prompt — it tells the user what to type.", examples: [{ code: `name = input("Enter your name: ")\nprint("Hello, " + name + "!")`, description: "input() returns whatever the user types as a string." }], hints: ["input() always returns a string", "Put a space at the end of the prompt for readability", "Cast with int() or float() for numbers"], interactiveTask: { instruction: "Ask for the user's name and birth year, then calculate their age.", starterCode: `# Ask for name and birth year\n# Calculate and display age\n` } },
-    { title: "Formatted output with f-strings", difficulty: "intermediate", explanation: "F-strings (formatted string literals) are the modern way to include variables in text. Start the string with f before the quote, then put variables in curly braces {}. You can also include expressions and formatting inside the braces.", examples: [{ code: `name = "Alice"\nage = 15\nscore = 87.5\n\nprint(f"Name: {name}, Age: {age}")\nprint(f"Score: {score:.1f}%")  # 1 decimal place\nprint(f"Next year: {age + 1}")`, description: "f-strings are cleaner than concatenation with +." }], hints: ["f before the quote: f\"...\"", "{variable} inside the string", ":.1f formats to 1 decimal place, :.2f to 2"], interactiveTask: { instruction: "Create a receipt showing 3 items with prices, formatted to 2 decimal places.", starterCode: `item1 = "Pen"\nprice1 = 1.5\n\n# Display a formatted receipt\n` } },
+    { title: "Getting user input", difficulty: "beginner", explanation: "input() pauses the program and waits for the user to type. It ALWAYS returns a string. To use the input as a number, you must cast it using int() or float(). The text inside input() is the prompt - it tells the user what to type.", examples: [{ code: `name = input("Enter your name: ")
+print("Hello, " + name + "!")`, description: "input() returns whatever the user types as a string." }], hints: ["input() always returns a string", "Put a space at the end of the prompt for readability", "Cast with int() or float() for numbers"], interactiveTask: { instruction: "Ask for the user's name and birth year, then calculate their age.", starterCode: `# Ask for name and birth year
+# Calculate and display age
+` } },
+    { title: "Formatted output with f-strings", difficulty: "intermediate", explanation: "F-strings (formatted string literals) are the modern way to include variables in text. Start the string with f before the quote, then put variables in curly braces {}. You can also include expressions and formatting inside the braces.", examples: [{ code: `name = "Alice"
+age = 15
+score = 87.5
+
+print(f"Name: {name}, Age: {age}")
+print(f"Score: {score:.1f}%")  # 1 decimal place
+print(f"Next year: {age + 1}")`, description: "f-strings are cleaner than concatenation with +." }], hints: ["Put f before the opening quote", "Use {variable} inside the string", ":.1f formats to 1 decimal place, :.2f to 2"], interactiveTask: { instruction: "Create a receipt showing 3 items with prices, formatted to 2 decimal places.", starterCode: `item1 = "Pen"
+price1 = 1.5
+
+# Display a formatted receipt
+` } },
+    { title: "OCR exam patterns - validated input and clean output", difficulty: "hard", explanation: "GCSE questions often combine input, casting, validation, and formatted output in one task. You need to collect data safely, convert it to the correct type, and then present a clear result. These are common exam marks because they test both logic and communication with the user.", examples: [{ code: `score = int(input("Enter a score out of 100: "))
+while score < 0 or score > 100:
+    score = int(input("Enter a valid score out of 100: "))
+
+print(f"Final score: {score}/100")`, description: "The input is cast to int straight away, validated with a while loop, then displayed clearly using an f-string." }], hints: ["Cast the input before comparing it numerically", "Use a while loop for invalid values", "Use an f-string to produce a clean final message"], interactiveTask: { instruction: "Ask for a student's name and three test scores, validate each score is 0 to 100, then print the average to 1 decimal place.", starterCode: `name = input("Student name: ")
+
+# Get three valid scores
+# Print the average using an f-string
+` } },
   ],
   "variables-constants": [
-    { title: "Variables vs constants", difficulty: "beginner", explanation: "A variable is a value that can change during the program. A constant is a value that should NOT change — it's set once and stays the same. In Python, there's no way to enforce constants, so we use UPPERCASE names as a convention to show they shouldn't be changed: PI = 3.14159, VAT_RATE = 0.20.", examples: [{ code: `# Constants — UPPERCASE names\nPI = 3.14159\nVAT_RATE = 0.20\nMAX_ATTEMPTS = 3\n\n# Variables — lowercase names\nradius = 5\nattempts = 0`, description: "UPPERCASE = constant (don't change). lowercase = variable (can change)." }], hints: ["Python doesn't enforce constants — it's just a naming convention", "Use ALL_CAPS for constants", "Constants make code more readable and easier to maintain"], interactiveTask: { instruction: "Define constants for PI and gravity (9.8), then use them to calculate the area of a circle and the weight of a 70kg object.", starterCode: `# Define constants\n\n# Use them in calculations\n` } },
+    { title: "Variables vs constants", difficulty: "beginner", explanation: "A variable stores a value that can change while a program runs. A constant stores a value that should stay the same throughout the program. Python does not enforce constants, so we use UPPER_CASE names like PI or MAX_SCORE to show that the value is intended to stay fixed.", examples: [{ code: `# Constants
+PI = 3.14159
+MAX_SCORE = 100
+
+# Variables
+radius = 5
+current_score = 72
+
+print(PI)
+print(current_score)`, description: "Use lowercase names for normal variables and UPPER_CASE names for values that should not change." }], hints: ["Variables can be updated later", "Constants should be set once and reused", "Python uses naming convention rather than a special const keyword"], interactiveTask: { instruction: "Define constants for PI and gravity (9.8), then use them to calculate the area of a circle and the weight of a 70kg object.", starterCode: `# Define constants
+
+# Use them in calculations
+` } },
+    { title: "Naming variables clearly", difficulty: "beginner", explanation: "Good variable names make code easier to read, debug, and explain in exams. Names should start with a letter or underscore, contain no spaces, and describe what the data stores. student_name is far clearer than x, and total_score is better than t.", examples: [{ code: `student_name = "Aisha"
+year_group = 10
+has_homework = True
+
+print(student_name)
+print(year_group)
+print(has_homework)
+
+# Poor names
+x = "Aisha"
+y = 10`, description: "Descriptive names help you and the examiner understand your logic quickly." }], hints: ["Use underscores instead of spaces", "Avoid names like x or temp unless the meaning is obvious", "Do not start names with numbers"], interactiveTask: { instruction: "Rename the vague variables so the program is easier to understand, then print the final message.", starterCode: `x = "Jordan"
+y = 16
+z = 87
+
+# Replace x, y, z with better names
+print(x + " is " + str(y) + " years old and scored " + str(z))
+` } },
+    { title: "Reassignment and tracing values", difficulty: "intermediate", explanation: "Reassignment means changing the value stored in a variable. Each new assignment replaces the previous value. In GCSE questions you often need to trace how a variable changes step by step, especially when one variable is assigned from another.", examples: [{ code: `lives = 3
+print("Start:", lives)
+
+lives = lives - 1
+print("After hit:", lives)
+
+bonus = lives
+lives = 10
+print("Lives:", lives)
+print("Bonus still:", bonus)`, description: "bonus keeps the value it copied at that moment. Changing lives later does not update bonus." }], hints: ["Work through each line in order when tracing", "x = x + 1 uses the old value of x to calculate the new one", "Copying a value does not create a permanent link between variables"], interactiveTask: { instruction: "Predict the final values of total and saved_score, then run the code to check your trace.", starterCode: `total = 8
+saved_score = total
+total = total + 5
+saved_score = saved_score + 2
+print(total)
+print(saved_score)
+` } },
+    { title: "OCR exam patterns - assignment vs comparison", difficulty: "hard", explanation: "In exam questions, students often confuse assignment (=) with comparison (==), or accidentally overwrite a constant. You need to recognise when code is storing a value and when it is checking whether two values are equal. You should also spot poor practice, such as changing a value that was meant to stay constant.", examples: [{ code: `PASS_MARK = 50
+score = 62
+
+if score == PASS_MARK:
+    print("Exactly on the pass mark")
+
+score = PASS_MARK
+print(score)`, description: "== checks equality inside the if statement. = stores the current pass mark inside score." }, { code: `MAX_ATTEMPTS = 3
+attempts = 1
+attempts = attempts + 1
+
+# Bad practice:
+# MAX_ATTEMPTS = 5`, description: "Changing MAX_ATTEMPTS would not crash Python, but it breaks the constant convention and makes code harder to trust." }], hints: ["Use == inside if statements when you mean 'is equal to'", "Use = only when you mean 'store this value'", "Read each line carefully in trace-table questions"], interactiveTask: { instruction: "Fix the mistakes in this exam-style program so it correctly checks the pass mark without changing the constant.", starterCode: `PASS_MARK = 60
+score = 58
+
+if score = PASS_MARK:
+    print("Exactly on the pass mark")
+
+PASS_MARK = 75
+if score >= PASS_MARK:
+    print("Pass")
+else:
+    print("Keep practising")
+` } },
   ],
   "2d-arrays": [
     { title: "Creating and accessing 2D arrays", difficulty: "beginner", explanation: "A 2D array is a list of lists — like a table with rows and columns. Access elements with two indexes: array[row][column]. Both start at 0, so grid[0][0] is the top-left element.", examples: [{ code: `grid = [\n    [1, 2, 3],\n    [4, 5, 6],\n    [7, 8, 9]\n]\nprint(grid[0][0])  # 1 (first row, first col)\nprint(grid[1][2])  # 6 (second row, third col)`, description: "grid[row][column] — row first, then column." }], hints: ["grid[0] gives the entire first ROW", "grid[0][0] gives the first element of the first row", "Both indexes start at 0"], interactiveTask: { instruction: "Create a 3x3 grid and print the center element.", starterCode: `# Create a 3x3 grid\n\n# Print the center element\n` } },

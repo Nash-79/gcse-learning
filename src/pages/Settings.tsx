@@ -498,7 +498,12 @@ export default function Settings() {
                 className="w-full bg-background border border-border rounded-xl pl-9 pr-9 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all"
               />
               {modelSearch && (
-                <button onClick={() => setModelSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                <button
+                  type="button"
+                  onClick={() => setModelSearch("")}
+                  title="Clear search"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
                   <X className="w-4 h-4" />
                 </button>
               )}
@@ -812,6 +817,7 @@ export default function Settings() {
                         <div>
                           <label className="text-xs font-medium text-muted-foreground mb-1 block">Primary Model</label>
                           <select
+                            aria-label="Primary model"
                             value={primaryModel}
                             onChange={(e) => updateRoutePolicy({ primaryModel: e.target.value })}
                             className="w-full text-xs bg-background border border-border rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary/50"
@@ -829,6 +835,7 @@ export default function Settings() {
                           </label>
                           <select
                             multiple
+                            aria-label="Fallback models"
                             value={fallbacks}
                             onChange={(e) => {
                               const selected = Array.from(e.target.selectedOptions, (o) => o.value);

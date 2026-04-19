@@ -37,7 +37,9 @@ function writeSessionApiKey(apiKey: string) {
     } else {
       sessionStorage.removeItem(SESSION_API_KEY);
     }
-  } catch {}
+  } catch {
+    // no-op
+  }
 }
 
 function loadSettings(): AiSettings {
@@ -61,7 +63,9 @@ function loadSettings(): AiSettings {
         routePolicies: parsed.routePolicies || undefined,
       };
     }
-  } catch {}
+  } catch {
+    // no-op
+  }
   return { apiKey: readSessionApiKey(), model: DEFAULT_MODEL, provider: "openrouter" };
 }
 

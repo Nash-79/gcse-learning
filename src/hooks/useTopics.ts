@@ -105,7 +105,9 @@ function getStoredBoard(): ExamBoard {
   try {
     const stored = localStorage.getItem("pylearn-exam-board");
     if (stored === "ocr" || stored === "aqa" || stored === "all") return stored;
-  } catch {}
+  } catch {
+    // no-op
+  }
   return "ocr";
 }
 

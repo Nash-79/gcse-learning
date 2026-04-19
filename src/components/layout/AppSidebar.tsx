@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import {
   BookOpen, Code2, LayoutDashboard, CheckCircle2, Search, Settings,
   GraduationCap, ChevronDown, FileText, Bot, History, Brain, LogIn,
-  LogOut, Library, ChevronRight,
+  LogOut, Library, ChevronRight, Trophy,
 } from "lucide-react";
 import {
   Sidebar,
@@ -48,7 +48,9 @@ function getStoredCollapsed(): Set<string> {
 function saveCollapsed(set: Set<string>) {
   try {
     localStorage.setItem("pylearn-collapsed-categories", JSON.stringify([...set]));
-  } catch {}
+  } catch {
+    // no-op
+  }
 }
 
 export function AppSidebar() {
@@ -116,6 +118,7 @@ export function AppSidebar() {
 
   const navItems = [
     { to: "/", label: "Dashboard", icon: LayoutDashboard, exact: true },
+    { to: "/leaderboard", label: "Leaderboard", icon: Trophy },
     { to: "/playground", label: "Python Sandbox", icon: Code2, color: "text-secondary" },
     { to: "/theory", label: "Theory Revision", icon: Library, matchPrefix: "/topic-theory/" },
     { to: "/question-bank", label: "Question Bank", icon: FileText },
@@ -150,10 +153,11 @@ export function AppSidebar() {
         {/* Exam Board Selector */}
         <div className="relative px-1">
           <button
+            type="button"
             onClick={() => setBoardOpen((v) => !v)}
             className="w-full flex items-center justify-between gap-2 rounded-lg border border-border bg-muted/30 px-3 py-1.5 text-xs font-medium hover:bg-muted/50 transition-colors"
             aria-expanded={boardOpen}
-            aria-haspopup="listbox"
+            aria-haspopup={true}
             aria-label={`Exam board: ${boardLabels[board]}`}
           >
             <div className="flex items-center gap-2">
@@ -173,6 +177,7 @@ export function AppSidebar() {
             >
               {(["ocr", "aqa", "all"] as ExamBoard[]).map((b) => (
                 <button
+                  type="button"
                   key={b}
                   role="option"
                   aria-selected={board === b}
@@ -188,12 +193,19 @@ export function AppSidebar() {
         </div>
 
         {/* Progress */}
-        <div className="px-1" aria-label={`Progress: ${completedCount} of ${totalCount} topics complete`}>
+        <div className="px-1">
           <div className="flex items-center justify-between text-[10px] text-muted-foreground mb-1 px-0.5">
             <span>{completedCount}/{totalCount} topics</span>
             <span className="text-primary font-bold">{pct}%</span>
           </div>
-          <div className="h-1 rounded-full bg-muted overflow-hidden" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
+          <div
+            className="h-1 rounded-full bg-muted overflow-hidden"
+            role="progressbar"
+            aria-label={`Progress: ${completedCount} of ${totalCount} topics complete`}
+            aria-valuenow={pct}
+            aria-valuemin={0}
+            aria-valuemax={100}
+          >
             <div
               className="h-full bg-gradient-to-r from-primary via-secondary to-accent rounded-full transition-all duration-700"
               style={{ width: `${pct}%` }}

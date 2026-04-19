@@ -276,7 +276,12 @@ export default function AdminLogViewer() {
               className="w-full bg-background border border-border rounded-xl pl-9 pr-9 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
             />
             {search && (
-              <button type="button" onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+              <button
+                type="button"
+                onClick={() => setSearch("")}
+                title="Clear search"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              >
                 <X className="w-4 h-4" />
               </button>
             )}

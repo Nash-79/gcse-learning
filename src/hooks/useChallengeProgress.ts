@@ -12,7 +12,9 @@ function loadChallengeProgress(): ChallengeProgressMap {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) return JSON.parse(stored);
-  } catch {}
+  } catch {
+    // no-op
+  }
   return {};
 }
 

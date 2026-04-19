@@ -22,6 +22,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
+import { LeaderboardCard } from "@/components/leaderboard/LeaderboardCard";
 import { MasteryBadge } from "@/components/rewards/MasteryBadge";
 import { RewardsSummaryCard } from "@/components/rewards/RewardsSummaryCard";
 import { useListTopics, useGetProgress, useExamBoard, type ExamBoard, type Topic } from "@/hooks/useTopics";
@@ -104,7 +105,7 @@ export default function Home() {
         <div className="absolute inset-0 z-0">
           <div className="absolute inset-0 bg-gradient-to-br from-primary/8 via-transparent to-secondary/5" />
           <div className="absolute top-10 left-[16%] w-[500px] h-[500px] bg-primary/8 rounded-full blur-[150px] glow-pulse" />
-          <div className="absolute bottom-0 right-[20%] w-[400px] h-[400px] bg-secondary/8 rounded-full blur-[120px] glow-pulse" style={{ animationDelay: "1.5s" }} />
+          <div className="absolute bottom-0 right-[20%] w-[400px] h-[400px] bg-secondary/8 rounded-full blur-[120px] glow-pulse [animation-delay:1.5s]" />
         </div>
 
         <div className="container relative z-10 px-4 md:px-6 mx-auto max-w-6xl flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
@@ -243,6 +244,15 @@ export default function Home() {
               </Card>
             </>
           )}
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.35 }}
+          className="mb-14"
+        >
+          <LeaderboardCard />
         </motion.div>
 
         <div className="mb-8 flex items-end justify-between gap-4">
