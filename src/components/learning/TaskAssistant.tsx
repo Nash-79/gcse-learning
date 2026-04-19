@@ -152,11 +152,14 @@ export function TaskAssistant({ taskId, taskInstruction, starterCode, currentCod
     void ask(lastAsk.kind, lastAsk.freeform, { bypass: true });
   };
 
-  const submitFreeform = (e: React.FormEvent) => {
+  const submitFreeform = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const q = freeformInput.trim();
     if (!q || loading) return;
-    void ask("freeform", q);
+    // Hold Alt (⌥) while pressing Enter / clicking Send to bypass cache.
+    const native = (e.nativeEvent as unknown) as { altKey?: boolean; submitter?: HTMLElement | null };
+    const bypass = !!native?.altKey || (native?.submitter?.dataset?.bypass === "1");
+    void ask("freeform", q, { bypass });
     setFreeformInput("");
   };
 
