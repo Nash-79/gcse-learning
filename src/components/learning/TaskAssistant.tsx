@@ -332,9 +332,12 @@ export function TaskAssistant({ taskId, taskInstruction, starterCode, currentCod
             content={response}
             meta={responseMeta}
             onSuggestionClick={handleSuggestionClick}
+            onRegenerate={lastAsk ? bypassCacheAndRetry : undefined}
             showHomeLink={false}
             isSuggestionsLoading={loading}
             suggestionOrigin={`task_assistant:${taskId}`}
+            cachedAt={fromCache ? cachedAt : undefined}
+            onBypassCache={fromCache && lastAsk ? bypassCacheAndRetry : undefined}
           />
         )}
       </div>
@@ -344,11 +347,11 @@ export function TaskAssistant({ taskId, taskInstruction, starterCode, currentCod
           type="text"
           value={freeformInput}
           onChange={(e) => setFreeformInput(e.target.value)}
-          placeholder="Ask anything about this task..."
+          placeholder="Ask anything about this task… (hold ⌥/Alt + Enter to skip cache)"
           className="flex-1 text-xs px-3 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-1 focus:ring-primary"
           disabled={loading}
         />
-        <Button type="submit" size="sm" className="h-8 px-3" disabled={loading || !freeformInput.trim()}>
+        <Button type="submit" size="sm" className="h-8 px-3" disabled={loading || !freeformInput.trim()} title="Send (hold Alt to bypass cache)">
           <Send className="w-3.5 h-3.5" />
         </Button>
       </form>
