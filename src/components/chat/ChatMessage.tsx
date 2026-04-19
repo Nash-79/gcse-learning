@@ -106,24 +106,24 @@ function MarkdownRenderer({ content }: { content: string }) {
       prose prose-sm dark:prose-invert max-w-none
       [&>*:first-child]:mt-0 [&>*:last-child]:mb-0
 
-      /* Headings — clear hierarchy with subtle accent */
+      /* Headings — strong, distinct hierarchy */
       prose-headings:font-display prose-headings:tracking-tight prose-headings:font-bold
-      prose-h2:text-[15px] prose-h2:mt-7 prose-h2:mb-3 prose-h2:pb-1.5 prose-h2:border-b prose-h2:border-border/20 prose-h2:text-foreground
-      prose-h3:text-[14px] prose-h3:mt-5 prose-h3:mb-2 prose-h3:text-foreground/90
+      prose-h2:text-[17px] prose-h2:mt-8 prose-h2:mb-3.5 prose-h2:pb-2 prose-h2:border-b prose-h2:border-border/40 prose-h2:text-foreground prose-h2:flex prose-h2:items-center prose-h2:gap-2
+      prose-h3:text-[12px] prose-h3:mt-6 prose-h3:mb-2 prose-h3:uppercase prose-h3:tracking-[0.08em] prose-h3:text-secondary/90 prose-h3:font-semibold
 
       /* Body text — generous line height, comfortable reading */
-      prose-p:text-[13.5px] prose-p:leading-[1.85] prose-p:text-foreground/80 prose-p:mb-4
+      prose-p:text-[14px] prose-p:leading-[1.85] prose-p:text-foreground/85 prose-p:mb-5
       prose-strong:text-foreground prose-strong:font-semibold
 
       /* Lists — clean spacing, subtle markers */
-      prose-li:text-[13.5px] prose-li:leading-[1.8] prose-li:text-foreground/80 prose-li:mb-1.5
-      prose-ul:my-4 prose-ul:space-y-0.5 prose-ol:my-4 prose-ol:space-y-0.5
-      prose-li:marker:text-secondary/50
+      prose-li:text-[14px] prose-li:leading-[1.8] prose-li:text-foreground/85 prose-li:mb-2
+      prose-ul:my-5 prose-ul:space-y-1 prose-ol:my-5 prose-ol:space-y-1
+      prose-li:marker:text-secondary/60
 
       /* Tables */
-      prose-table:text-[12px] prose-table:border prose-table:border-border/30 prose-table:rounded-lg prose-table:overflow-hidden prose-table:my-5
-      prose-th:bg-muted/40 prose-th:px-3 prose-th:py-2.5 prose-th:text-left prose-th:font-semibold prose-th:border-b prose-th:border-border/30 prose-th:text-foreground/80
-      prose-td:px-3 prose-td:py-2 prose-td:border-b prose-td:border-border/15
+      prose-table:text-[12.5px] prose-table:border prose-table:border-border/40 prose-table:rounded-lg prose-table:overflow-hidden prose-table:my-6
+      prose-th:bg-muted/50 prose-th:px-3 prose-th:py-2.5 prose-th:text-left prose-th:font-semibold prose-th:border-b prose-th:border-border/40 prose-th:text-foreground/90
+      prose-td:px-3 prose-td:py-2 prose-td:border-b prose-td:border-border/20
 
       /* Code — handled by CodeBlock component */
       prose-code:before:content-none prose-code:after:content-none
@@ -132,17 +132,17 @@ function MarkdownRenderer({ content }: { content: string }) {
       /* Links */
       prose-a:text-secondary prose-a:no-underline hover:prose-a:underline prose-a:font-medium
 
-      /* Blockquotes — summary callout style */
-      prose-blockquote:border-l-[3px] prose-blockquote:border-l-secondary/40
-      prose-blockquote:bg-secondary/[0.04] prose-blockquote:rounded-r-xl
-      prose-blockquote:py-3 prose-blockquote:px-4 prose-blockquote:my-4
-      prose-blockquote:not-italic
-      prose-blockquote:text-foreground/75 prose-blockquote:text-[13.5px]
-      prose-blockquote:leading-[1.8]
+      /* Blockquotes — summary callout, card-like */
+      prose-blockquote:border-l-[3px] prose-blockquote:border-l-secondary
+      prose-blockquote:bg-secondary/[0.06] prose-blockquote:rounded-r-xl
+      prose-blockquote:py-4 prose-blockquote:px-5 prose-blockquote:my-5
+      prose-blockquote:not-italic prose-blockquote:shadow-sm
+      prose-blockquote:text-foreground/90 prose-blockquote:text-[14.5px]
+      prose-blockquote:leading-[1.7] prose-blockquote:font-medium
       prose-blockquote:[&>p]:mb-0
 
       /* Horizontal rules — breathing room */
-      prose-hr:my-6 prose-hr:border-border/20
+      prose-hr:my-7 prose-hr:border-border/30
     ">
       <ReactMarkdown
         components={{
@@ -158,6 +158,22 @@ function MarkdownRenderer({ content }: { content: string }) {
             );
           },
           pre: ({ children }: any) => <>{children}</>,
+          // Promote inline "**Label:** value" patterns at the start of a paragraph
+          // into a small definition-list style row so subtopics never get squashed.
+          p: ({ children, ...props }: any) => {
+            if (typeof children === "string") {
+              const m = children.match(/^\*\*([^*]+):\*\*\s*(.+)$/s);
+              if (m) {
+                return (
+                  <div className="flex flex-col sm:flex-row gap-1 sm:gap-3 my-3 pl-3 border-l-2 border-secondary/30">
+                    <span className="font-semibold text-foreground text-[13.5px] sm:min-w-[110px]">{m[1]}</span>
+                    <span className="text-foreground/85 text-[13.5px] leading-[1.8]">{m[2]}</span>
+                  </div>
+                );
+              }
+            }
+            return <p {...props}>{children}</p>;
+          },
         }}
       >
         {content}
