@@ -78,11 +78,13 @@ export function TaskAssistant({ taskId, taskInstruction, starterCode, currentCod
     }
   };
 
-  const ask = async (kind: PromptKind, freeform?: string) => {
+  const ask = async (kind: PromptKind, freeform?: string, opts: { bypass?: boolean } = {}) => {
     setActiveKind(kind);
+    setLastAsk({ kind, freeform });
     setLoading(true);
     setError("");
     setFromCache(false);
+    setCachedAt(undefined);
     setResponse("");
     setResponseMeta(undefined);
 
@@ -95,10 +97,12 @@ export function TaskAssistant({ taskId, taskInstruction, starterCode, currentCod
             ? `${taskId}::explain_output::${djb2(lastOutput || "")}::${chatModel}`
             : `${taskId}::${kind}::${chatModel}`;
 
-    const cache = readCache();
-    if (cache[cacheKeyInput]) {
-      setResponse(cache[cacheKeyInput]);
+    const cached = aiCache.get("task-assistant", cacheKeyInput, { bypass: opts.bypass });
+    if (cached) {
+      setResponse(cached.content);
+      setResponseMeta(cached.meta);
       setFromCache(true);
+      setCachedAt(cached.createdAt);
       setLoading(false);
       return;
     }
@@ -119,9 +123,12 @@ export function TaskAssistant({ taskId, taskInstruction, starterCode, currentCod
       const data = await res.json();
       if (!res.ok || data?.error) throw new Error(data?.error || "Request failed");
       const content = data?.content || "No response returned.";
+      const meta = extractMeta(data);
       setResponse(content);
-      setResponseMeta(extractMeta(data));
-      if (data?.content) writeCache(cacheKeyInput, content);
+      setResponseMeta(meta);
+      if (data?.content) {
+        aiCache.set("task-assistant", cacheKeyInput, { content, meta, model: chatModel });
+      }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       void appLog({
@@ -135,6 +142,14 @@ export function TaskAssistant({ taskId, taskInstruction, starterCode, currentCod
     } finally {
       setLoading(false);
     }
+  };
+
+  // Migrate any legacy `pylearn-task-assistant:v1` cache once on mount.
+  useEffect(() => { migrateLegacyCaches(); }, []);
+
+  const bypassCacheAndRetry = () => {
+    if (!lastAsk) return;
+    void ask(lastAsk.kind, lastAsk.freeform, { bypass: true });
   };
 
   const submitFreeform = (e: React.FormEvent) => {
