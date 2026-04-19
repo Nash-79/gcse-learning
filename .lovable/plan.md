@@ -1,70 +1,58 @@
 
 
-## Problem
+## Problem (from screenshot at 1300px viewport)
 
-Looking at the screenshot on `/topic/input-output-casting` "Learn" tab:
+The interactive task area is squeezed into **3 narrow columns** because layouts compound:
+- `TopicPage` content area + `SteppedLearning` sidebar (320px) → leaves ~700px for the task
+- `SteppedLearning` then splits that into `2fr | 1fr` (editor stack | TaskAssistant)
+- Inside the 2fr cell, `CodeRunner` ALSO splits horizontally `3/5 | 2/5` (editor | console)
 
-1. **Wasted left gutter** when the Learning Steps sidebar collapses (or on narrow content), the Code Editor sits in the middle with a huge empty left band.
-2. **Cramped editor** — `CodeRunner` inside `SteppedLearning` is forced into `h-[250px]` and shares a row with a narrow Console (`md:w-1/3`), making real coding awkward.
-3. **No AI assistance** next to the task. Students currently have to leave the editor, open the AI Tutor panel, paste their code, and re-explain the task. There's no reusable "guide me through THIS task" component.
-4. **Inconsistency** — `CodeRunner` is used in three places (`SteppedLearning`, `Playground`, `RunnableCode`) and each looks/sized slightly differently.
+Result: at this width every column is ~250px, "Run Code" overlaps the editor edge, the console is a tiny strip, and the TaskAssistant card looks orphaned. The fixed `h-[420px]` height makes it look like a tall narrow chimney.
 
 ## Solution
 
-Three coordinated changes — all in existing files, no new dependencies.
+Stop forcing horizontal splits at medium widths. Stack thoughtfully and only go side-by-side when there's real room.
 
-### 1. Reusable `<TaskAssistant>` component (new file)
+### 1. `CodeRunner.tsx` — stack editor over console until very wide
 
-`src/components/learning/TaskAssistant.tsx` — small, self-contained side panel built on top of the same `/api/ai-chat` endpoint and the same localStorage cache pattern already used by `QuizComponent` (`pylearn-task-assistant:v1`).
+Change the split breakpoint from `md:flex-row` (768px) to `xl:flex-row` (1280px) AND only when the runner gets enough width via a container query feel (we'll just use xl). Below xl, editor sits on top (full width), console below at a shorter height. This kills the "two skinny panes" problem everywhere.
 
-Props:
-```ts
-{
-  taskId: string;          // stable key for caching ("topic-slug::step-index")
-  taskInstruction: string; // the YOUR TASK text
-  starterCode: string;     // shown to the AI for context
-  currentCode: string;     // live editor contents (so hints reflect their attempt)
-  topicTitle: string;
-}
-```
+Also: remove the duplicate `${height}` on the console div (it currently forces console = editor height even when stacked, which wastes vertical space). Console gets its own sensible `min-h-[160px]` instead.
 
-UI: collapsed by default as a slim "🤖 Need help with this task?" pill. When expanded, shows three one-click prompts that hit the AI:
-- **Explain the task** — plain-English breakdown
-- **Step-by-step plan** — numbered pseudocode, no full solution
-- **Hint on my code** — feeds `currentCode` to AI, returns ONE next-step nudge
+### 2. `SteppedLearning.tsx` — TaskAssistant goes BELOW the editor at this width
 
-Plus a small free-text box for follow-up questions. Responses render with the existing `ChatMessage` styling (markdown + code blocks). Cached per `taskId + prompt-type` so re-opening doesn't re-bill tokens. Strict GCSE-Python system prompt (no f-strings, no try/except, no comprehensions) — reuses the constraint already baked into `ai-chat`.
+Switch the interactive-task grid from `lg:grid-cols-[2fr_1fr]` (kicks in at 1024px and is the main culprit) to `2xl:grid-cols-[minmax(0,1fr)_360px]` (only splits at ≥1536px when there's genuinely room).
 
-### 2. Bigger, consistent code editor inside `SteppedLearning`
+Below 2xl: editor stacks on top full-width, TaskAssistant sits below as a slim horizontal bar (collapsed pill by default — already its default state). When expanded below the editor, it gets full width and looks like a proper panel rather than a cramped sidebar.
 
-In `src/components/learning/SteppedLearning.tsx`:
+Also reduce editor `height` from `h-[420px]` to a responsive `h-[340px] lg:h-[400px]` so it doesn't dominate the page on shorter screens.
 
-- Change the Code Editor section from a single full-width `CodeRunner` to a 2-column grid: **editor + console on the left (2/3), TaskAssistant on the right (1/3)** at `lg:` breakpoint. On mobile they stack.
-- Bump `CodeRunner` height from `h-[250px]` → `h-[420px]` so multi-line answers (the user's "ask name + birth year + age" task needs ~10 lines) breathe.
-- Have `CodeRunner` accept and forward an `onCodeChange` callback (already exists) so `SteppedLearning` can mirror code into `TaskAssistant` for the "Hint on my code" button.
+### 3. `TaskAssistant.tsx` — make collapsed pill horizontal-friendly + expanded panel work full-width
 
-### 3. Consistency pass on `CodeRunner`
+- Collapsed state already a horizontal pill — keep, but ensure it doesn't stretch awkwardly tall (already fine, just verify no `h-full` parent).
+- Expanded state: change preset-buttons grid from `grid-cols-1` to `sm:grid-cols-3` so when it's full-width below the editor, the three actions (Explain / Plan / Hint) sit side-by-side instead of stacked. On narrow viewports they stack.
+- Remove `h-full` from outer container so it sizes to content.
 
-In `src/components/code/CodeRunner.tsx`:
+### 4. Settings — add "Clear cached AI explanations" control
 
-- Make the editor/console split responsive on its own (`md:flex-row` already there). Drop the hard-coded `md:w-1/3` console; use `md:w-2/5` so the console is readable but the editor still dominates.
-- Ensure the editor textarea uses the `height` prop properly for both panes (currently only the textarea uses it; the console card has its own `min-h-[200px]` — align them so they're equal height).
+New small card in `Settings.tsx` (place near AI Provider section) with one button. Wipes both localStorage keys:
+- `pylearn-quiz-ai-explain:v1` (Quick Quiz "Why?")
+- `pylearn-task-assistant:v1` (TaskAssistant)
 
-This means every place `CodeRunner` is used (`SteppedLearning`, `Playground`, `RunnableCode`) gets the same proportions automatically.
+Shows a toast/inline success message + count of entries cleared.
 
 ## Files
 
-- **Create** `src/components/learning/TaskAssistant.tsx` (~180 lines)
-- **Edit** `src/components/learning/SteppedLearning.tsx` — wrap Code Editor in 2-col grid, mount `<TaskAssistant>`, taller editor
-- **Edit** `src/components/code/CodeRunner.tsx` — equal heights, 2/5 console width, forward `onCodeChange` (already there, keep)
-
-No data model changes. No new endpoints. No new deps. Reuses existing `/api/ai-chat`, existing markdown chat rendering, existing localStorage cache pattern.
+- **Edit** `src/components/code/CodeRunner.tsx` — stack until `xl`, drop forced equal-height on console
+- **Edit** `src/components/learning/SteppedLearning.tsx` — `2xl` split only, responsive editor height
+- **Edit** `src/components/learning/TaskAssistant.tsx` — `sm:grid-cols-3` preset buttons, drop `h-full`
+- **Edit** `src/pages/Settings.tsx` — add Clear-Cache card
 
 ## Acceptance
 
-- On `/topic/input-output-casting` → Learn tab → step with `interactiveTask`: editor takes 2/3 width, console is taller, TaskAssistant appears on the right at `lg+` and below the editor on mobile.
-- Clicking "Step-by-step plan" returns a numbered GCSE-Python plan (no full solution).
-- Clicking the same prompt twice on same task = second click is instant + shows "Cached" pill.
-- Same proportions visible in Playground and inline `RunnableCode` blocks across every topic — one source of truth.
-- No regressions to existing code-run reward tracking or step navigation.
+- At 1300px (current viewport): editor is full-width on top with comfortable height; console sits below it at readable width; TaskAssistant collapsed pill sits below console as a single neat row. No overlapping "Run Code" button. No empty left gutter.
+- At ≥1536px (`2xl`): TaskAssistant moves to right column at 360px wide; editor + console still stack inside the left column and look balanced.
+- Below 768px (mobile): same vertical stack, everything readable.
+- Settings page has a new "Cached AI explanations" card with a working Clear button.
+- No new dependencies; no DB / endpoint changes; reused across Playground and `RunnableCode` automatically.
 
