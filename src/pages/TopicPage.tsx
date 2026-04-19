@@ -363,11 +363,7 @@ export default function TopicPage() {
               </div>
             )}
 
-            <div className="prose prose-lg max-w-none">
-              {content.explanation.map((paragraph, index) => (
-                <p key={index} className="text-lg leading-relaxed text-muted-foreground">{paragraph}</p>
-              ))}
-            </div>
+            <TopicNotes paragraphs={content.explanation} />
 
             <div className="grid grid-cols-1 gap-8 mt-10">
               {content.codeExamples.map((example, index) => (
