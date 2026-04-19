@@ -29,6 +29,7 @@ import { CodeRunner } from "@/components/code/CodeRunner";
 import { AiHelper } from "@/components/ai/AiHelper";
 import { CodingChallengePanel } from "@/components/challenges/CodingChallengePanel";
 import { TopicAugmentationPanel } from "@/components/content/TopicAugmentationPanel";
+import { TopicNotes } from "@/components/content/TopicNotes";
 import { SteppedLearning } from "@/components/learning/SteppedLearning";
 import { ExamQuestionBank } from "@/components/quiz/ExamQuestionBank";
 import { QuizComponent } from "@/components/quiz/QuizComponent";
@@ -362,11 +363,7 @@ export default function TopicPage() {
               </div>
             )}
 
-            <div className="prose prose-lg max-w-none">
-              {content.explanation.map((paragraph, index) => (
-                <p key={index} className="text-lg leading-relaxed text-muted-foreground">{paragraph}</p>
-              ))}
-            </div>
+            <TopicNotes paragraphs={content.explanation} />
 
             <div className="grid grid-cols-1 gap-8 mt-10">
               {content.codeExamples.map((example, index) => (
